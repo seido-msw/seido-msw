@@ -1,16 +1,19 @@
-## Hi there 👋
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>制度相談エンジン</title>
+</head>
+<body>
 
-<!--
-**seido-msw/seido-msw** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+<h1>制度相談エンジンβ</h1>
 
-Here are some ideas to get you started:
+<p>GitHub公開テスト成功！</p>
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+<button onclick="alert('動作しています')">
+テストボタン
+</button>
+
+</body>
+</html>
