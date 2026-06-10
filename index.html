@@ -1,19 +1,1289 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>制度相談エンジン</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>制度相談エンジン vNext Ultimate</title>
+
+<style>
+
+body{
+  margin:0;
+  background:#f3f4f6;
+  font-family:sans-serif;
+}
+
+.container{
+  max-width:900px;
+  margin:0 auto;
+  height:100vh;
+  background:white;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  background:#2563eb;
+  color:white;
+  padding:14px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.notice{
+  background:#fef3c7;
+  padding:8px 12px;
+  border-bottom:1px solid #ddd;
+  font-size:12px;
+}
+
+#chat{
+  flex:1;
+  overflow-y:auto;
+  padding:12px;
+  background:#fafafa;
+}
+
+.info-box{
+  background:#eff6ff;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:12px;
+  line-height:1.7;
+  font-size:12px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.message{
+  max-width:92%;
+  padding:10px 12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  line-height:1.7;
+  white-space:pre-wrap;
+}
+
+.bot{
+  background:#e5e7eb;
+}
+
+.user{
+  background:#dbeafe;
+  margin-left:auto;
+}
+
+#choiceButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px;
+  border-top:1px solid #ddd;
+  background:white;
+}
+
+.choice-button{
+  border:none;
+  border-radius:8px;
+  background:#2563eb;
+  color:white;
+  padding:8px 12px;
+  cursor:pointer;
+}
+
+.control-area{
+  display:flex;
+  gap:8px;
+  padding:10px;
+  border-top:1px solid #ddd;
+  background:white;
+}
+
+.control-btn{
+  border:none;
+  border-radius:8px;
+  color:white;
+  padding:10px 14px;
+  cursor:pointer;
+}
+
+.back-btn{
+  background:#6b7280;
+}
+
+.reset-btn{
+  background:#ef4444;
+}
+
+</style>
 </head>
+
 <body>
 
-<h1>制度相談エンジンβ</h1>
+<div class="container">
 
-<p>GitHub公開テスト成功！</p>
+  <div class="header">
+    制度相談エンジン vNext Ultimate
+  </div>
 
-<button onclick="alert('動作しています')">
-テストボタン
-</button>
+  <div class="notice">
+    詳細は医療機関の医療福祉相談員へご相談ください
+  </div>
+
+  <div id="chat">
+
+    <div class="info-box">
+      <div id="infoBox"></div>
+    </div>
+
+  </div>
+
+  <div id="choiceButtons"></div>
+
+  <div class="control-area">
+
+    <button
+      class="control-btn back-btn"
+      onclick="goBack()">
+      戻る
+    </button>
+
+    <button
+      class="control-btn reset-btn"
+      onclick="resetApp()">
+      リセット
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+/* =========================================
+   STATE
+========================================= */
+
+const state = {
+
+  currentScreen:"age",
+
+  user:{
+    age:"",
+    insurance:"",
+    burdenRate:"",
+    limit:"",
+    careLevel:"",
+    mealStage:"",
+    supportSystems:[]
+  },
+
+  history:[],
+  messages:[]
+
+};
+
+/* =========================================
+   SCREEN DEFINITIONS
+========================================= */
+
+const screens = {
+
+  age:{
+    text:"年齢を選択してください。",
+    buttons:[
+      "0〜19歳",
+      "20代",
+      "30代",
+      "40代",
+      "50代",
+      "60代",
+      "70歳〜74歳",
+      "75歳以上"
+    ]
+  },
+
+  insurance:{
+    text:"保険を選択してください。"
+  },
+
+  burdenRate:{
+    text:"負担割合を選択してください。"
+  },
+
+  limit:{
+    text:"限度額区分を選択してください。"
+  },
+
+  careLevel:{
+    text:"介護度を選択してください。",
+    buttons:[
+      "なし",
+      "要支援1",
+      "要支援2",
+      "要介護1",
+      "要介護2",
+      "要介護3",
+      "要介護4",
+      "要介護5"
+    ]
+  },
+
+  mealStage:{
+    text:"食事・居住費負担減額証の区分を選択してください。",
+    buttons:[
+      "第四段階（課税）",
+      "第三段階①",
+      "第三段階②",
+      "第二段階",
+      "第一段階",
+      "なし"
+    ]
+  },
+
+  supportSystems:{
+    text:"現在該当する制度はありますか？",
+    buttons:[
+      "身障者手帳",
+      "精神手帳",
+      "自立支援医療",
+      "県障",
+      "県親",
+      "特定疾病",
+      "難病医療",
+      "肝炎",
+      "小児慢性特定疾病",
+      "なし",
+      "決定"
+    ]
+  },
+
+  mainMenu:{
+    text:"相談内容を選択してください。",
+    buttons:[
+      "高額療養費（入院）",
+      "高額療養費（外来）"
+    ]
+  }
+
+};
+
+/* =========================================
+   HIGH COST DATA
+========================================= */
+
+const HIGH_COST_DATA = {
+
+  outpatient:{
+
+    over70:{
+
+      "現役Ⅲ":{ limit:252600 },
+      "現役Ⅱ":{ limit:167400 },
+      "現役Ⅰ":{ limit:80100 },
+      "一般":{ limit:18000 },
+      "低Ⅱ":{ limit:8000 },
+      "低Ⅰ":{ limit:8000 }
+
+    },
+
+    under70:{
+
+      "ア":{ limit:252600 },
+      "イ":{ limit:167400 },
+      "ウ":{ limit:80100 },
+      "エ":{ limit:57600 },
+      "オ":{ limit:35400 }
+
+    }
+
+  },
+
+  inpatient:{
+
+    over70:{
+
+      "現役Ⅲ":{
+        limit:252600,
+        mealCost:510
+      },
+
+      "現役Ⅱ":{
+        limit:167400,
+        mealCost:510
+      },
+
+      "現役Ⅰ":{
+        limit:80100,
+        mealCost:510
+      },
+
+      "一般":{
+        limit:57600,
+        mealCost:510
+      },
+
+      "低Ⅱ":{
+        limit:24600,
+        mealCost:240
+      },
+
+      "低Ⅰ":{
+        limit:15000,
+        mealCost:110
+      }
+
+    },
+
+    under70:{
+
+      "ア":{
+        limit:252600,
+        mealCost:510
+      },
+
+      "イ":{
+        limit:167400,
+        mealCost:510
+      },
+
+      "ウ":{
+        limit:80100,
+        mealCost:510
+      },
+
+      "エ":{
+        limit:57600,
+        mealCost:510
+      },
+
+      "オ":{
+        limit:35400,
+        mealCost:240
+      }
+
+    }
+
+  }
+
+};
+
+/* =========================================
+   VALIDATORS
+========================================= */
+
+const validators = {
+
+  insuranceButtons(){
+
+    if(state.user.age === "75歳以上"){
+
+      return [
+        "後期高齢者",
+        "協会けんぽ",
+        "共済・組合等",
+        "生活保護"
+      ];
+
+    }
+
+    if([
+      "0〜19歳",
+      "20代",
+      "30代",
+      "40代",
+      "50代"
+    ].includes(state.user.age)){
+
+      return [
+        "国民健康保険",
+        "協会けんぽ",
+        "共済・組合等",
+        "生活保護"
+      ];
+
+    }
+
+    return [
+      "国民健康保険",
+      "協会けんぽ",
+      "共済・組合等",
+      "後期高齢者",
+      "生活保護"
+    ];
+
+  },
+
+  burdenRateButtons(){
+
+    if(state.user.insurance === "生活保護"){
+      return [];
+    }
+
+    if(
+      state.user.age === "75歳以上"
+      &&
+      state.user.insurance === "後期高齢者"
+    ){
+
+      return [
+        "1割",
+        "2割",
+        "3割"
+      ];
+
+    }
+
+    if(
+      [
+        "20代",
+        "30代",
+        "40代",
+        "50代",
+        "60代"
+      ].includes(state.user.age)
+    ){
+
+      return [
+        "3割"
+      ];
+
+    }
+
+    return [
+      "1割",
+      "2割",
+      "3割"
+    ];
+
+  },
+
+  skipBurdenRate(){
+
+    return (
+      state.user.insurance ===
+      "生活保護"
+    );
+
+  },
+
+  isOver70(){
+
+    return (
+      state.user.age === "70歳〜74歳"
+      ||
+      state.user.age === "75歳以上"
+    );
+
+  }
+
+};
+
+/* =========================================
+   TEMPLATE SYSTEM
+========================================= */
+
+const templates = {
+
+  highCost:{
+
+    welfare(){
+
+      return `【高額療養費】
+
+生活保護受給中の方は、
+医療扶助が優先されるため、
+通常の高額療養費制度は
+対象外となります。`;
+
+    },
+
+    outpatient(data){
+
+      return `【高額療養費（外来）】
+
+【外来自己負担上限】
+
+${formatYen(data.limit)}
+
+外来診療にかかった
+自己負担額について、
+月ごとの上限額を超えた場合、
+払い過ぎた分が
+後日還付されます。
+
+病院・薬局等を
+同月内で合算します。`;
+
+    },
+
+    inpatient(data){
+
+      const monthlyMeal =
+        data.mealCost * 3 * 30;
+
+      return `【高額療養費（入院）】
+
+【自己負担限度額】
+
+${formatYen(data.limit)}
+
+入院医療費の
+自己負担額について、
+月ごとの上限額を超えた場合、
+払い過ぎた分が
+後日還付されます。
+
+【入院食事代】
+
+1食
+${formatYen(data.mealCost)}
+
+1日3食 × 30日
+
+＝ ${formatYen(monthlyMeal)}
+
+【高額療養費対象外】
+
+・入院食事代
+・CSセット
+・個室代
+・差額ベッド代`;
+
+    }
+
+  }
+
+};
+
+/* =========================================
+   HIGH COST SERVICE
+========================================= */
+
+const highCostService = {
+
+  getOutpatientData(){
+
+    if(validators.isOver70()){
+
+      return HIGH_COST_DATA
+        .outpatient
+        .over70[
+          state.user.limit
+        ];
+
+    }
+
+    return HIGH_COST_DATA
+      .outpatient
+      .under70[
+        state.user.limit
+      ];
+
+  },
+
+  getInpatientData(){
+
+    if(validators.isOver70()){
+
+      return HIGH_COST_DATA
+        .inpatient
+        .over70[
+          state.user.limit
+        ];
+
+    }
+
+    return HIGH_COST_DATA
+      .inpatient
+      .under70[
+        state.user.limit
+      ];
+
+  }
+
+};
+
+/* =========================================
+   MENU MODULES
+========================================= */
+
+const menuModules = {
+
+  "高額療養費（入院）":()=>{
+    showHighCostInpatient();
+  },
+
+  "高額療養費（外来）":()=>{
+    showHighCostOutpatient();
+  }
+
+};
+
+/* =========================================
+   TRANSITIONS
+========================================= */
+
+const transitions = {
+
+  age:{
+    reducer:(text)=>{
+      state.user.age = text;
+    },
+    next:()=>{
+      return "insurance";
+    }
+  },
+
+  insurance:{
+
+    reducer:(text)=>{
+
+      state.user.insurance = text;
+
+      if(text === "生活保護"){
+
+        state.user.burdenRate = "なし";
+        state.user.limit = "対象外";
+
+      }
+
+    },
+
+    next:()=>{
+
+      if(validators.skipBurdenRate()){
+        return "careLevel";
+      }
+
+      return "burdenRate";
+
+    }
+
+  },
+
+  burdenRate:{
+    reducer:(text)=>{
+      state.user.burdenRate = text;
+    },
+    next:()=>{
+      return "limit";
+    }
+  },
+
+  limit:{
+    reducer:(text)=>{
+      state.user.limit = text;
+    },
+    next:()=>{
+      return "careLevel";
+    }
+  },
+
+  careLevel:{
+
+    reducer:(text)=>{
+
+      state.user.careLevel = text;
+
+      if(text === "なし"){
+        state.user.mealStage = "なし";
+      }
+
+    },
+
+    next:()=>{
+
+      if(state.user.careLevel === "なし"){
+        return "supportSystems";
+      }
+
+      return "mealStage";
+
+    }
+
+  },
+
+  mealStage:{
+
+    reducer:(text)=>{
+      state.user.mealStage = text;
+    },
+
+    next:()=>{
+      return "supportSystems";
+    }
+
+  },
+
+  supportSystems:{
+
+    reducer:(text)=>{
+
+      if(text === "なし"){
+
+        state.user.supportSystems = [];
+
+        releaseInfoBox();
+
+        return;
+
+      }
+
+      if(text === "決定"){
+
+        releaseInfoBox();
+
+        return;
+
+      }
+
+      if(
+        !state.user.supportSystems
+          .includes(text)
+      ){
+
+        state.user.supportSystems
+          .push(text);
+
+      }
+
+    },
+
+    next:(selected)=>{
+
+      if(
+        selected === "決定"
+        ||
+        selected === "なし"
+      ){
+        return "mainMenu";
+      }
+
+      return "supportSystems";
+
+    }
+
+  },
+
+  mainMenu:{
+
+    reducer:(text)=>{
+      executeMenu(text);
+    },
+
+    next:()=>{
+      return "mainMenu";
+    }
+
+  }
+
+};
+
+/* =========================================
+   FORMAT
+========================================= */
+
+function formatYen(num){
+
+  return Number(num)
+    .toLocaleString() + "円";
+
+}
+
+/* =========================================
+   RENDER
+========================================= */
+
+function renderScreen(){
+
+  renderInfoBox();
+
+  const screen =
+    screens[state.currentScreen];
+
+  addBotMessage(screen.text);
+
+  renderButtons();
+
+}
+
+function renderButtons(){
+
+  const area =
+    document.getElementById(
+      "choiceButtons"
+    );
+
+  area.innerHTML = "";
+
+  let buttons = [];
+
+  if(state.currentScreen === "insurance"){
+
+    buttons =
+      validators.insuranceButtons();
+
+  }
+
+  else if(
+    state.currentScreen ===
+    "burdenRate"
+  ){
+
+    buttons =
+      validators.burdenRateButtons();
+
+  }
+
+  else if(
+    state.currentScreen ===
+    "limit"
+  ){
+
+    if(
+      state.user.insurance ===
+      "後期高齢者"
+    ){
+
+      if(
+        state.user.burdenRate ===
+        "3割"
+      ){
+
+        buttons = [
+          "現役Ⅲ",
+          "現役Ⅱ",
+          "現役Ⅰ"
+        ];
+
+      }
+
+      else if(
+        state.user.burdenRate ===
+        "2割"
+      ){
+
+        buttons = [
+          "一般"
+        ];
+
+      }
+
+      else if(
+        state.user.burdenRate ===
+        "1割"
+      ){
+
+        buttons = [
+          "一般",
+          "低Ⅱ",
+          "低Ⅰ"
+        ];
+
+      }
+
+    }
+
+    else if(
+      validators.isOver70()
+    ){
+
+      buttons = [
+        "現役Ⅲ",
+        "現役Ⅱ",
+        "現役Ⅰ",
+        "一般",
+        "低Ⅱ",
+        "低Ⅰ"
+      ];
+
+    }
+
+    else{
+
+      buttons = [
+        "ア",
+        "イ",
+        "ウ",
+        "エ",
+        "オ"
+      ];
+
+    }
+
+  }
+
+  else{
+
+    buttons =
+      screens[
+        state.currentScreen
+      ].buttons || [];
+
+  }
+
+  buttons.forEach(text=>{
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "choice-button";
+
+    button.innerText = text;
+
+    button.onclick =
+      ()=>handleSelect(text);
+
+    area.appendChild(button);
+
+  });
+
+}
+
+/* =========================================
+   INFO BOX
+========================================= */
+
+function renderInfoBox(){
+
+  document.getElementById(
+    "infoBox"
+  ).innerText =
+
+`【基本情報】
+
+年齢：
+${state.user.age || "未入力"}
+
+保険：
+${state.user.insurance || "未入力"}
+
+負担割合：
+${state.user.burdenRate || "未入力"}
+
+限度額：
+${state.user.limit || "未入力"}
+
+介護度：
+${state.user.careLevel || "未入力"}
+
+食事居住費区分：
+${state.user.mealStage || "未入力"}
+
+該当制度：
+${
+  state.user.supportSystems.length
+  ? state.user.supportSystems.join("、")
+  : "未入力"
+}`;
+
+}
+
+/* =========================================
+   MESSAGE
+========================================= */
+
+function addMessage(role,text){
+
+  state.messages.push({
+    role,
+    text
+  });
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "message " + role;
+
+  div.innerText = text;
+
+  document
+    .getElementById("chat")
+    .appendChild(div);
+
+  scrollBottom();
+
+}
+
+function addBotMessage(text){
+  addMessage("bot",text);
+}
+
+function addUserMessage(text){
+  addMessage("user",text);
+}
+
+function scrollBottom(){
+
+  const chat =
+    document.getElementById("chat");
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
+}
+
+/* =========================================
+   HANDLE SELECT
+========================================= */
+
+function handleSelect(text){
+
+  saveHistory();
+
+  addUserMessage(text);
+
+  const transition =
+    transitions[
+      state.currentScreen
+    ];
+
+  if(!transition){
+    return;
+  }
+
+  transition.reducer(text);
+
+  if(
+    state.currentScreen ===
+    "mainMenu"
+  ){
+    return;
+  }
+
+  state.currentScreen =
+    transition.next(text);
+
+  renderScreen();
+
+}
+
+/* =========================================
+   MENU EXECUTION
+========================================= */
+
+function executeMenu(text){
+
+  const module =
+    menuModules[text];
+
+  if(!module){
+    return;
+  }
+
+  module();
+
+}
+
+/* =========================================
+   HIGH COST
+========================================= */
+
+function showHighCostOutpatient(){
+
+  if(
+    validators.skipBurdenRate()
+  ){
+
+    addBotMessage(
+      templates.highCost.welfare()
+    );
+
+    return;
+
+  }
+
+  const data =
+    highCostService
+      .getOutpatientData();
+
+  addBotMessage(
+    templates.highCost
+      .outpatient(data)
+  );
+
+}
+
+function showHighCostInpatient(){
+
+  if(
+    validators.skipBurdenRate()
+  ){
+
+    addBotMessage(
+      templates.highCost.welfare()
+    );
+
+    return;
+
+  }
+
+  const data =
+    highCostService
+      .getInpatientData();
+
+  addBotMessage(
+    templates.highCost
+      .inpatient(data)
+  );
+
+}
+
+/* =========================================
+   HISTORY
+========================================= */
+
+function saveHistory(){
+
+  state.history.push({
+
+    currentScreen:
+      state.currentScreen,
+
+    user:
+      structuredClone(state.user),
+
+    messages:
+      structuredClone(
+        state.messages
+      )
+
+  });
+
+}
+
+function goBack(){
+
+  if(
+    state.history.length === 0
+  ){
+    return;
+  }
+
+  const prev =
+    state.history.pop();
+
+  state.currentScreen =
+    prev.currentScreen;
+
+  state.user =
+    prev.user;
+
+  state.messages =
+    prev.messages;
+
+  rebuildChat();
+
+  renderButtons();
+
+  renderInfoBox();
+
+}
+
+/* =========================================
+   REBUILD
+========================================= */
+
+function rebuildChat(){
+
+  const chat =
+    document.getElementById("chat");
+
+  chat.innerHTML =
+
+`<div class="info-box">
+  <div id="infoBox"></div>
+</div>`;
+
+  state.messages.forEach(msg=>{
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "message " + msg.role;
+
+    div.innerText =
+      msg.text;
+
+    chat.appendChild(div);
+
+  });
+
+}
+
+/* =========================================
+   RESET
+========================================= */
+
+function resetApp(){
+
+  state.currentScreen = "age";
+
+  state.user = {
+
+    age:"",
+    insurance:"",
+    burdenRate:"",
+    limit:"",
+    careLevel:"",
+    mealStage:"",
+    supportSystems:[]
+
+  };
+
+  state.history = [];
+  state.messages = [];
+
+  const chat =
+    document.getElementById("chat");
+
+  chat.innerHTML =
+
+`<div class="info-box">
+  <div id="infoBox"></div>
+</div>`;
+
+  renderScreen();
+
+}
+
+/* =========================================
+   INFO BOX RELEASE
+========================================= */
+
+function releaseInfoBox(){
+
+  const box =
+    document.querySelector(
+      ".info-box"
+    );
+
+  if(!box){
+    return;
+  }
+
+  box.style.position =
+    "relative";
+
+}
+
+/* =========================================
+   START
+========================================= */
+
+window.onload = ()=>{
+
+  renderScreen();
+
+};
+
+</script>
 
 </body>
 </html>
