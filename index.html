@@ -796,23 +796,6 @@ function formatYen(num){
 
 function renderScreen(){
 
-  if(
-    !state.user.age &&
-    !state.user.insurance &&
-    !state.user.burdenRate &&
-    !state.user.limit &&
-    !state.user.careLevel &&
-    !state.user.mealStage &&
-    state.user.supportSystems.length === 0
-  ){
-    document.getElementById("infoBox").innerText = "";
-    return;
-  }
-
-  document.getElementById(
-    "infoBox"
-  ).innerText =
-
   renderInfoBox();
 
   const screen =
@@ -967,6 +950,27 @@ function renderButtons(){
 
 function renderInfoBox(){
 
+  const box =
+    document.querySelector(".info-box");
+
+  const noInput =
+    !state.user.age &&
+    !state.user.insurance &&
+    !state.user.burdenRate &&
+    !state.user.limit &&
+    !state.user.careLevel &&
+    !state.user.mealStage &&
+    state.user.supportSystems.length === 0;
+
+  if(noInput){
+
+    box.style.display = "none";
+    return;
+
+  }
+
+  box.style.display = "block";
+
   document.getElementById(
     "infoBox"
   ).innerText =
@@ -997,7 +1001,6 @@ ${
   ? state.user.supportSystems.join("、")
   : "未入力"
 }`;
-
 }
 
 /* =========================================
