@@ -857,6 +857,7 @@ function renderButtons(){
           "現役Ⅲ",
           "現役Ⅱ",
           "現役Ⅰ"
+          "不明"
         ];
 
       }
@@ -881,6 +882,7 @@ function renderButtons(){
           "一般",
           "低Ⅱ",
           "低Ⅰ"
+          "不明"
         ];
 
       }
@@ -910,6 +912,7 @@ function renderButtons(){
         "ウ",
         "エ",
         "オ"
+        "不明"
       ];
 
     }
@@ -1085,6 +1088,19 @@ function executeMenu(text){
 ========================================= */
 
 function showHighCostOutpatient(){
+  if(state.user.limit === "不明"){
+
+  addBotMessage(`【高額療養費】
+
+限度額区分が不明です。
+
+高額療養費相談から
+年齢・所得・保険証の種類等をもとに
+区分を確認できます。`);
+
+  return;
+
+}
 
   if(
     validators.skipBurdenRate()
@@ -1110,6 +1126,19 @@ function showHighCostOutpatient(){
 }
 
 function showHighCostInpatient(){
+  if(state.user.limit === "不明"){
+
+  addBotMessage(`【高額療養費】
+
+限度額区分が不明です。
+
+高額療養費相談から
+年齢・所得・保険証の種類等をもとに
+区分を確認できます。`);
+
+  return;
+
+}
 
   if(
     validators.skipBurdenRate()
