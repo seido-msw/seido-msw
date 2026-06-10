@@ -129,13 +129,7 @@ body{
     詳細は医療機関の医療福祉相談員へご相談ください
   </div>
 
-  <div id="chat">
-
-    <div class="info-box">
-      <div id="infoBox"></div>
-    </div>
-
-  </div>
+  <div id="chat"></div>
 
   <div id="choiceButtons"></div>
 
@@ -795,8 +789,7 @@ function formatYen(num){
 ========================================= */
 
 function renderScreen(){
-
-  renderInfoBox();
+  
 
   const screen =
     screens[state.currentScreen];
@@ -938,49 +931,7 @@ function renderButtons(){
     button.onclick =
       ()=>handleSelect(text);
 
-    area.appendChild(button);
-
-  });
-
-}
-
-/* =========================================
-   INFO BOX
-========================================= */
-
-function renderInfoBox(){
-
-  document.getElementById(
-    "infoBox"
-  ).innerText =
-
-`【基本情報】
-
-年齢：
-${state.user.age || "未入力"}
-
-保険：
-${state.user.insurance || "未入力"}
-
-負担割合：
-${state.user.burdenRate || "未入力"}
-
-限度額：
-${state.user.limit || "未入力"}
-
-介護度：
-${state.user.careLevel || "未入力"}
-
-食事居住費区分：
-${state.user.mealStage || "未入力"}
-
-該当制度：
-${
-  state.user.supportSystems.length
-  ? state.user.supportSystems.join("、")
-  : "未入力"
-}`;
-}
+    
 /* =========================================
    MESSAGE
 ========================================= */
@@ -1218,11 +1169,7 @@ function rebuildChat(){
   const chat =
     document.getElementById("chat");
 
-  chat.innerHTML =
-
-`<div class="info-box">
-  <div id="infoBox"></div>
-</div>`;
+  chat.innerHTML ="";
 
   state.messages.forEach(msg=>{
 
@@ -1267,11 +1214,7 @@ function resetApp(){
   const chat =
     document.getElementById("chat");
 
-  chat.innerHTML =
-
-`<div class="info-box">
-  <div id="infoBox"></div>
-</div>`;
+  chat.innerHTML ="";
 
   renderScreen();
 
