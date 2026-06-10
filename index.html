@@ -950,27 +950,6 @@ function renderButtons(){
 
 function renderInfoBox(){
 
-  const box =
-    document.querySelector(".info-box");
-
-  const noInput =
-    !state.user.age &&
-    !state.user.insurance &&
-    !state.user.burdenRate &&
-    !state.user.limit &&
-    !state.user.careLevel &&
-    !state.user.mealStage &&
-    state.user.supportSystems.length === 0;
-
-  if(noInput){
-
-    box.style.display = "none";
-    return;
-
-  }
-
-  box.style.display = "block";
-
   document.getElementById(
     "infoBox"
   ).innerText =
@@ -1002,7 +981,6 @@ ${
   : "未入力"
 }`;
 }
-
 /* =========================================
    MESSAGE
 ========================================= */
