@@ -1088,13 +1088,6 @@ function handleSelect(text){
 
   transition.reducer(text);
 
-  if(
-    state.currentScreen ===
-    "mainMenu"
-  ){
-    return;
-  }
-
   state.currentScreen =
     transition.next(text);
 
