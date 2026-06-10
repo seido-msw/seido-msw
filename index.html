@@ -795,6 +795,24 @@ function formatYen(num){
 ========================================= */
 
 function renderScreen(){
+  function renderInfoBox(){
+
+  if(
+    !state.user.age &&
+    !state.user.insurance &&
+    !state.user.burdenRate &&
+    !state.user.limit &&
+    !state.user.careLevel &&
+    !state.user.mealStage &&
+    state.user.supportSystems.length === 0
+  ){
+    document.getElementById("infoBox").innerText = "";
+    return;
+  }
+
+  document.getElementById(
+    "infoBox"
+  ).innerText =
 
   renderInfoBox();
 
