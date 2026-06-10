@@ -656,13 +656,33 @@ const transitions = {
   },
 
   burdenRate:{
-    reducer:(text)=>{
-      state.user.burdenRate = text;
-    },
-    next:()=>{
-      return "limit";
+  reducer:(text)=>{
+
+    state.user.burdenRate = text;
+
+    // 後期高齢者2割は一般固定
+    if(
+      state.user.insurance === "後期高齢者" &&
+      text === "2割"
+    ){
+      state.user.limit = "一般";
     }
+
   },
+
+  next:()=>{
+
+    if(
+      state.user.insurance === "後期高齢者" &&
+      state.user.burdenRate === "2割"
+    ){
+      return "careLevel";
+    }
+
+    return "limit";
+
+  }
+},
 
   limit:{
     reducer:(text)=>{
