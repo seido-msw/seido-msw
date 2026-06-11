@@ -1089,6 +1089,26 @@ function handleSelect(text){
 
   addUserMessage(text);
 
+  const menuScreens = [
+    "medicalMenu",
+    "careMenu",
+    "transferMenu",
+    "disabilityMenu",
+    "dialysisMenu",
+    "rareDiseaseMenu"
+  ];
+
+  if(
+    menuScreens.includes(
+      state.currentScreen
+    )
+  ){
+
+    executeMenu(text);
+    return;
+
+  }
+
   const transition =
     transitions[
       state.currentScreen
