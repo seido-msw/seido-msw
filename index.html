@@ -668,6 +668,11 @@ const highCostService = {
 
 const menuModules = {
 
+  "医療費":()=>{
+    state.currentScreen = "medicalMenu";
+    renderScreen();
+  },
+
   "高額療養費（入院）":()=>{
     showHighCostInpatient();
   },
