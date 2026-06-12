@@ -1025,6 +1025,14 @@ function renderButtons(){
 
     button.innerText = text;
 
+if(text === "なし"){
+  button.style.background = "#6b7280";
+}
+
+if(text === "決定"){
+  button.style.background = "#16a34a";
+}
+
     button.onclick =
       ()=>handleSelect(text);
       area.appendChild(button);
