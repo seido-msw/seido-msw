@@ -159,6 +159,8 @@ body{
 
 const state = {
 
+  currentScreen:"start",
+
 start:{
   text:`現役の急性期病院で働く
 医療福祉相談員（MSW）が作成した
@@ -174,8 +176,6 @@ start:{
     "相談開始"
   ]
 },
-
-  currentScreen:"start",
 
   user:{
     age:"",
@@ -1363,7 +1363,7 @@ function rebuildChat(){
 
 function resetApp(){
 
-  state.currentScreen = "age";
+  state.currentScreen = "start";
 
   state.user = {
 
