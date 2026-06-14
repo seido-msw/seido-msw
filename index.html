@@ -762,17 +762,20 @@ const transitions = {
 
   next:()=>{
 
-    if(
-      state.user.insurance === "後期高齢者" &&
-      state.user.burdenRate === "2割"
-    ){
-      return "careLevel";
-    }
-
-    return "limit";
-
+  if(state.user.burdenRate === "不明"){
+    return "careLevel";
   }
-},
+
+  if(
+    state.user.insurance === "後期高齢者" &&
+    state.user.burdenRate === "2割"
+  ){
+    return "careLevel";
+  }
+
+  return "limit";
+
+}
 
   limit:{
     reducer:(text)=>{
