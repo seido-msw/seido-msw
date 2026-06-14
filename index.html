@@ -707,14 +707,21 @@ const menuModules = {
 
 const transitions = {
 
-  age:{
-  reducer:(text)=>{
-    state.user.age = text;
+  start:{
+    reducer:(text)=>{},
+    next:()=>{
+      return "age";
+    }
   },
-  next:()=>{
-    return "insurance";
-  }
-},
+
+  age:{
+    reducer:(text)=>{
+      state.user.age = text;
+    },
+    next:()=>{
+      return "insurance";
+    }
+  },
 
   insurance:{
 
