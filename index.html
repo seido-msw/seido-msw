@@ -501,6 +501,7 @@ const validators = {
     ){
 
       return [
+        "不明",
         "1割",
         "2割",
         "3割"
@@ -525,6 +526,7 @@ const validators = {
     }
 
     return [
+      "不明",
       "1割",
       "2割",
       "3割"
@@ -706,7 +708,31 @@ const menuModules = {
 const transitions = {
 
 start:{
-  reducer:(text)=>{},
+  reducer:(text)=>{
+
+  state.user.burdenRate = text;
+
+  if(text === "不明"){
+
+    state.user.limit = "不明";
+
+    return;
+
+  }
+
+  if(
+
+    state.user.insurance === "後期高齢者" &&
+
+    text === "2割"
+
+  ){
+
+    state.user.limit = "一般";
+
+  }
+
+},
   next:()=>{
     return "age";
   }
