@@ -746,7 +746,11 @@ const transitions = {
 
     state.user.burdenRate = text;
 
-    // 後期高齢者2割は一般固定
+    if(text === "不明"){
+      state.user.limit = "不明";
+      return;
+    }
+
     if(
       state.user.insurance === "後期高齢者" &&
       text === "2割"
