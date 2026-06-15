@@ -1135,13 +1135,6 @@ function addUserMessage(text){
   addMessage("user",text);
 }
 
-function addQuestionCard(text){
-
-  state.messages.push({
-    role:"question",
-    text
-  });
-  
 function scrollBottom(){
 
   const chat =
@@ -1151,6 +1144,14 @@ function scrollBottom(){
     chat.scrollHeight;
 
 }
+
+function addQuestionCard(text){
+
+  state.messages.push({
+    role:"question",
+    text
+  });
+
   const div =
     document.createElement("div");
 
@@ -1166,7 +1167,6 @@ function scrollBottom(){
   scrollBottom();
 
 }
-
 /* =========================================
    HANDLE SELECT
 ========================================= */
