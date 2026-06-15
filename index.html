@@ -1392,8 +1392,17 @@ function rebuildChat(){
     const div =
       document.createElement("div");
 
-    div.className =
-      "message " + msg.role;
+    if(msg.role === "question"){
+
+      div.className =
+        "question-card";
+
+    }else{
+
+      div.className =
+        "message " + msg.role;
+
+    }
 
     div.innerText =
       msg.text;
