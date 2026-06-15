@@ -1119,7 +1119,7 @@ function addMessage(role,text){
 
   div.innerText = text;
 
-  document
+  document#
     .getElementById("chat")
     .appendChild(div);
 
@@ -1141,7 +1141,16 @@ function addQuestionCard(text){
     role:"question",
     text
   });
+  
+function scrollBottom(){
 
+  const chat =
+    document.getElementById("chat");
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
+}
   const div =
     document.createElement("div");
 
