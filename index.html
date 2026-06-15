@@ -72,6 +72,29 @@ body{
   margin-left:auto;
 }
 
+.bot{
+  background:#e5e7eb;
+}
+
+.user{
+  background:#dbeafe;
+  margin-left:auto;
+}
+
+.question-card{
+  background:#dbeafe;
+  border-left:5px solid #2563eb;
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:12px;
+  font-weight:bold;
+  line-height:1.7;
+}
+
+#choiceButtons{
+  display:flex;
+  flex-wrap:wrap;
+
 #choiceButtons{
   display:flex;
   flex-wrap:wrap;
@@ -924,7 +947,7 @@ function renderScreen(){
   const screen =
     screens[state.currentScreen];
 
-  addBotMessage(screen.text);
+  addQuestionCard(screen.text);
 
   renderButtons();
 
@@ -1110,13 +1133,26 @@ function addUserMessage(text){
   addMessage("user",text);
 }
 
-function scrollBottom(){
+function addQuestionCard(text){
 
-  const chat =
-    document.getElementById("chat");
+  state.messages.push({
+    role:"question",
+    text
+  });
 
-  chat.scrollTop =
-    chat.scrollHeight;
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "question-card";
+
+  div.innerText = text;
+
+  document
+    .getElementById("chat")
+    .appendChild(div);
+
+  scrollBottom();
 
 }
 
