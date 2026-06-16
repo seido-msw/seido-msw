@@ -935,7 +935,6 @@ function formatYen(num){
 ========================================= */
 
 function renderScreen(){
-  
 
   const screen =
     screens[state.currentScreen];
@@ -944,8 +943,9 @@ function renderScreen(){
 
   renderButtons();
 
-}
+  scrollBottom();
 
+}
 function renderButtons(){
 
   const area =
