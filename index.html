@@ -177,15 +177,16 @@ const state = {
 
   currentScreen:"start",
 
-  user:{
-    age:"",
-    insurance:"",
-    burdenRate:"",
-    limit:"",
-    careLevel:"",
-    mealStage:"",
-    supportSystems:[]
-  },
+user:{
+  age:"",
+  insurance:"",
+  burdenRate:"",
+  limit:"",
+  careLevel:"",
+  mealStage:"",
+  supportSystems:[],
+  purpose:""
+},
 
   history:[],
   messages:[]
@@ -213,6 +214,14 @@ const screens = {
     ]
   },
 
+purpose:{
+  text:"利用目的を選択してください。",
+  buttons:[
+    "制度を調べる",
+    "退院後の生活を考える",
+    "在宅生活を考える"
+  ]
+},
   
   age:{
   text:"年齢を選択してください。",
@@ -724,11 +733,35 @@ const menuModules = {
 const transitions = {
 
   start:{
-    reducer:(text)=>{},
-    next:()=>{
+  reducer:(text)=>{},
+  next:()=>{
+    return "purpose";
+  }
+},
+
+purpose:{
+
+  reducer:(text)=>{
+    state.user.purpose = text;
+  },
+
+  next:(text)=>{
+
+    if(text==="制度を調べる"){
       return "age";
     }
-  },
+
+    if(text==="退院後の生活を考える"){
+      return "dischargeHome";
+    }
+
+    if(text==="在宅生活を考える"){
+      return "homeCare";
+    }
+
+  }
+
+},
 
   age:{
     reducer:(text)=>{
