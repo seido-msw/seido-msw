@@ -774,16 +774,16 @@ purpose:{
 
   next:(text)=>{
 
-    if(text==="制度を調べる"){
+    if(text==="入院中の相談"){
+      return "inpatientMenu";
+    }
+
+    if(text==="外来通院中の相談"){
+      return "outpatientMenu";
+    }
+
+    if(text==="制度を知りたい"){
       return "age";
-    }
-
-    if(text==="退院後の生活を考える"){
-      return "dischargeHome";
-    }
-
-    if(text==="在宅生活を考える"){
-      return "homeCare";
     }
 
   }
