@@ -1229,6 +1229,12 @@ function scrollBottom(){
 
 function addQuestionCard(text){
 
+  document
+    .querySelectorAll(".question-card")
+    .forEach(card=>{
+      card.classList.remove("latest");
+    });
+
   state.messages.push({
     role:"question",
     text
@@ -1238,7 +1244,7 @@ function addQuestionCard(text){
     document.createElement("div");
 
   div.className =
-    "question-card";
+    "question-card latest";
 
   div.innerText = text;
 
