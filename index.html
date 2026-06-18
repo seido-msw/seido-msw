@@ -1452,9 +1452,7 @@ function saveHistory(){
 
 function goBack(){
 
-  if(
-    state.history.length === 0
-  ){
+  if(state.history.length === 0){
     return;
   }
 
@@ -1474,9 +1472,9 @@ function goBack(){
 
   renderButtons();
 
+  scrollBottom();
 
 }
-
 /* =========================================
    REBUILD
 ========================================= */
