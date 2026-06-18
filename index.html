@@ -1489,35 +1489,37 @@ function rebuildChat(){
   chat.innerHTML ="";
 
   const lastQuestionIndex =
-  [...state.messages]
-  .map((m,i)=> m.role==="question" ? i : -1)
-  .filter(i=>i!==-1)
-  .pop();
+    [...state.messages]
+      .map((m,i)=> m.role==="question" ? i : -1)
+      .filter(i=>i!==-1)
+      .pop();
 
-state.messages.forEach((msg,i)=>{
+  state.messages.forEach((msg,i)=>{
 
-  const div =
-    document.createElement("div");
+    const div =
+      document.createElement("div");
 
-  if(msg.role==="question"){
+    if(msg.role==="question"){
 
-    div.className =
-      i===lastQuestionIndex
-      ? "question-card latest"
-      : "question-card";
+      div.className =
+        i===lastQuestionIndex
+          ? "question-card latest"
+          : "question-card";
 
-  }else{
+    }else{
 
-    div.className =
-      "message " + msg.role;
+      div.className =
+        "message " + msg.role;
 
-  }
+    }
 
-  div.innerText = msg.text;
+    div.innerText = msg.text;
 
-  chat.appendChild(div);
+    chat.appendChild(div);
 
-});
+  });
+
+}
 
 /* =========================================
    RESET
