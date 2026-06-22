@@ -830,7 +830,36 @@ const menuModules = {
 
   "高額療養費（外来）":()=>{
     showHighCostOutpatient();
-  }
+  },
+  "退院後について":()=>{
+  state.currentScreen = "dischargeMenu";
+  renderScreen();
+},
+
+"転院について":()=>{
+  state.currentScreen = "transferInpatientMenu";
+  renderScreen();
+},
+
+"施設について":()=>{
+  state.currentScreen = "facilityMenu";
+  renderScreen();
+},
+
+"介護保険について":()=>{
+  state.currentScreen = "careInpatientMenu";
+  renderScreen();
+},
+
+"障害福祉制度について":()=>{
+  state.currentScreen = "disabilityInpatientMenu";
+  renderScreen();
+},
+
+"医療費について":()=>{
+  state.currentScreen = "medicalMenu";
+  renderScreen();
+}
 
 };
 
