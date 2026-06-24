@@ -1122,26 +1122,21 @@ purpose:{
 
   },
 
-  mainMenu:{
+mainMenu:{
 
-  reducer:(text)=>{},
+reducer:(text)=>{},
 
-  next:(text)=>{
+next:(text)=>{
 
-    if(text==="医療費") return "medicalMenu";
-    if(text==="介護保険") return "careMenu";
-    if(text==="転院・施設") return "transferMenu";
-    if(text==="身障者手帳") return "disabilityMenu";
-    if(text==="透析") return "dialysisMenu";
-    if(text==="難病") return "rareDiseaseMenu";
-
-    return "mainMenu";
-
-  }
+if(text==="医療費") return "medicalMenu";
+if(text==="介護保険") return "careMenu";
+if(text==="退院・生活") return "lifeMenu";
+if(text==="障害福祉") return "welfareMenu";
+return "mainMenu";
 
 }
 
-};
+}
 
 /* =========================================
    FORMAT
