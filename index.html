@@ -43,7 +43,7 @@ body{
   flex:1;
   overflow-y:auto;
   padding:12px;
-  padding-bottom:10px;
+  padding-bottom:80px;
   background:#fafafa;
 }
 
@@ -143,19 +143,31 @@ padding:10px;
 }
 
 .control-area{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+
   display:flex;
+  flex-direction:column;
   gap:8px;
-  padding:10px;
-  border-top:1px solid #ddd;
-  background:white;
+
+  z-index:1000;
 }
 
 .control-btn{
+  width:54px;
+  height:54px;
+
   border:none;
-  border-radius:8px;
+  border-radius:50%;
+
   color:white;
-  padding:10px 14px;
+  font-size:11px;
+  font-weight:bold;
+
   cursor:pointer;
+
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
 }
 
 .back-btn{
