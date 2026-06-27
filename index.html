@@ -873,30 +873,58 @@ const highCostService = {
 
 const menuModules = {
 
-"退院後の生活が心配":()=>{
-  state.currentScreen="dischargeMenu";
-  renderScreen();
-},
+  /* 入院中 */
 
-"医療費・お金が心配":()=>{
-  state.currentScreen="medicalMenu";
-  renderScreen();
-},
+  "退院後の生活が心配":()=>{
+    state.currentScreen = "dischargeMenu";
+    renderScreen();
+  },
 
-"転院と言われた":()=>{
-  state.currentScreen="transferInpatientMenu";
-  renderScreen();
-},
+  "医療費・お金が心配":()=>{
+    state.currentScreen = "medicalMenu";
+    renderScreen();
+  },
 
-"施設を探したい":()=>{
-  state.currentScreen="facilityMenu";
-  renderScreen();
-},
+  "転院と言われた":()=>{
+    state.currentScreen = "transferInpatientMenu";
+    renderScreen();
+  },
 
-"障害・難病の制度を知りたい":()=>{
-  state.currentScreen="disabilityInpatientMenu";
-  renderScreen();
-},
+  "施設を探したい":()=>{
+    state.currentScreen = "facilityMenu";
+    renderScreen();
+  },
+
+  "障害・難病の制度を知りたい":()=>{
+    state.currentScreen = "disabilityInpatientMenu";
+    renderScreen();
+  },
+
+
+
+  /* メイン */
+
+  "医療費":()=>{
+    state.currentScreen="medicalMenu";
+    renderScreen();
+  },
+
+  "介護保険":()=>{
+    state.currentScreen="careMenu";
+    renderScreen();
+  },
+
+  "退院・生活":()=>{
+    state.currentScreen="lifeMenu";
+    renderScreen();
+  },
+
+  "障害福祉":()=>{
+    state.currentScreen="welfareMenu";
+    renderScreen();
+  }
+
+};
 
 /* =========================================
    TRANSITIONS
@@ -914,16 +942,16 @@ const transitions = {
 purpose:{
 
   reducer:(text)=>{
-    state.user.purpose = text;
+    state.user.purpose=text;
   },
 
   next:(text)=>{
 
-    if(text==="入院中の相談"){
+    if(text==="入院中"){
       return "inpatientMenu";
     }
 
-    if(text==="外来通院中の相談"){
+    if(text==="外来通院中"){
       return "outpatientMenu";
     }
 
