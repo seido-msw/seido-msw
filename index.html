@@ -873,64 +873,30 @@ const highCostService = {
 
 const menuModules = {
 
-  "医療費":()=>{
-    state.currentScreen = "medicalMenu";
-    renderScreen();
-  },
-
-  "高額療養費（入院）":()=>{
-    showHighCostInpatient();
-  },
-
-  "高額療養費（外来）":()=>{
-    showHighCostOutpatient();
-  },
-  "退院後について":()=>{
-  state.currentScreen = "dischargeMenu";
+"退院後の生活が心配":()=>{
+  state.currentScreen="dischargeMenu";
   renderScreen();
 },
 
-"転院について":()=>{
-  state.currentScreen = "transferInpatientMenu";
+"医療費・お金が心配":()=>{
+  state.currentScreen="medicalMenu";
   renderScreen();
 },
 
-"施設について":()=>{
-  state.currentScreen = "facilityMenu";
+"転院と言われた":()=>{
+  state.currentScreen="transferInpatientMenu";
   renderScreen();
 },
 
-"介護保険について":()=>{
-  state.currentScreen = "careInpatientMenu";
+"施設を探したい":()=>{
+  state.currentScreen="facilityMenu";
   renderScreen();
 },
 
-"障害福祉制度について":()=>{
-  state.currentScreen = "disabilityInpatientMenu";
+"障害・難病の制度を知りたい":()=>{
+  state.currentScreen="disabilityInpatientMenu";
   renderScreen();
 },
-
-"医療費について":()=>{
-  state.currentScreen = "medicalMenu";
-  renderScreen();
-},
-
-
-"退院・生活":()=>{
-state.currentScreen = "lifeMenu";
-renderScreen();
-},
-
-"障害福祉":()=>{
-state.currentScreen = "welfareMenu";
-renderScreen();
-},
-
-"公費医療":()=>{
-state.currentScreen = "publicMedicalMenu";
-renderScreen();
-},
-};
 
 /* =========================================
    TRANSITIONS
