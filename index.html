@@ -1460,7 +1460,13 @@ function addMessage(role,text){
     .getElementById("chat")
     .appendChild(div);
 
-  scrollBottom();
+  // ここを変更
+  setTimeout(()=>{
+    div.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+  },50);
 
 }
 
@@ -1511,7 +1517,23 @@ function addQuestionCard(text){
     .getElementById("chat")
     .appendChild(div);
 
-  scrollBottom();
+  document
+
+  .getElementById("chat")
+
+  .appendChild(div);
+
+setTimeout(()=>{
+
+  div.scrollIntoView({
+
+    behavior:"smooth",
+
+    block:"start"
+
+  });
+
+},50);
 
 }
 /* =========================================
