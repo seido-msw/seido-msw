@@ -898,8 +898,13 @@ const menuModules = {
     renderScreen();
   },
 
-  "転院と言われた":()=>{
+"転院と言われた":()=>{
     state.currentScreen = "transferReasonMenu";
+    renderScreen();
+},
+
+"リハビリが必要と言われた":()=>{
+    state.currentScreen = "transferRehabMenu";
     renderScreen();
 },
 
