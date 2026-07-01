@@ -917,6 +917,11 @@ const menuModules = {
     renderScreen();
 },
 
+"長く入院できないと言われた":()=>{
+    state.currentScreen="longStayMenu";
+    renderScreen();
+},
+
   "施設を探したい":()=>{
     state.currentScreen = "facilityMenu";
     renderScreen();
