@@ -406,6 +406,53 @@ homeCare:{
   ]
 },
   
+  medicalConcernMenu:{
+  text:"医療費・お金について選択してください。",
+  buttons:[
+    "入院費がいくらかかるか知りたい",
+    "医療費が支払えない",
+    "傷病手当金",
+    "医療費助成制度",
+    "MSWへ相談したい"
+  ]
+},
+
+medicalCostMenu:{
+  text:"知りたい内容を選択してください。",
+  buttons:[
+    "医療費の計算例",
+    "高額療養費とは？",
+    "限度額適用認定証とは？",
+    "食事代",
+    "個室代（差額ベッド代）",
+    "CSセット"
+  ]
+},
+
+paymentProblemMenu:{
+  text:"支払いが難しい理由を選択してください。",
+  buttons:[
+    "収入が少なく支払えない",
+    "仕事を休んで収入がない",
+    "借金・生活費が多く支払えない",
+    "分割払いの相談がしたい",
+    "医療費助成制度を知りたい",
+    "MSWへ相談したい"
+  ]
+},
+
+medicalAidMenu:{
+  text:"知りたい制度を選択してください。",
+  buttons:[
+    "自立支援医療",
+    "特定疾病",
+    "指定難病",
+    "重度心身障害者医療",
+    "子ども医療",
+    "その他の公費制度"
+  ]
+},
+  
   age:{
   text:"年齢を選択してください。",
   buttons:[
@@ -929,6 +976,64 @@ const menuModules = {
     state.currentScreen = "medicalMenu";
     renderScreen();
   },
+
+"入院費がいくらかかるか知りたい":()=>{
+    state.currentScreen="medicalCostMenu";
+    renderScreen();
+},
+
+"医療費が支払えない":()=>{
+    state.currentScreen="paymentProblemMenu";
+    renderScreen();
+},
+
+"医療費助成制度":()=>{
+    state.currentScreen="medicalAidMenu";
+    renderScreen();
+},
+
+"医療費助成制度を知りたい":()=>{
+    state.currentScreen="medicalAidMenu";
+    renderScreen();
+},
+
+"医療費の計算例":()=>{
+
+    state.currentScreen="age";
+    renderScreen();
+
+},
+
+"高額療養費とは？":()=>{
+
+if(state.user.purpose==="入院中"){
+
+    showHighCostInpatient();
+
+}else{
+
+    showHighCostOutpatient();
+
+}
+
+},
+
+"限度額適用認定証とは？":()=>{
+
+addBotMessage(`【限度額適用認定証】
+
+限度額適用認定証とは、
+
+高額療養費制度の自己負担限度額までの支払いで済むようにする制度です。
+
+現在はマイナ保険証を利用することで、
+多くの医療機関では認定証がなくても
+限度額が適用されます。
+
+マイナ保険証を利用しない場合は、
+加入している保険者へ申請します。`);
+
+},
 
 "転院と言われた":()=>{
     state.currentScreen = "transferReasonMenu";
