@@ -2127,15 +2127,23 @@ function addUserMessage(text){
 
 function scrollBottom(){
 
-  setTimeout(()=>{
+  const chat = document.getElementById("chat");
 
-    const chat =
-      document.getElementById("chat");
+  requestAnimationFrame(()=>{
 
-    chat.scrollTop =
-      chat.scrollHeight;
+    chat.scrollTo({
+      top: chat.scrollHeight,
+      behavior: "smooth"
+    });
 
-  },50);
+    setTimeout(()=>{
+      chat.scrollTo({
+        top: chat.scrollHeight,
+        behavior: "smooth"
+      });
+    },150);
+
+  });
 
 }
 
