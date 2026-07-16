@@ -1931,6 +1931,18 @@ function renderScreen(){
 
   renderButtons();
 
+  // ボタン生成後に最新の質問までスクロール
+  setTimeout(()=>{
+
+    document
+      .querySelector(".question-card.latest")
+      ?.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+
+  },50);
+
 }
 function renderButtons(){
 
@@ -2102,13 +2114,6 @@ function addMessage(role,text){
     .getElementById("chat")
     .appendChild(div);
 
-  // ここを変更
-  setTimeout(()=>{
-    div.scrollIntoView({
-      behavior:"smooth",
-      block:"start"
-    });
-  },50);
 
 }
 
