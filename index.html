@@ -1930,14 +1930,17 @@ function renderScreen(){
 
   renderButtons();
 
-  requestAnimationFrame(()=>{
+  requestAnimationFrame(() => {
 
-    document
-      .querySelector(".question-card.latest")
-      ?.scrollIntoView({
-        behavior:"smooth",
-        block:"start"
-      });
+    const chat = document.getElementById("chat");
+    const latest = document.querySelector(".question-card.latest");
+
+    if (!latest) return;
+
+    chat.scrollTo({
+      top: latest.offsetTop - 12,
+      behavior: "smooth"
+    });
 
   });
 
