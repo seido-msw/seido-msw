@@ -1924,15 +1924,13 @@ function formatYen(num){
 
 function renderScreen(){
 
-  const screen =
-    screens[state.currentScreen];
+  const screen = screens[state.currentScreen];
 
   addQuestionCard(screen.text);
 
   renderButtons();
 
-  // ボタン生成後に最新の質問までスクロール
-  setTimeout(()=>{
+  requestAnimationFrame(()=>{
 
     document
       .querySelector(".question-card.latest")
@@ -1941,7 +1939,7 @@ function renderScreen(){
         block:"start"
       });
 
-  },50);
+  });
 
 }
 function renderButtons(){
@@ -2114,7 +2112,6 @@ function addMessage(role,text){
     .getElementById("chat")
     .appendChild(div);
 
-scrollBottom();
 }
 
 function addBotMessage(text){
@@ -2123,28 +2120,6 @@ function addBotMessage(text){
 
 function addUserMessage(text){
   addMessage("user",text);
-}
-
-function scrollBottom(){
-
-  const chat = document.getElementById("chat");
-
-  requestAnimationFrame(()=>{
-
-    chat.scrollTo({
-      top: chat.scrollHeight,
-      behavior: "smooth"
-    });
-
-    setTimeout(()=>{
-      chat.scrollTo({
-        top: chat.scrollHeight,
-        behavior: "smooth"
-      });
-    },150);
-
-  });
-
 }
 
 function addQuestionCard(text){
@@ -2171,8 +2146,6 @@ function addQuestionCard(text){
   document
     .getElementById("chat")
     .appendChild(div);
-
-scrollBottom();
 
 }
 /* =========================================
@@ -2409,8 +2382,6 @@ function goBack(){
   rebuildChat();
 
   renderButtons();
-
-  scrollBottom();
 
 }
 /* =========================================
