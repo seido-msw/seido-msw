@@ -1930,19 +1930,18 @@ function renderScreen(){
 
   renderButtons();
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
 
-    const chat = document.getElementById("chat");
     const latest = document.querySelector(".question-card.latest");
 
-    if (!latest) return;
+    if (latest) {
+      latest.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
 
-    chat.scrollTo({
-      top: latest.offsetTop - 12,
-      behavior: "smooth"
-    });
-
-  });
+  }, 50);
 
 }
 function renderButtons(){
