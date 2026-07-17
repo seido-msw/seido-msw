@@ -1938,21 +1938,21 @@ function renderScreen(){
 
   renderButtons();
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
 
     const chat = document.getElementById("chat");
+
+    // 一番下まで移動
+    chat.scrollTop = chat.scrollHeight;
+
+    // 最新の質問の位置へ戻す
     const latest = document.querySelector(".question-card.latest");
 
-    if(latest){
-
-      chat.scrollTo({
-        top: latest.offsetTop - 10,
-        behavior: "smooth"
-      });
-
+    if (latest) {
+      chat.scrollTop = latest.offsetTop - 10;
     }
 
-  },50);
+  });
 
 }
 function renderButtons(){
