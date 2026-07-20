@@ -252,6 +252,7 @@ const screens = {
 text:`制度ナビは、現役医療ソーシャルワーカー(MSW)が作成している相談チャットです。
 
 
+
 ※制度の利用条件は人によって異なります。
 最終的な確認は医療機関や市区町村へご相談ください。`,
     buttons:[
@@ -1937,17 +1938,15 @@ function renderScreen(){
 
   requestAnimationFrame(() => {
 
-    const chat = document.getElementById("chat");
-
-    // 一番下まで移動
-    chat.scrollTop = chat.scrollHeight;
-
-    // 最新の質問の位置へ戻す
     const latest = document.querySelector(".question-card.latest");
 
-    if (latest) {
-      chat.scrollTop = latest.offsetTop - 10;
-    }
+    if (!latest) return;
+
+    const chat = document.getElementById("chat");
+
+    // チャット内での位置
+    chat.scrollTop =
+      latest.offsetTop - 10;
 
   });
 
