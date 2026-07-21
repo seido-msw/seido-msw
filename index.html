@@ -2121,10 +2121,22 @@ function addMessage(role,text){
     .getElementById("chat")
     .appendChild(div);
 
+  return div;
+
 }
 
 function addBotMessage(text){
-  addMessage("bot",text);
+
+  const div = addMessage("bot",text);
+
+  requestAnimationFrame(() => {
+
+    const chat = document.getElementById("chat");
+
+    chat.scrollTop = div.offsetTop - 10;
+
+  });
+
 }
 
 function addUserMessage(text){
