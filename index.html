@@ -2506,11 +2506,29 @@ function releaseInfoBox(){
    START
 ========================================= */
 
+function ensureScrollRoom(){
+
+  const chat =
+    document.getElementById("chat");
+
+  chat.style.paddingBottom =
+    chat.clientHeight + "px";
+
+}
+
+window.addEventListener(
+  "resize",
+  ensureScrollRoom
+);
+
 window.onload = ()=>{
+
+  ensureScrollRoom();
 
   renderScreen();
 
 };
+
 
 </script>
 
