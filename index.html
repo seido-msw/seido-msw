@@ -1014,15 +1014,27 @@ const menuModules = {
 
 "高額療養費とは？":()=>{
 
-if(state.user.purpose==="入院中"){
+let text=`【高額療養費制度】
 
-    showHighCostInpatient();
+医療費が高額になった場合でも、
+1か月の自己負担額には
+上限があります。
 
-}else{
+年齢や所得によって
+上限額は異なります。
 
-    showHighCostOutpatient();
+その上限を超えた分は、
+後日払い戻される、
+または窓口での支払いが
+上限額までとなります。
 
-}
+あなたの場合の
+自己負担額を計算してみますか？`;
+
+addBotMessage(text);
+
+state.currentScreen="medicalCostCalculator";
+renderButtons();
 
 },
 
