@@ -461,6 +461,14 @@ medicalAidMenu:{
   ]
 },
   
+  medicalCostCalculator:{
+    text:"次へ進みますか？",
+    buttons:[
+        "自己負担額を計算する",
+        "戻る"
+    ]
+},
+  
   age:{
   text:"年齢を選択してください。",
   buttons:[
@@ -1059,6 +1067,13 @@ addBotMessage(`【限度額適用認定証】
 
 state.currentScreen="medicalCostCalculator";
 renderButtons();
+
+},
+
+"自己負担額を計算する":()=>{
+
+    state.currentScreen="age";
+    renderScreen();
 
 },
 
