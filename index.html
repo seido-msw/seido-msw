@@ -414,28 +414,39 @@ homeCare:{
   ]
 },
   
-  medicalConcernMenu:{
+medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
   buttons:[
-    "入院費がいくらかかるか知りたい",
-    "医療費が支払えない",
+    "自己負担額を計算する",
+    "支払いが難しい",
+    "医療費制度について知りたい"
+  ]
+},
+
+medicalSystemMenu:{
+  text:"知りたい制度を選択してください。",
+  buttons:[
+    "高額療養費",
+    "限度額適用認定証",
+    "公費負担医療",
     "傷病手当金",
-    "医療費助成制度",
     "MSWへ相談したい"
   ]
 },
 
-medicalCostMenu:{
-  text:"知りたい内容を選択してください。",
+medicalCostResultMenu:{
+  text:`自己負担額が確認できました。
+
+次に知りたい内容を
+選択してください。`,
   buttons:[
-    "医療費の計算例",
-    "高額療養費とは？",
-    "限度額適用認定証とは？",
-    "食事代",
-    "個室代（差額ベッド代）",
-    "CSセット"
+    "支払いが難しい",
+    "医療費制度について知りたい",
+    "MSWへ相談したい"
   ]
 },
+
+
 
 paymentProblemMenu:{
   text:"支払いが難しい理由を選択してください。",
@@ -994,14 +1005,29 @@ const menuModules = {
     renderScreen();
 },
 
-"入院費がいくらかかるか知りたい":()=>{
-    state.currentScreen="medicalCostMenu";
-    renderScreen();
-},
-
 "医療費が支払えない":()=>{
     state.currentScreen="paymentProblemMenu";
     renderScreen();
+},
+"自己負担額を計算する":()=>{
+
+    state.currentScreen="age";
+    renderScreen();
+
+},
+
+"支払いが難しい":()=>{
+
+    state.currentScreen="paymentProblemMenu";
+    renderScreen();
+
+},
+
+"医療費制度について知りたい":()=>{
+
+    state.currentScreen="medicalSystemMenu";
+    renderScreen();
+
 },
 
 "医療費助成制度":()=>{
@@ -1021,7 +1047,7 @@ const menuModules = {
 
 },
 
-"高額療養費とは？":()=>{
+"高額療養費":()=>{
 
 let text=`【高額療養費制度】
 
@@ -1047,7 +1073,7 @@ renderButtons();
 
 },
 
-"限度額適用認定証とは？":()=>{
+"限度額適用認定証":()=>{
 
 addBotMessage(`【限度額適用認定証】
 
@@ -2281,10 +2307,11 @@ const menuScreens = [
   
 "medicalMenu",
 "medicalConcernMenu",
-"medicalCostMenu",
   "medicalCostCalculator",   // ←追加
 "paymentProblemMenu",
 "medicalAidMenu",
+"medicalSystemMenu",
+"medicalCostResultMenu",
 
   "disabilityMenu",
   "dialysisMenu",
