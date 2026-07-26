@@ -471,6 +471,94 @@ medicalAidMenu:{
   ]
 },
   
+  medicalAidMenu:{
+  text:"医療費を軽くする制度を選択してください。",
+  buttons:[
+    "自分に使える制度を知りたい",
+    "自立支援医療",
+    "指定難病",
+    "人工透析など（特定疾病）",
+    "肝炎医療費助成",
+    "小児慢性特定疾病",
+    "子どもの医療費助成",
+    "障害のある方の医療費助成"
+  ]
+},
+
+medicalAidQ1:{
+  text:`心の病気やてんかんで、
+継続して精神科へ通院していますか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+medicalAidQ2:{
+  text:`次のいずれかに
+当てはまりますか？`,
+  buttons:[
+    "人工透析と言われた",
+    "血友病・HIVと言われた",
+    "いいえ"
+  ]
+},
+
+medicalAidQ3:{
+  text:`病名や重症度によっては、
+指定難病医療費助成の
+対象となる場合があります。
+
+調べてみますか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+medicalAidQ4:{
+  text:`18歳未満で、
+小児慢性特定疾病と
+言われていますか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+medicalAidQ5:{
+  text:`B型肝炎または
+C型肝炎と
+言われていますか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+medicalAidQ6:{
+  text:`身体障害者手帳1〜3級、
+療育手帳A、
+精神障害者保健福祉手帳1級を
+お持ちですか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+medicalAidQ7:{
+  text:`18歳まで
+（自治体によっては高校卒業まで）
+のお子さんですか？`,
+  buttons:[
+    "はい",
+    "いいえ"
+  ]
+},
+
+
+  
   medicalCostCalculator:{
     text:`説明をご理解いただけましたら、
 あなたの場合の自己負担額を
@@ -1187,8 +1275,14 @@ addBotMessage(`【分割払いの相談】
 
     state.currentScreen="medicalSystemMenu";
     renderScreen();
-
 },
+
+"自分に使える制度を知りたい":()=>{
+    state.currentScreen="medicalAidQ1";
+    renderScreen();
+},
+
+
 
 "医療費助成制度":()=>{
     state.currentScreen="medicalAidMenu";
