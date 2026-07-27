@@ -46,8 +46,9 @@ body{
 
   min-height:0;
 
+  position:relative;
+
   overflow-y:auto;
-  position:relative;   /* ←追加 */
 
   padding:12px;
   padding-bottom:80px;
@@ -254,7 +255,6 @@ text:`制度ナビは、現役医療ソーシャルワーカー(MSW)が作成し
 
 
 
-
 ※制度の利用条件は人によって異なります。
 最終的な確認は医療機関や市区町村へご相談ください。`,
     buttons:[
@@ -414,39 +414,28 @@ homeCare:{
   ]
 },
   
-medicalConcernMenu:{
+  medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
   buttons:[
-    "自己負担額を計算する",
-    "支払いが難しい",
-    "医療費制度について知りたい"
-  ]
-},
-
-medicalSystemMenu:{
-  text:"知りたい制度を選択してください。",
-  buttons:[
-    "高額療養費",
-    "限度額適用認定証",
-    "公費負担医療",
+    "入院費がいくらかかるか知りたい",
+    "医療費が支払えない",
     "傷病手当金",
+    "医療費助成制度",
     "MSWへ相談したい"
   ]
 },
 
-medicalCostResultMenu:{
-  text:`自己負担額が確認できました。
-
-次に知りたい内容を
-選択してください。`,
+medicalCostMenu:{
+  text:"知りたい内容を選択してください。",
   buttons:[
-    "支払いが難しい",
-    "医療費制度について知りたい",
-    "MSWへ相談したい"
+    "医療費の計算例",
+    "高額療養費とは？",
+    "限度額適用認定証とは？",
+    "食事代",
+    "個室代（差額ベッド代）",
+    "CSセット"
   ]
 },
-
-
 
 paymentProblemMenu:{
   text:"支払いが難しい理由を選択してください。",
@@ -455,24 +444,13 @@ paymentProblemMenu:{
     "仕事を休んで収入がない",
     "借金・生活費が多く支払えない",
     "分割払いの相談がしたい",
+    "医療費助成制度を知りたい",
     "MSWへ相談したい"
   ]
 },
 
-medicalAidMenu:{
-  text:"知りたい制度を選択してください。",
-  buttons:[
-    "自立支援医療",
-    "特定疾病",
-    "指定難病",
-    "重度心身障害者医療",
-    "子ども医療",
-    "その他の公費制度"
-  ]
-},
-  
-  medicalAidMenu:{
-  text:"医療費を軽くする制度を選択してください。",
+reduceCostMenu:{
+  text:"医療費を軽くする制度\n\n知りたい内容を選択してください。",
   buttons:[
     "自分に使える制度を知りたい",
     "自立支援医療",
@@ -485,87 +463,39 @@ medicalAidMenu:{
   ]
 },
 
-medicalAidQ1:{
-  text:`心の病気やてんかんで、
-継続して精神科へ通院していますか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
+reduceCostQ1:{
+  text:"心の病気やてんかんで、\n継続して精神科へ通院していますか？",
+  buttons:["はい","いいえ"]
 },
 
-medicalAidQ2:{
-  text:`次のいずれかに
-当てはまりますか？`,
-  buttons:[
-    "人工透析と言われた",
-    "血友病・HIVと言われた",
-    "いいえ"
-  ]
+reduceCostQ2:{
+  text:"次のいずれかに当てはまりますか？",
+  buttons:["人工透析と言われた","血友病・HIVと言われた","いいえ"]
 },
 
-medicalAidQ3:{
-  text:`病名や重症度によっては、
-指定難病医療費助成の
-対象となる場合があります。
-
-調べてみますか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
+reduceCostQ3:{
+  text:"病名や重症度によっては\n指定難病医療費助成の対象となる\n場合があります。\n調べてみますか？",
+  buttons:["はい","いいえ"]
 },
 
-medicalAidQ4:{
-  text:`18歳未満で、
-小児慢性特定疾病と
-言われていますか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
+reduceCostQ4:{
+  text:"18歳未満で\n小児慢性特定疾病と言われていますか？",
+  buttons:["はい","いいえ"]
 },
 
-medicalAidQ5:{
-  text:`B型肝炎または
-C型肝炎と
-言われていますか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
+reduceCostQ5:{
+  text:"B型肝炎またはC型肝炎と\n言われていますか？",
+  buttons:["はい","いいえ"]
 },
 
-medicalAidQ6:{
-  text:`身体障害者手帳1〜3級、
-療育手帳A、
-精神障害者保健福祉手帳1級を
-お持ちですか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
+reduceCostQ6:{
+  text:"身体障害者手帳1〜3級\n療育手帳A\n精神障害者保健福祉手帳1級\nをお持ちですか？",
+  buttons:["はい","いいえ"]
 },
 
-medicalAidQ7:{
-  text:`18歳まで
-（自治体によっては高校卒業まで）
-のお子さんですか？`,
-  buttons:[
-    "はい",
-    "いいえ"
-  ]
-},
-
-
-  
-  medicalCostCalculator:{
-    text:`説明をご理解いただけましたら、
-あなたの場合の自己負担額を
-計算してみましょう。`,
-    buttons:[
-        "自己負担額を計算する"
-    ]
+reduceCostQ7:{
+  text:"18歳まで\n（自治体によって高校卒業まで）\nのお子さんですか？",
+  buttons:["はい","いいえ"]
 },
   
   age:{
@@ -595,6 +525,7 @@ medicalAidQ7:{
   },
 
   careLevel:{
+
     text:"介護度を選択してください。",
     buttons:[
       "なし",
@@ -833,6 +764,138 @@ const HIGH_COST_DATA = {
     }
 
   }
+
+};
+
+/* =========================================
+   REDUCE COST INFO
+========================================= */
+
+const REDUCE_COST_INFO = {
+
+  jiritsu:
+`【自立支援医療（精神通院）】
+
+自立支援医療（精神通院）が利用できる可能性があります。
+
+精神科などの通院医療費の自己負担が軽減される制度です。
+
+詳しくは医療機関やお住まいの市区町村へご相談ください。`,
+
+  touseki:
+`【人工透析と医療費助成】
+
+人工透析の場合、利用できる制度として、
+
+・特定疾病療養受療証
+・自立支援医療（更生医療）
+・身体障害者手帳（腎機能障害）
+・重度心身障害者医療費助成
+
+などが利用できる可能性があります。
+
+詳しくは医療機関やお住まいの市区町村へご相談ください。`,
+
+  ketsuyuHiv:
+`【血友病・HIVと医療費助成】
+
+血友病・HIVの場合、
+
+特定疾病療養受療証などの対象になる場合があります。
+
+詳しくは医療機関やお住まいの市区町村へご相談ください。`,
+
+  tousekiTokutei:
+`【人工透析など（特定疾病）】
+
+長期間、高額な医療を継続する必要がある
+
+・人工透析が必要な慢性腎不全
+・血友病
+・HIVによる血液凝固因子障害
+
+などは、特定疾病療養受療証の対象となる場合があります。
+
+自己負担限度額が
+1か月10,000円（所得により20,000円）まで
+軽減されます。
+
+詳しくは加入している保険者へご相談ください。`,
+
+  nanbyo:
+`【指定難病医療費助成】
+
+指定難病は、厚生労働省が定める疾病について
+医療費助成を受けられる制度です。
+
+病名や重症度によって
+対象となるかどうかが異なります。
+
+対象疾病はこちらで確認できます。
+
+https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000084783.html
+
+詳しくは、お住まいの都道府県・保健所へご相談ください。`,
+
+  shoman:
+`【小児慢性特定疾病医療費助成】
+
+18歳未満（引き続き治療が必要と認められる場合は20歳未満まで）で、
+小児慢性特定疾病に該当する場合、
+医療費助成を受けられる可能性があります。
+
+対象疾病はこちらで確認できます。
+
+https://www.shouman.jp
+
+詳しくは、お住まいの市区町村・保健所へご相談ください。`,
+
+  kanen:
+`【肝炎治療医療費助成】
+
+B型肝炎・C型肝炎の治療（インターフェロン治療など）を
+行う場合、医療費の一部が助成される制度があります。
+
+治療内容や所得により
+自己負担額が異なります。
+
+詳しくは、お住まいの都道府県・保健所へご相談ください。`,
+
+  judo:
+`【重度心身障害者医療費助成】
+
+・身体障害者手帳1〜3級
+・療育手帳A
+・精神障害者保健福祉手帳1級
+
+などをお持ちの場合、
+重度心身障害者医療費助成制度
+（自治体によって呼び方が異なります）の
+対象となる可能性があります。
+
+内容は自治体によって異なります。
+
+詳しくは、お住まいの市区町村へご相談ください。`,
+
+  kodomo:
+`【子どもの医療費助成】
+
+18歳まで（自治体によって高校卒業までなど異なります）の
+お子さんは、子どもの医療費助成制度の
+対象となる可能性があります。
+
+所得制限や自己負担額は
+自治体によって異なります。
+
+詳しくは、お住まいの市区町村へご相談ください。`,
+
+  last:
+`ここまでで該当する制度が見つからなくても、
+
+病状や生活状況によって
+利用できる制度がある場合があります。
+
+詳しくは医療機関または市区町村へご相談ください。`
 
 };
 
@@ -1092,205 +1155,23 @@ const menuModules = {
     renderScreen();
 },
 
-"収入が少なく支払えない":()=>{
-
-addBotMessage(`【収入が少なく支払えない】
-
-医療費の支払いが難しい場合でも、
-
-退院当日に必ず全額支払わなければ
-ならないとは限りません。
-
-病院によっては、
-
-・分割払い
-・支払期限の延長
-
-などの相談に応じてもらえる
-場合があります。
-
-支払いが難しいことが分かった時点で、
-できるだけ早く医事課（会計窓口）
-または医療ソーシャルワーカー（MSW）へ
-ご相談ください。
-
-利用できる制度がある場合でも、
-
-・申請した日から適用される制度
-・申請した月の1日までしか
-　さかのぼれない制度
-
-があります。
-
-早めに相談することで、
-利用できる制度の選択肢が
-広がる場合があります。`);
-
-},
-
-"仕事を休んで収入がない":()=>{
-
-addBotMessage(`【仕事を休んで収入がない】
-
-会社員や公務員など、
-健康保険に加入している方は、
-
-傷病手当金を
-利用できる場合があります。
-
-病気やけがで仕事を休み、
-給与の支払いがない場合に、
-生活を支えるための制度です。
-
-一方、
-
-国民健康保険では、
-原則として傷病手当金はありません。
-（※一部自治体では独自制度あり）
-
-また、
-
-健康保険組合や共済組合では、
-傷病手当金以外にも
-独自の給付制度が
-用意されている場合があります。
-
-詳しくは加入している
-保険者へご確認ください。
-
-支払いが難しいことが分かった時点で、
-できるだけ早く医事課（会計窓口）
-または医療ソーシャルワーカー（MSW）へ
-ご相談ください。
-
-利用できる制度がある場合でも、
-
-・申請した日から適用される制度
-・申請した月の1日までしか
-　さかのぼれない制度
-
-があります。
-
-早めに相談することで、
-利用できる制度の選択肢が
-広がる場合があります。`);
-
-},
-
-"借金・生活費が多く支払えない":()=>{
-
-addBotMessage(`【借金・生活費が多く支払えない】
-
-生活費や借金などが重なり、
-医療費の支払いが
-難しくなることもあります。
-
-お住まいの市区町村では、
-
-・生活困窮者自立支援事業
-・家計相談支援
-
-などを実施している場合があります。
-
-また、
-
-・行政の無料法律相談
-（弁護士・司法書士など）
-
-・法テラス
-
-を利用できる場合もあります。
-
-支払いが難しいことが分かった時点で、
-できるだけ早く医事課（会計窓口）
-または医療ソーシャルワーカー（MSW）へ
-ご相談ください。
-
-利用できる制度がある場合でも、
-
-・申請した日から適用される制度
-・申請した月の1日までしか
-　さかのぼれない制度
-
-があります。
-
-早めに相談することで、
-利用できる制度の選択肢が
-広がる場合があります。`);
-
-},
-
-"分割払いの相談がしたい":()=>{
-
-addBotMessage(`【分割払いの相談】
-
-医療費は、
-病院によって
-
-・分割払い
-・支払期限の延長
-
-などの相談に
-応じてもらえる場合があります。
-
-支払い方法や
-支払い時期について、
-一緒に相談しながら
-進められる場合があります。
-
-支払いが難しいことが分かった時点で、
-できるだけ早く医事課（会計窓口）
-または医療ソーシャルワーカー（MSW）へ
-ご相談ください。
-
-利用できる制度がある場合でも、
-
-・申請した日から適用される制度
-・申請した月の1日までしか
-　さかのぼれない制度
-
-があります。
-
-早めに相談することで、
-利用できる制度の選択肢が
-広がる場合があります。`);
-
-},
-
-"自己負担額を計算する":()=>{
-
-    state.currentScreen="age";
+"入院費がいくらかかるか知りたい":()=>{
+    state.currentScreen="medicalCostMenu";
     renderScreen();
-
 },
 
-"支払いが難しい":()=>{
-
+"医療費が支払えない":()=>{
     state.currentScreen="paymentProblemMenu";
     renderScreen();
-
 },
-
-"医療費制度について知りたい":()=>{
-
-    state.currentScreen="medicalSystemMenu";
-    renderScreen();
-},
-
-"自分に使える制度を知りたい":()=>{
-    state.currentScreen="medicalAidQ1";
-    renderScreen();
-},
-
-
 
 "医療費助成制度":()=>{
-    state.currentScreen="medicalAidMenu";
+    state.currentScreen="reduceCostMenu";
     renderScreen();
 },
 
 "医療費助成制度を知りたい":()=>{
-    state.currentScreen="medicalAidMenu";
+    state.currentScreen="reduceCostMenu";
     renderScreen();
 },
 
@@ -1301,60 +1182,34 @@ addBotMessage(`【分割払いの相談】
 
 },
 
-"高額療養費":()=>{
+"高額療養費とは？":()=>{
 
-let text=`【高額療養費制度】
+if(state.user.purpose==="入院中"){
 
-医療費が高額になった場合でも、
-1か月の自己負担額には
-上限があります。
+    showHighCostInpatient();
 
-年齢や所得によって
-上限額は異なります。
+}else{
 
-その上限を超えた分は、
-後日払い戻される、
-または窓口での支払いが
-上限額までとなります。
+    showHighCostOutpatient();
 
-あなたの場合の
-自己負担額を計算してみますか？`;
-
-addBotMessage(text);
-
-state.currentScreen="medicalCostCalculator";
-renderButtons();
+}
 
 },
 
-"限度額適用認定証":()=>{
+"限度額適用認定証とは？":()=>{
 
 addBotMessage(`【限度額適用認定証】
 
 限度額適用認定証とは、
 
-高額療養費制度の
-自己負担限度額までの
-支払いで済むようにする制度です。
+高額療養費制度の自己負担限度額までの支払いで済むようにする制度です。
 
-現在はマイナ保険証を
-利用することで、
-多くの医療機関では
-認定証がなくても
+現在はマイナ保険証を利用することで、
+多くの医療機関では認定証がなくても
 限度額が適用されます。
 
-認定証を利用した場合の
-自己負担額も確認できます。`);
-
-state.currentScreen="medicalCostCalculator";
-renderButtons();
-
-},
-
-"自己負担額を計算する":()=>{
-
-    state.currentScreen="age";
-    renderScreen();
+マイナ保険証を利用しない場合は、
+加入している保険者へ申請します。`);
 
 },
 
@@ -1362,65 +1217,7 @@ renderButtons();
     state.currentScreen = "transferReasonMenu";
     renderScreen();
 },
-"食事代":()=>{
 
-addBotMessage(`【入院中の食事代】
-
-食事代は
-高額療養費の対象外です。
-
-所得区分によっては
-負担が軽減される制度があります。
-
-食事代を含めた
-入院費の概算も
-確認できます。`);
-
-state.currentScreen="medicalCostCalculator";
-renderButtons();
-
-},
-
-"個室代（差額ベッド代）":()=>{
-
-addBotMessage(`【個室代】
-
-個室代は
-健康保険の対象外です。
-
-病院都合で個室になった場合は
-請求されないことがあります。
-
-個室代を含めた
-入院費の概算も
-確認できます。`);
-
-state.currentScreen="medicalCostCalculator";
-renderButtons();
-
-},
-
-"CSセット":()=>{
-
-addBotMessage(`【CSセット】
-
-CSセットとは、
-
-病衣・タオル・日用品などを
-まとめて利用できる
-レンタルサービスです。
-
-病院によって
-内容や料金は異なります。
-
-CSセットを含めた
-入院費の概算も
-確認できます。`);
-
-state.currentScreen="medicalCostCalculator";
-renderButtons();
-
-},
 
 "リハビリが必要と言われた":()=>{
     state.currentScreen = "transferRehabMenu";
@@ -2286,7 +2083,207 @@ return "mainMenu";
 
 }
 
+},
+
+/* ---------- 医療費を軽くする制度 ---------- */
+
+reduceCostMenu:{
+
+  reducer:(text)=>{
+
+    if(text==="自立支援医療"){
+      addBotMessage(REDUCE_COST_INFO.jiritsu);
+    }
+    else if(text==="指定難病"){
+      addBotMessage(REDUCE_COST_INFO.nanbyo);
+    }
+    else if(text==="人工透析など（特定疾病）"){
+      addBotMessage(REDUCE_COST_INFO.tousekiTokutei);
+    }
+    else if(text==="肝炎医療費助成"){
+      addBotMessage(REDUCE_COST_INFO.kanen);
+    }
+    else if(text==="小児慢性特定疾病"){
+      addBotMessage(REDUCE_COST_INFO.shoman);
+    }
+    else if(text==="子どもの医療費助成"){
+      addBotMessage(REDUCE_COST_INFO.kodomo);
+    }
+    else if(text==="障害のある方の医療費助成"){
+      addBotMessage(REDUCE_COST_INFO.judo);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="自分に使える制度を知りたい"){
+      return "reduceCostQ1";
+    }
+
+    return "reduceCostMenu";
+
+  }
+
+},
+
+reduceCostQ1:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.jiritsu);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ2";
+
+  }
+
+},
+
+reduceCostQ2:{
+
+  reducer:(text)=>{
+
+    if(text==="人工透析と言われた"){
+      addBotMessage(REDUCE_COST_INFO.touseki);
+    }
+    else if(text==="血友病・HIVと言われた"){
+      addBotMessage(REDUCE_COST_INFO.ketsuyuHiv);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text==="人工透析と言われた"
+      ||
+      text==="血友病・HIVと言われた"
+    ){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ3";
+
+  }
+
+},
+
+reduceCostQ3:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.nanbyo);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ4";
+
+  }
+
+},
+
+reduceCostQ4:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.shoman);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ5";
+
+  }
+
+},
+
+reduceCostQ5:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.kanen);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ6";
+
+  }
+
+},
+
+reduceCostQ6:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.judo);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostMenu";
+    }
+
+    return "reduceCostQ7";
+
+  }
+
+},
+
+reduceCostQ7:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      addBotMessage(REDUCE_COST_INFO.kodomo);
+    }
+
+    addBotMessage(REDUCE_COST_INFO.last);
+
+  },
+
+  next:()=>{
+    return "reduceCostMenu";
+  }
+
 }
+
 };
 /* =========================================
    FORMAT
@@ -2558,14 +2555,10 @@ const menuScreens = [
   "medicalMenu",
   "careMenu",
   "transferMenu",
-  
-"medicalMenu",
+
 "medicalConcernMenu",
-  "medicalCostCalculator",   // ←追加
+"medicalCostMenu",
 "paymentProblemMenu",
-"medicalAidMenu",
-"medicalSystemMenu",
-"medicalCostResultMenu",
 
   "disabilityMenu",
   "dialysisMenu",
@@ -2878,7 +2871,7 @@ function releaseInfoBox(){
 }
 
 /* =========================================
-   START
+   SCROLL ROOM
 ========================================= */
 
 function ensureScrollRoom(){
@@ -2896,6 +2889,10 @@ window.addEventListener(
   ensureScrollRoom
 );
 
+/* =========================================
+   START
+========================================= */
+
 window.onload = ()=>{
 
   ensureScrollRoom();
@@ -2903,7 +2900,6 @@ window.onload = ()=>{
   renderScreen();
 
 };
-
 
 </script>
 
