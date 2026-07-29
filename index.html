@@ -34,6 +34,13 @@ body{
   font-weight:bold;
 }
 
+.version-info{
+  font-size:10px;
+  font-weight:normal;
+  opacity:0.85;
+  margin-top:2px;
+}
+
 .notice{
   background:#fef3c7;
   padding:5px 10px;
@@ -194,6 +201,7 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 
   <div class="header">
     制度ナビ
+    <div id="versionInfo" class="version-info"></div>
   </div>
 
   <div class="notice">
@@ -258,6 +266,8 @@ const screens = {
 
   start:{
 text:`制度ナビは、現役医療ソーシャルワーカー(MSW)が作成している相談チャットです。
+
+
 
 ※制度の利用条件は人によって異なります。
 最終的な確認は医療機関や市区町村へご相談ください。`,
@@ -3457,11 +3467,75 @@ window.addEventListener(
    START
 ========================================= */
 
+/* =========================================
+   VERSION INFO（GitHubの最新コミットから取得）
+========================================= */
+
+async function loadVersionInfo(){
+
+  const el =
+    document.getElementById("versionInfo");
+
+  if(!el){
+    return;
+  }
+
+  try{
+
+    const res = await fetch(
+      "https://api.github.com/repos/seido-msw/seido-msw/commits?path=index.html&per_page=1"
+    );
+
+    if(!res.ok){
+      return;
+    }
+
+    const data = await res.json();
+
+    if(!data || !data[0]){
+      return;
+    }
+
+    const sha =
+      data[0].sha.slice(0,7);
+
+    const commitDate =
+      new Date(
+        data[0].commit.committer.date
+      );
+
+    const formatted =
+      commitDate.toLocaleString(
+        "ja-JP",
+        {
+          timeZone:"Asia/Tokyo",
+          year:"numeric",
+          month:"2-digit",
+          day:"2-digit",
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    el.innerText =
+      "v" + sha +
+      "　最終更新: " + formatted;
+
+  }catch(e){
+
+    // 取得できなくても画面には影響させない
+
+  }
+
+}
+
 window.onload = ()=>{
 
   ensureScrollRoom();
 
   renderScreen();
+
+  loadVersionInfo();
 
 };
 
