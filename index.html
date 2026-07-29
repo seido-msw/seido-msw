@@ -228,6 +228,8 @@ const state = {
 
   currentScreen:"start",
 
+  reduceCostTopic:"",
+
 user:{
   age:"",
   insurance:"",
@@ -496,6 +498,11 @@ reduceCostQ6:{
 reduceCostQ7:{
   text:"18歳まで\n（自治体によって高校卒業まで）\nのお子さんですか？",
   buttons:["はい","いいえ"]
+},
+
+reduceCostResult:{
+  text:"続けて確認したい場合は、下のボタンをご利用ください。",
+  buttons:[]
 },
   
   age:{
@@ -896,6 +903,81 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 利用できる制度がある場合があります。
 
 詳しくは医療機関または市区町村へご相談ください。`
+
+};
+
+/* =========================================
+   REDUCE COST LINKS
+========================================= */
+
+const REDUCE_COST_LINKS = {
+
+  jiritsu:[
+    {
+      label:"厚生労働省で確認する",
+      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hukushi_kaigo/shougaishahukushi/jiritsu/index.html"
+    }
+  ],
+
+  touseki:[
+    {
+      label:"全国健康保険協会で確認する",
+      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
+    }
+  ],
+
+  ketsuyuHiv:[
+    {
+      label:"全国健康保険協会で確認する",
+      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
+    }
+  ],
+
+  tousekiTokutei:[
+    {
+      label:"全国健康保険協会で確認する",
+      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
+    }
+  ],
+
+  nanbyo:[
+    {
+      label:"厚生労働省で確認する",
+      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000084783.html"
+    },
+    {
+      label:"難病情報センターで確認する",
+      url:"https://www.nanbyou.or.jp/"
+    }
+  ],
+
+  shoman:[
+    {
+      label:"小児慢性特定疾病情報センターで確認する",
+      url:"https://www.shouman.jp/"
+    }
+  ],
+
+  kanen:[
+    {
+      label:"肝炎情報センターで確認する",
+      url:"https://www.kanen.jihs.go.jp/cont/040/zyosei.html"
+    }
+  ],
+
+  judo:[
+    {
+      label:"厚生労働省 障害福祉施策で確認する",
+      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hukushi_kaigo/shougaishahukushi/index.html"
+    }
+  ],
+
+  kodomo:[
+    {
+      label:"こども家庭庁の実施状況を確認する",
+      url:"https://www.cfa.go.jp/policies/boshihoken/kodomoiryouhityousa-r4r5"
+    }
+  ]
 
 };
 
@@ -2092,25 +2174,25 @@ reduceCostMenu:{
   reducer:(text)=>{
 
     if(text==="自立支援医療"){
-      addBotMessage(REDUCE_COST_INFO.jiritsu);
+      showReduceCostResult("jiritsu");
     }
     else if(text==="指定難病"){
-      addBotMessage(REDUCE_COST_INFO.nanbyo);
+      showReduceCostResult("nanbyo");
     }
     else if(text==="人工透析など（特定疾病）"){
-      addBotMessage(REDUCE_COST_INFO.tousekiTokutei);
+      showReduceCostResult("tousekiTokutei");
     }
     else if(text==="肝炎医療費助成"){
-      addBotMessage(REDUCE_COST_INFO.kanen);
+      showReduceCostResult("kanen");
     }
     else if(text==="小児慢性特定疾病"){
-      addBotMessage(REDUCE_COST_INFO.shoman);
+      showReduceCostResult("shoman");
     }
     else if(text==="子どもの医療費助成"){
-      addBotMessage(REDUCE_COST_INFO.kodomo);
+      showReduceCostResult("kodomo");
     }
     else if(text==="障害のある方の医療費助成"){
-      addBotMessage(REDUCE_COST_INFO.judo);
+      showReduceCostResult("judo");
     }
 
   },
@@ -2119,6 +2201,20 @@ reduceCostMenu:{
 
     if(text==="自分に使える制度を知りたい"){
       return "reduceCostQ1";
+    }
+
+    const directLinkButtons = [
+      "自立支援医療",
+      "指定難病",
+      "人工透析など（特定疾病）",
+      "肝炎医療費助成",
+      "小児慢性特定疾病",
+      "子どもの医療費助成",
+      "障害のある方の医療費助成"
+    ];
+
+    if(directLinkButtons.includes(text)){
+      return "reduceCostResult";
     }
 
     return "reduceCostMenu";
@@ -2132,7 +2228,7 @@ reduceCostQ1:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.jiritsu);
+      showReduceCostResult("jiritsu");
     }
 
   },
@@ -2140,7 +2236,7 @@ reduceCostQ1:{
   next:(text)=>{
 
     if(text==="はい"){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ2";
@@ -2154,10 +2250,10 @@ reduceCostQ2:{
   reducer:(text)=>{
 
     if(text==="人工透析と言われた"){
-      addBotMessage(REDUCE_COST_INFO.touseki);
+      showReduceCostResult("touseki");
     }
     else if(text==="血友病・HIVと言われた"){
-      addBotMessage(REDUCE_COST_INFO.ketsuyuHiv);
+      showReduceCostResult("ketsuyuHiv");
     }
 
   },
@@ -2169,7 +2265,7 @@ reduceCostQ2:{
       ||
       text==="血友病・HIVと言われた"
     ){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ3";
@@ -2183,7 +2279,7 @@ reduceCostQ3:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.nanbyo);
+      showReduceCostResult("nanbyo");
     }
 
   },
@@ -2191,7 +2287,7 @@ reduceCostQ3:{
   next:(text)=>{
 
     if(text==="はい"){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ4";
@@ -2205,7 +2301,7 @@ reduceCostQ4:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.shoman);
+      showReduceCostResult("shoman");
     }
 
   },
@@ -2213,7 +2309,7 @@ reduceCostQ4:{
   next:(text)=>{
 
     if(text==="はい"){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ5";
@@ -2227,7 +2323,7 @@ reduceCostQ5:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.kanen);
+      showReduceCostResult("kanen");
     }
 
   },
@@ -2235,7 +2331,7 @@ reduceCostQ5:{
   next:(text)=>{
 
     if(text==="はい"){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ6";
@@ -2249,7 +2345,7 @@ reduceCostQ6:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.judo);
+      showReduceCostResult("judo");
     }
 
   },
@@ -2257,7 +2353,7 @@ reduceCostQ6:{
   next:(text)=>{
 
     if(text==="はい"){
-      return "reduceCostMenu";
+      return "reduceCostResult";
     }
 
     return "reduceCostQ7";
@@ -2271,12 +2367,29 @@ reduceCostQ7:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      addBotMessage(REDUCE_COST_INFO.kodomo);
+      showReduceCostResult("kodomo");
+      return;
     }
 
     addBotMessage(REDUCE_COST_INFO.last);
 
   },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostResult";
+    }
+
+    return "reduceCostMenu";
+
+  }
+
+},
+
+reduceCostResult:{
+
+  reducer:(text)=>{},
 
   next:()=>{
     return "reduceCostMenu";
@@ -2331,6 +2444,51 @@ function renderButtons(){
     );
 
   area.innerHTML = "";
+
+  if(state.currentScreen === "reduceCostResult"){
+
+    const links =
+      REDUCE_COST_LINKS[
+        state.reduceCostTopic
+      ] || [];
+
+    links.forEach(link=>{
+
+      const button =
+        document.createElement("button");
+
+      button.className =
+        "choice-button";
+
+      button.innerText =
+        "制度を見る（" + link.label + "）";
+
+      button.onclick =
+        ()=>window.open(link.url,"_blank");
+
+      area.appendChild(button);
+
+    });
+
+    const backButton =
+      document.createElement("button");
+
+    backButton.className =
+      "choice-button";
+
+    backButton.innerText = "戻る";
+
+    backButton.style.background = "#6b7280";
+    backButton.style.color = "white";
+
+    backButton.onclick =
+      ()=>handleSelect("戻る");
+
+    area.appendChild(backButton);
+
+    return;
+
+  }
 
   let buttons = [];
 
@@ -2515,6 +2673,20 @@ function addUserMessage(text){
   addMessage("user",text);
 }
 
+/* =========================================
+   REDUCE COST RESULT HELPER
+========================================= */
+
+function showReduceCostResult(topicKey){
+
+  state.reduceCostTopic = topicKey;
+
+  addBotMessage(
+    REDUCE_COST_INFO[topicKey]
+  );
+
+}
+
 function addQuestionCard(text){
 
   document
@@ -2601,10 +2773,20 @@ const menuScreens = [
 
   transition.reducer(text);
 
-  state.currentScreen =
+  const nextScreen =
     transition.next(text);
 
-  renderScreen();
+  state.currentScreen = nextScreen;
+
+  if(nextScreen === "reduceCostResult"){
+
+    renderButtons();
+
+  }else{
+
+    renderScreen();
+
+  }
 
 }
 
@@ -2740,6 +2922,9 @@ function saveHistory(){
     currentScreen:
       state.currentScreen,
 
+    reduceCostTopic:
+      state.reduceCostTopic,
+
     user:
       structuredClone(state.user),
 
@@ -2763,6 +2948,9 @@ function goBack(){
 
   state.currentScreen =
     prev.currentScreen;
+
+  state.reduceCostTopic =
+    prev.reduceCostTopic || "";
 
   state.user =
     prev.user;
@@ -2826,6 +3014,8 @@ function rebuildChat(){
 function resetApp(){
 
   state.currentScreen = "start";
+
+  state.reduceCostTopic = "";
 
   state.user = {
   age:"",
