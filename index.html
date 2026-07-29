@@ -72,6 +72,8 @@ body{
   margin-bottom:10px;
   line-height:1.7;
   white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 
 .bot{
@@ -94,6 +96,8 @@ body{
   max-width:90%;
   margin-right:auto;
   color:#374151;
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 
 .question-card.latest{
@@ -1232,6 +1236,11 @@ const menuModules = {
     renderScreen();
   },
 
+  "転院したい":()=>{
+    state.currentScreen = "transferReasonMenu";
+    renderScreen();
+  },
+
 "医療費・お金が心配":()=>{
     state.currentScreen = "medicalConcernMenu";
     renderScreen();
@@ -1255,6 +1264,48 @@ const menuModules = {
 "医療費助成制度を知りたい":()=>{
     state.currentScreen="reduceCostMenu";
     renderScreen();
+},
+
+"傷病手当金":()=>{
+
+addBotMessage(`【傷病手当金】
+
+病気やけがで仕事を休み、
+給与が受け取れないときに、
+加入している健康保険から
+生活費の一部が支給される制度です。
+
+【対象となる主な条件】
+
+・仕事以外の病気やけがで
+　働けない状態であること
+・連続して3日間休んだうえで、
+　4日目以降も休んでいること
+・休んだ期間について
+　給与の支払いがないこと
+
+【支給される金額の目安】
+
+おおよそ、
+休む前の給与の3分の2程度が、
+支給開始から通算1年6か月まで
+支給されます。
+
+【申請先】
+
+加入している健康保険組合、
+協会けんぽ、共済組合などへ
+申請します。
+
+勤務先の人事・総務担当者を通じて
+手続きすることが多いです。
+
+詳しくは、勤務先の担当窓口や
+加入している健康保険へ
+お問い合わせください。
+
+https://www.kyoukaikenpo.or.jp/benefit/injury_and_sickness_allowance/index.html`);
+
 },
 
 "医療費の計算例":()=>{
