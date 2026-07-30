@@ -242,6 +242,8 @@ const state = {
 
   reduceCostTopic:"",
 
+  careServiceStep:-1,
+
 user:{
   age:"",
   insurance:"",
@@ -1333,6 +1335,17 @@ const CARE_SERVICE_LIST = {
 対応してくれるのが特徴です。`
 
 };
+
+const CARE_SERVICE_ORDER = [
+  "介護保険サービスとは",
+  "申請の仕方",
+  "利用までの流れ",
+  "サービス内容",
+  "費用について",
+  "退院までに間に合う？",
+  "すでに要介護認定をお持ちの方へ",
+  "ケアマネジャーとは"
+];
 
 /* =========================================
    VALIDATORS
@@ -3089,56 +3102,40 @@ reduceCostResult:{
 
 /* ---------- 介護サービスについて ---------- */
 
+/* ---------- 介護サービスについて ---------- */
+
 careServiceMenu:{
 
   reducer:(text)=>{
-
-    if(text==="介護保険サービスとは"){
-      addBotMessage(CARE_SERVICE_INFO.overview);
-      addBotMessage(CARE_SERVICE_INFO.apply);
-    }
-    else if(text==="申請の仕方"){
-      addBotMessage(CARE_SERVICE_INFO.apply);
-    }
-    else if(text==="利用までの流れ"){
-      addBotMessage(CARE_SERVICE_INFO.flow);
-    }
-    else if(text==="サービス内容"){
-      addBotMessage(CARE_SERVICE_INFO.serviceIntro);
-    }
-    else if(text==="費用について"){
-      addBotMessage(CARE_SERVICE_INFO.cost);
-    }
-    else if(text==="退院までに間に合う？"){
-      addBotMessage(CARE_SERVICE_INFO.inTime);
-    }
-    else if(text==="すでに要介護認定をお持ちの方へ"){
-      addBotMessage(CARE_SERVICE_INFO.alreadyCertified);
-    }
-    else if(text==="ケアマネジャーとは"){
-      addBotMessage(CARE_SERVICE_INFO.careManager);
-    }
-
+    careServiceReducer(text);
   },
 
   next:(text)=>{
-
-    if(text==="サービス内容"){
-      return "careServiceContentMenu";
-    }
-
-    return "careServiceResult";
-
+    return careServiceNext(text);
   }
 
 },
 
 careServiceResult:{
 
-  reducer:(text)=>{},
+  reducer:(text)=>{
 
-  next:()=>{
-    return "careServiceMenu";
+    if(text==="戻る"){
+      return;
+    }
+
+    careServiceReducer(text);
+
+  },
+
+  next:(text)=>{
+
+    if(text==="戻る"){
+      return "careServiceMenu";
+    }
+
+    return careServiceNext(text);
+
   }
 
 },
@@ -3146,6 +3143,11 @@ careServiceResult:{
 careServiceContentMenu:{
 
   reducer:(text)=>{
+
+    if(text==="戻る"){
+      careServiceReducer("費用について");
+      return;
+    }
 
     const info =
       CARE_SERVICE_LIST[text];
@@ -3159,7 +3161,7 @@ careServiceContentMenu:{
   next:(text)=>{
 
     if(text==="戻る"){
-      return "careServiceMenu";
+      return "careServiceResult";
     }
 
     return "careServiceContentMenu";
@@ -3256,6 +3258,53 @@ function renderButtons(){
       ()=>handleSelect("戻る");
 
     area.appendChild(backButton);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "careServiceResult"){
+
+    const idx = state.careServiceStep;
+
+    const nextLabel =
+      (idx >= 0 && idx < CARE_SERVICE_ORDER.length - 1)
+        ? CARE_SERVICE_ORDER[idx + 1]
+        : null;
+
+    if(nextLabel){
+
+      const nextButton =
+        document.createElement("button");
+
+      nextButton.className =
+        "choice-button";
+
+      nextButton.innerText =
+        "次へ：" + nextLabel;
+
+      nextButton.onclick =
+        ()=>handleSelect(nextLabel);
+
+      area.appendChild(nextButton);
+
+    }
+
+    const backButton2 =
+      document.createElement("button");
+
+    backButton2.className =
+      "choice-button";
+
+    backButton2.innerText = "戻る";
+
+    backButton2.style.background = "#6b7280";
+    backButton2.style.color = "white";
+
+    backButton2.onclick =
+      ()=>handleSelect("戻る");
+
+    area.appendChild(backButton2);
 
     return;
 
@@ -3455,6 +3504,53 @@ function showReduceCostResult(topicKey){
   addBotMessage(
     REDUCE_COST_INFO[topicKey]
   );
+
+}
+
+/* =========================================
+   CARE SERVICE HELPERS
+========================================= */
+
+function careServiceReducer(text){
+
+  state.careServiceStep =
+    CARE_SERVICE_ORDER.indexOf(text);
+
+  if(text==="介護保険サービスとは"){
+    addBotMessage(CARE_SERVICE_INFO.overview);
+    addBotMessage(CARE_SERVICE_INFO.apply);
+  }
+  else if(text==="申請の仕方"){
+    addBotMessage(CARE_SERVICE_INFO.apply);
+  }
+  else if(text==="利用までの流れ"){
+    addBotMessage(CARE_SERVICE_INFO.flow);
+  }
+  else if(text==="サービス内容"){
+    addBotMessage(CARE_SERVICE_INFO.serviceIntro);
+  }
+  else if(text==="費用について"){
+    addBotMessage(CARE_SERVICE_INFO.cost);
+  }
+  else if(text==="退院までに間に合う？"){
+    addBotMessage(CARE_SERVICE_INFO.inTime);
+  }
+  else if(text==="すでに要介護認定をお持ちの方へ"){
+    addBotMessage(CARE_SERVICE_INFO.alreadyCertified);
+  }
+  else if(text==="ケアマネジャーとは"){
+    addBotMessage(CARE_SERVICE_INFO.careManager);
+  }
+
+}
+
+function careServiceNext(text){
+
+  if(text==="サービス内容"){
+    return "careServiceContentMenu";
+  }
+
+  return "careServiceResult";
 
 }
 
@@ -3713,6 +3809,9 @@ function saveHistory(){
     reduceCostTopic:
       state.reduceCostTopic,
 
+    careServiceStep:
+      state.careServiceStep,
+
     user:
       structuredClone(state.user),
 
@@ -3739,6 +3838,11 @@ function goBack(){
 
   state.reduceCostTopic =
     prev.reduceCostTopic || "";
+
+  state.careServiceStep =
+    (prev.careServiceStep === undefined)
+      ? -1
+      : prev.careServiceStep;
 
   state.user =
     prev.user;
@@ -3804,6 +3908,8 @@ function resetApp(){
   state.currentScreen = "start";
 
   state.reduceCostTopic = "";
+
+  state.careServiceStep = -1;
 
   state.user = {
   age:"",
