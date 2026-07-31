@@ -244,6 +244,8 @@ const state = {
 
   careServiceStep:-1,
 
+  careServiceListStep:-1,
+
 user:{
   age:"",
   insurance:"",
@@ -584,7 +586,7 @@ careServiceContentMenu:{
     "デイケア（通所リハビリ）",
     "福祉用具・住宅改修",
     "小規模多機能・看護多機能",
-    "戻る"
+    "次へ"
   ]
 },
   
@@ -1335,6 +1337,16 @@ const CARE_SERVICE_LIST = {
 対応してくれるのが特徴です。`
 
 };
+
+const CARE_SERVICE_LIST_ORDER = [
+  "ヘルパー（訪問介護）",
+  "デイサービス（通所介護）",
+  "ショートステイ（短期入所）",
+  "訪問看護リハビリ",
+  "デイケア（通所リハビリ）",
+  "福祉用具・住宅改修",
+  "小規模多機能・看護多機能"
+];
 
 const CARE_SERVICE_ORDER = [
   "介護保険サービスとは",
@@ -3144,7 +3156,7 @@ careServiceContentMenu:{
 
   reducer:(text)=>{
 
-    if(text==="戻る"){
+    if(text==="次へ"){
       careServiceReducer("費用について");
       return;
     }
@@ -3160,7 +3172,7 @@ careServiceContentMenu:{
 
   next:(text)=>{
 
-    if(text==="戻る"){
+    if(text==="次へ"){
       return "careServiceResult";
     }
 
@@ -3518,7 +3530,6 @@ function careServiceReducer(text){
 
   if(text==="介護保険サービスとは"){
     addBotMessage(CARE_SERVICE_INFO.overview);
-    addBotMessage(CARE_SERVICE_INFO.apply);
   }
   else if(text==="申請の仕方"){
     addBotMessage(CARE_SERVICE_INFO.apply);
@@ -3527,6 +3538,7 @@ function careServiceReducer(text){
     addBotMessage(CARE_SERVICE_INFO.flow);
   }
   else if(text==="サービス内容"){
+    state.careServiceListStep = -1;
     addBotMessage(CARE_SERVICE_INFO.serviceIntro);
   }
   else if(text==="費用について"){
@@ -3812,6 +3824,9 @@ function saveHistory(){
     careServiceStep:
       state.careServiceStep,
 
+    careServiceListStep:
+      state.careServiceListStep,
+
     user:
       structuredClone(state.user),
 
@@ -3843,6 +3858,11 @@ function goBack(){
     (prev.careServiceStep === undefined)
       ? -1
       : prev.careServiceStep;
+
+  state.careServiceListStep =
+    (prev.careServiceListStep === undefined)
+      ? -1
+      : prev.careServiceListStep;
 
   state.user =
     prev.user;
@@ -3910,6 +3930,8 @@ function resetApp(){
   state.reduceCostTopic = "";
 
   state.careServiceStep = -1;
+
+  state.careServiceListStep = -1;
 
   state.user = {
   age:"",
