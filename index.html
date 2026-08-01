@@ -246,6 +246,8 @@ const state = {
 
   careServiceListStep:-1,
 
+  homeDischargeTopic:"",
+
 user:{
   age:"",
   insurance:"",
@@ -308,6 +310,24 @@ dischargeMenu:{
     "転院したい",
     "介護サービスを知りたい"
   ]
+},
+
+homeDischargeMenu:{
+  text:"退院にあたって、\n心配なことを選んでください。",
+  buttons:[
+    "新しく医療処置が必要になった",
+    "身の回りのことが一人では難しくなった",
+    "家族だけで介護できるか心配",
+    "一人暮らし、または日中一人になる",
+    "最期まで自宅で過ごしたい",
+    "介護保険について分からない",
+    "何が必要なのか分からない"
+  ]
+},
+
+homeDischargeResult:{
+  text:"",
+  buttons:[]
 },
 
 transferReasonMenu:{
@@ -1348,6 +1368,150 @@ const CARE_SERVICE_LIST_ORDER = [
   "小規模多機能・看護多機能"
 ];
 
+/* =========================================
+   HOME DISCHARGE INFO（自宅退院したい）
+========================================= */
+
+const HOME_DISCHARGE_TOPIC_MAP = {
+  "新しく医療処置が必要になった":"medical",
+  "身の回りのことが一人では難しくなった":"adl",
+  "家族だけで介護できるか心配":"family",
+  "一人暮らし、または日中一人になる":"alone",
+  "最期まで自宅で過ごしたい":"endOfLife",
+  "何が必要なのか分からない":"unclearNeeds"
+};
+
+const HOME_DISCHARGE_INFO = {
+
+  medical:
+`【新しく医療処置が必要になった】
+
+点滴、注射、酸素、吸引、
+傷の処置、体から管が出ているなど、
+退院後も医療的な処置が
+必要になることがあります。
+
+このような場合でも、
+
+・訪問診療
+・訪問看護
+
+などを利用しながら、
+自宅で過ごすことができます。
+
+必要な処置の内容によって、
+利用できるサービスが異なります。
+
+くわしくは、担当のMSWまたは
+退院支援看護師へご相談ください。`,
+
+  adl:
+`【身の回りのことが一人では難しくなった】
+
+歩く、トイレ、入浴、着替え、
+食事など、身の回りのことに
+以前より手助けが必要になることがあります。
+
+このような場合、
+
+・介護保険サービス
+・リハビリ
+・福祉用具
+・住宅改修
+
+などを利用しながら、
+自宅での生活を支えることができます。
+
+まずは、介護保険の申請状況を
+確認しましょう。`,
+
+  family:
+`【家族だけで介護できるか心配】
+
+介護は、ご家族だけで
+抱え込む必要はありません。
+
+・訪問介護（ヘルパー）
+・ショートステイ（短期入所）
+
+などを利用することで、
+ご家族の休息の時間を
+確保することもできます。
+
+「レスパイトケア」と呼ばれる、
+介護者の休息を目的とした
+サービスの使い方もあります。
+
+まずは、担当ケアマネジャーや
+MSWへご相談ください。`,
+
+  alone:
+`【一人暮らし、または日中一人になる】
+
+一人暮らしや、日中一人になる
+時間が長い場合は、
+
+・見守りサービス
+・配食サービス（食事の宅配）
+・訪問看護
+
+などを組み合わせて、
+安心して過ごせる環境を
+整えることができます。
+
+お住まいの地域の
+地域包括支援センターでも、
+相談を受け付けています。`,
+
+  endOfLife:
+`【最期まで自宅で過ごしたい】
+
+住み慣れた自宅で
+最期まで過ごしたいという希望は、
+
+・訪問診療
+・訪問看護
+・緩和ケア
+
+などを利用することで、
+支えることができます。
+
+今後の治療や生活について、
+本人の思いを
+あらかじめご家族や医療者と
+話し合っておくこと
+（人生会議・ACP）も大切です。
+
+くわしくは、
+主治医や担当MSWへ
+ご相談ください。`,
+
+  unclearNeeds:
+`【何が必要なのか分からない】
+
+何が必要か分からないときは、
+一人で悩まなくて大丈夫です。
+
+担当の医療ソーシャルワーカー（MSW）が、
+今の状況を一緒に整理しながら、
+必要な支援を考えます。
+
+気になることを、
+そのまま話していただくだけで
+大丈夫です。`
+
+};
+
+// 「関連する制度・サービスはこちら」ボタンを出す項目
+const HOME_DISCHARGE_SHOW_RELATED = {
+  medical:true,
+  adl:true,
+  family:true,
+  alone:true,
+  endOfLife:false,
+  unclearNeeds:false
+};
+
 const CARE_SERVICE_ORDER = [
   "介護保険サービスとは",
   "申請の仕方",
@@ -1617,6 +1781,11 @@ const menuModules = {
 
   "介護サービスを知りたい":()=>{
     state.currentScreen = "careServiceMenu";
+    renderScreen();
+  },
+
+  "自宅退院したい":()=>{
+    state.currentScreen = "homeDischargeMenu";
     renderScreen();
   },
 
@@ -3180,6 +3349,48 @@ careServiceContentMenu:{
 
   }
 
+},
+
+/* ---------- 自宅退院したい ---------- */
+
+homeDischargeMenu:{
+
+  reducer:(text)=>{
+
+    if(text==="介護保険について分からない"){
+      return;
+    }
+
+    const topic =
+      HOME_DISCHARGE_TOPIC_MAP[text];
+
+    if(topic){
+      state.homeDischargeTopic = topic;
+      addBotMessage(HOME_DISCHARGE_INFO[topic]);
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="介護保険について分からない"){
+      return "careServiceMenu";
+    }
+
+    return "homeDischargeResult";
+
+  }
+
+},
+
+homeDischargeResult:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "homeDischargeMenu";
+  }
+
 }
 
 };
@@ -3317,6 +3528,54 @@ function renderButtons(){
       ()=>handleSelect("戻る");
 
     area.appendChild(backButton2);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "homeDischargeResult"){
+
+    const showRelated =
+      HOME_DISCHARGE_SHOW_RELATED[
+        state.homeDischargeTopic
+      ];
+
+    if(showRelated){
+
+      const relatedButton =
+        document.createElement("button");
+
+      relatedButton.className =
+        "choice-button";
+
+      relatedButton.innerText =
+        "関連する制度・サービスはこちら";
+
+      relatedButton.onclick =
+        ()=>{
+          state.currentScreen = "careServiceMenu";
+          renderScreen();
+        };
+
+      area.appendChild(relatedButton);
+
+    }
+
+    const backButton4 =
+      document.createElement("button");
+
+    backButton4.className =
+      "choice-button";
+
+    backButton4.innerText = "戻る";
+
+    backButton4.style.background = "#6b7280";
+    backButton4.style.color = "white";
+
+    backButton4.onclick =
+      ()=>handleSelect("戻る");
+
+    area.appendChild(backButton4);
 
     return;
 
@@ -3666,7 +3925,8 @@ const menuScreens = [
   const NO_CARD_SCREENS = [
     "reduceCostResult",
     "careServiceResult",
-    "careServiceContentMenu"
+    "careServiceContentMenu",
+    "homeDischargeResult"
   ];
 
   const skipQuestionCard =
@@ -3827,6 +4087,9 @@ function saveHistory(){
     careServiceListStep:
       state.careServiceListStep,
 
+    homeDischargeTopic:
+      state.homeDischargeTopic,
+
     user:
       structuredClone(state.user),
 
@@ -3863,6 +4126,9 @@ function goBack(){
     (prev.careServiceListStep === undefined)
       ? -1
       : prev.careServiceListStep;
+
+  state.homeDischargeTopic =
+    prev.homeDischargeTopic || "";
 
   state.user =
     prev.user;
@@ -3932,6 +4198,8 @@ function resetApp(){
   state.careServiceStep = -1;
 
   state.careServiceListStep = -1;
+
+  state.homeDischargeTopic = "";
 
   state.user = {
   age:"",
