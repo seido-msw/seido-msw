@@ -248,6 +248,8 @@ const state = {
 
   homeDischargeTopic:"",
 
+  profileCollected:false,
+
 user:{
   age:"",
   insurance:"",
@@ -279,6 +281,29 @@ text:`制度ナビは、現役医療ソーシャルワーカー(MSW)が作成し
 最終的な確認は医療機関や市区町村へご相談ください。`,
     buttons:[
       "相談開始"
+    ]
+  },
+
+  profileChoice:{
+text:`進め方を選んでください。
+
+📋 あなたに合った制度を調べる
+　年齢や保険などを最初に伺うことで、
+　このあとの相談で同じことを
+　何度も聞かれずに済みます。
+　（4〜5問、1分ほどです）
+
+💬 かんたん検索
+　基本情報の入力なしで、
+　困りごとから探せます。
+
+入力していただいた内容は、
+このブラウザの中だけに一時的に保存され、
+どこにも送信・保存されません。
+ブラウザを閉じると自動的に消えます。`,
+    buttons:[
+      "あなたに合った制度を調べる",
+      "かんたん検索"
     ]
   },
 
@@ -647,7 +672,8 @@ careServiceContentMenu:{
       "要介護2",
       "要介護3",
       "要介護4",
-      "要介護5"
+      "要介護5",
+      "わからない"
     ]
   },
 
@@ -660,6 +686,7 @@ careServiceContentMenu:{
       "第三段階②",
       "第二段階",
       "第一段階",
+      "わからない"
     ]
   },
 
@@ -2143,8 +2170,7 @@ https://www.kyoukaikenpo.or.jp/benefit/injury_and_sickness_allowance/index.html`
 
 "医療費の計算例":()=>{
 
-    state.currentScreen="age";
-    renderScreen();
+    resumeProfileChain();
 
 },
 
@@ -2839,7 +2865,20 @@ const transitions = {
   start:{
   reducer:(text)=>{},
   next:()=>{
+    return "profileChoice";
+  }
+},
+
+  profileChoice:{
+  reducer:(text)=>{},
+  next:(text)=>{
+
+    if(text==="あなたに合った制度を調べる"){
+      return "age";
+    }
+
     return "purpose";
+
   }
 },
 
@@ -2959,6 +2998,19 @@ purpose:{
         state.user.mealStage = "なし";
       }
 
+      if(text === "わからない"){
+
+        addBotMessage(`要介護度がわからない場合は、
+
+「介護保険被保険者証」に記載されています。
+
+お手元にない場合は、
+担当のケアマネジャーや
+お住まいの市区町村へ
+ご確認ください。`);
+
+      }
+
     },
 
     next:()=>{
@@ -2976,7 +3028,25 @@ purpose:{
   mealStage:{
 
     reducer:(text)=>{
+
       state.user.mealStage = text;
+
+      if(text === "わからない"){
+
+        addBotMessage(`食事・居住費の負担段階がわからない場合は、
+
+「負担限度額認定証」に記載されています。
+
+認定証をお持ちでない場合は、
+段階の適用がない（通常の負担額の）
+可能性があります。
+
+くわしくは、施設や
+お住まいの市区町村へ
+ご確認ください。`);
+
+      }
+
     },
 
     next:()=>{
@@ -3026,7 +3096,8 @@ purpose:{
         ||
         selected === "なし"
       ){
-        return "mainMenu";
+        state.profileCollected = true;
+        return "purpose";
       }
 
       return "supportSystems";
@@ -3408,6 +3479,68 @@ function formatYen(num){
 /* =========================================
    RENDER
 ========================================= */
+
+/* =========================================
+   RESUME PROFILE CHAIN
+   （すでに答えた項目は聞き直さず、
+   　未回答の項目から再開する）
+========================================= */
+
+function resumeProfileChain(){
+
+  if(!state.user.age){
+    state.currentScreen = "age";
+  }
+  else if(!state.user.insurance){
+    state.currentScreen = "insurance";
+  }
+  else if(
+    !state.user.burdenRate
+    &&
+    state.user.insurance !== "生活保護"
+  ){
+    state.currentScreen = "burdenRate";
+  }
+  else if(
+    !state.user.limit
+    &&
+    state.user.insurance !== "生活保護"
+  ){
+    state.currentScreen = "limit";
+  }
+  else if(!state.user.careLevel){
+    state.currentScreen = "careLevel";
+  }
+  else if(
+    !state.user.mealStage
+    &&
+    state.user.careLevel !== "なし"
+  ){
+    state.currentScreen = "mealStage";
+  }
+  else if(!state.profileCollected){
+    state.currentScreen = "supportSystems";
+  }
+  else{
+
+    // すべて回答済み → そのまま高額療養費の結果を表示
+    addBotMessage(
+      "すでに伺った情報をもとにご案内します。"
+    );
+
+    if(state.user.purpose==="入院中"){
+      showHighCostInpatient();
+    }else{
+      showHighCostOutpatient();
+    }
+
+    return;
+
+  }
+
+  renderScreen();
+
+}
 
 function renderScreen(){
 
@@ -3900,6 +4033,9 @@ const menuScreens = [
   ){
 
     executeMenu(text);
+
+    saveProfileToSession();
+
     return;
 
   }
@@ -3944,6 +4080,8 @@ const menuScreens = [
 
   }
 
+  saveProfileToSession();
+
 }
 
 /* =========================================
@@ -3968,7 +4106,7 @@ function executeMenu(text){
 ========================================= */
 
 function showHighCostOutpatient(){
-  if(state.user.limit === "不明"){
+  if(!state.user.limit || state.user.limit === "不明"){
 
   addBotMessage(`【高額療養費】
 
@@ -4018,7 +4156,7 @@ return;
 }
 
 function showHighCostInpatient(){
-  if(state.user.limit === "不明"){
+  if(!state.user.limit || state.user.limit === "不明"){
 
   addBotMessage(`【高額療養費】
 
@@ -4189,6 +4327,81 @@ function rebuildChat(){
    RESET
 ========================================= */
 
+/* =========================================
+   PROFILE STORAGE（sessionStorage）
+   ブラウザを閉じると自動的に消えます。
+   他のサーバーへは一切送信されません。
+========================================= */
+
+const PROFILE_STORAGE_KEY = "seidoNaviProfile";
+
+function saveProfileToSession(){
+
+  try{
+
+    sessionStorage.setItem(
+      PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        user: state.user,
+        profileCollected: state.profileCollected
+      })
+    );
+
+  }catch(e){
+
+    // sessionStorageが使えない環境でも
+    // アプリ自体は問題なく動作させる
+
+  }
+
+}
+
+function loadProfileFromSession(){
+
+  try{
+
+    const raw =
+      sessionStorage.getItem(
+        PROFILE_STORAGE_KEY
+      );
+
+    if(!raw){
+      return;
+    }
+
+    const saved = JSON.parse(raw);
+
+    if(saved.user){
+      Object.assign(state.user, saved.user);
+    }else{
+      // 旧形式（stateuserを直接保存していた場合）との互換性
+      Object.assign(state.user, saved);
+    }
+
+    if(saved.profileCollected){
+      state.profileCollected = true;
+    }
+
+  }catch(e){
+
+    // 読み込めなくてもアプリは通常どおり動作させる
+
+  }
+
+}
+
+function clearProfileSession(){
+
+  try{
+
+    sessionStorage.removeItem(
+      PROFILE_STORAGE_KEY
+    );
+
+  }catch(e){}
+
+}
+
 function resetApp(){
 
   state.currentScreen = "start";
@@ -4201,6 +4414,8 @@ function resetApp(){
 
   state.homeDischargeTopic = "";
 
+  state.profileCollected = false;
+
   state.user = {
   age:"",
   insurance:"",
@@ -4211,6 +4426,8 @@ function resetApp(){
   supportSystems:[],
   purpose:""
 };
+
+  clearProfileSession();
 
   state.history = [];
   state.messages = [];
@@ -4330,6 +4547,8 @@ async function loadVersionInfo(){
 }
 
 window.onload = ()=>{
+
+  loadProfileFromSession();
 
   ensureScrollRoom();
 
