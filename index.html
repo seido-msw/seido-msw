@@ -258,6 +258,7 @@ user:{
   careLevel:"",
   mealStage:"",
   supportSystems:[],
+  disabilityGrade:"",
   purpose:""
 },
 
@@ -273,9 +274,12 @@ user:{
 const screens = {
 
   start:{
-text:`制度ナビは、現役医療ソーシャルワーカー(MSW)が作成している相談チャットです。
+text:`あなたに必要な支援を、
+一緒に考えます。
 
-
+制度だけではなく、
+困っていることを整理し、
+必要な支援や相談先をご案内します。
 
 ※制度の利用条件は人によって異なります。
 最終的な確認は医療機関や市区町村へご相談ください。`,
@@ -312,8 +316,14 @@ purpose:{
   buttons:[
     "入院中",
     "外来通院中",
-    "制度を知りたい"
+    "制度を知りたい",
+    "プロフィールを確認する"
   ]
+},
+
+profileSummary:{
+  text:"",
+  buttons:[]
 },
 
 inpatientMenu:{
@@ -704,6 +714,15 @@ careServiceContentMenu:{
     "肝炎",
     "小児慢性特定疾病",
     "決定"
+  ]
+},
+
+  disabilityGradeQuestion:{
+  text:"身体障害者手帳の等級は分かりますか？",
+  buttons:[
+    "1級","2級","3級",
+    "4級","5級","6級",
+    "わからない"
   ]
 },
 
@@ -1816,6 +1835,77 @@ const menuModules = {
     renderScreen();
   },
 
+  "自立支援医療":()=>{
+    addBotMessage(REDUCE_COST_INFO.jiritsu);
+  },
+
+  "難病医療":()=>{
+    addBotMessage(REDUCE_COST_INFO.nanbyo);
+  },
+
+  "特定疾病":()=>{
+    addBotMessage(REDUCE_COST_INFO.tousekiTokutei);
+  },
+
+  "身体障害者手帳":()=>{
+
+addBotMessage(`【身体障害者手帳】
+
+身体の障害の程度に応じて
+交付される手帳です。
+
+取得すると、
+
+・医療費の助成
+・税金の控除
+・福祉サービスの利用
+
+などにおいて、優遇を受けられる
+場合があります。
+
+障害の程度によって、
+1級〜6級に分かれます
+（7級のみの障害単独では対象外ですが、
+複数の障害を重複してお持ちの場合、
+7級であっても対象になることがあります）。
+
+申請には、指定医が作成する
+診断書・意見書が必要です。
+
+申請は、お住まいの市区町村の
+障害福祉担当窓口で行います。`);
+
+  },
+
+  "精神障害者保健福祉手帳":()=>{
+
+addBotMessage(`【精神障害者保健福祉手帳】
+
+精神疾患により、長期にわたって
+日常生活や社会生活に
+制約がある方に交付される手帳です。
+
+取得すると、
+
+・税金の控除
+・公共料金の割引
+・自立支援医療（精神通院）と
+　合わせて申請できる場合がある
+
+などの支援を受けられます。
+
+障害の程度によって、
+1級〜3級に分かれます。
+
+申請には、精神科の主治医による
+診断書、または障害年金証書の写しが
+必要です。
+
+申請は、お住まいの市区町村の
+障害福祉担当窓口で行います。`);
+
+  },
+
 "医療費・お金が心配":()=>{
     state.currentScreen = "medicalConcernMenu";
     renderScreen();
@@ -2176,15 +2266,7 @@ https://www.kyoukaikenpo.or.jp/benefit/injury_and_sickness_allowance/index.html`
 
 "高額療養費とは？":()=>{
 
-if(state.user.purpose==="入院中"){
-
-    showHighCostInpatient();
-
-}else{
-
-    showHighCostOutpatient();
-
-}
+    resumeProfileChain();
 
 },
 
@@ -2885,6 +2967,12 @@ const transitions = {
 purpose:{
 
   reducer:(text)=>{
+
+    if(text==="プロフィールを確認する"){
+      addBotMessage(buildProfileSummaryText());
+      return;
+    }
+
     state.user.purpose=text;
   },
 
@@ -2899,7 +2987,12 @@ purpose:{
     }
 
     if(text==="制度を知りたい"){
-      return "age";
+      const resumeScreen = getResumeScreen();
+      return resumeScreen ? resumeScreen : "mainMenu";
+    }
+
+    if(text==="プロフィールを確認する"){
+      return "profileSummary";
     }
 
   }
@@ -3100,8 +3193,44 @@ purpose:{
         return "purpose";
       }
 
+      if(
+        selected === "身障者手帳"
+        &&
+        !state.user.disabilityGrade
+      ){
+        return "disabilityGradeQuestion";
+      }
+
       return "supportSystems";
 
+    }
+
+  },
+
+  disabilityGradeQuestion:{
+
+    reducer:(text)=>{
+      state.user.disabilityGrade = text;
+    },
+
+    next:()=>{
+      return "supportSystems";
+    }
+
+  },
+
+  profileSummary:{
+
+    reducer:(text)=>{
+
+      if(text==="プロフィールをリセット"){
+        resetProfileOnly();
+      }
+
+    },
+
+    next:()=>{
+      return "purpose";
     }
 
   },
@@ -3486,59 +3615,151 @@ function formatYen(num){
    　未回答の項目から再開する）
 ========================================= */
 
-function resumeProfileChain(){
+function getResumeScreen(){
 
   if(!state.user.age){
-    state.currentScreen = "age";
+    return "age";
   }
-  else if(!state.user.insurance){
-    state.currentScreen = "insurance";
+  if(!state.user.insurance){
+    return "insurance";
   }
-  else if(
+  if(
     !state.user.burdenRate
     &&
     state.user.insurance !== "生活保護"
   ){
-    state.currentScreen = "burdenRate";
+    return "burdenRate";
   }
-  else if(
+  if(
     !state.user.limit
     &&
     state.user.insurance !== "生活保護"
   ){
-    state.currentScreen = "limit";
+    return "limit";
   }
-  else if(!state.user.careLevel){
-    state.currentScreen = "careLevel";
+  if(!state.user.careLevel){
+    return "careLevel";
   }
-  else if(
+  if(
     !state.user.mealStage
     &&
     state.user.careLevel !== "なし"
   ){
-    state.currentScreen = "mealStage";
+    return "mealStage";
   }
-  else if(!state.profileCollected){
-    state.currentScreen = "supportSystems";
+  if(!state.profileCollected){
+    return "supportSystems";
   }
-  else{
 
-    // すべて回答済み → そのまま高額療養費の結果を表示
-    addBotMessage(
-      "すでに伺った情報をもとにご案内します。"
-    );
+  // すべて回答済み
+  return null;
 
-    if(state.user.purpose==="入院中"){
-      showHighCostInpatient();
-    }else{
-      showHighCostOutpatient();
-    }
+}
 
+/* =========================================
+   PROFILE SUMMARY
+========================================= */
+
+function buildProfileSummaryText(){
+
+  const u = state.user;
+
+  const val = (v)=> v ? v : "（未回答）";
+
+  const support =
+    (u.supportSystems && u.supportSystems.length)
+      ? u.supportSystems.join("、")
+      : "なし";
+
+  let text = `【現在のプロフィール】
+
+年齢: ${val(u.age)}
+保険: ${val(u.insurance)}
+`;
+
+  if(u.insurance !== "生活保護"){
+    text += `負担割合: ${val(u.burdenRate)}
+限度額区分: ${val(u.limit)}
+`;
+  }
+
+  text += `介護度: ${val(u.careLevel)}
+`;
+
+  if(u.careLevel && u.careLevel !== "なし"){
+    text += `食費区分: ${val(u.mealStage)}
+`;
+  }
+
+  text += `該当する制度: ${support}
+`;
+
+  if(
+    u.supportSystems
+    &&
+    u.supportSystems.includes("身障者手帳")
+  ){
+    text += `身体障害者手帳の等級: ${val(u.disabilityGrade)}
+`;
+  }
+
+  text += `
+この内容は、このブラウザを閉じるまで
+一時的に保存されます。
+外部やサーバーには送信・保存されません。
+
+間違いがある場合は、
+「プロフィールをリセット」から
+やり直せます。`;
+
+  return text;
+
+}
+
+function resetProfileOnly(){
+
+  state.user = {
+    age:"",
+    insurance:"",
+    burdenRate:"",
+    limit:"",
+    careLevel:"",
+    mealStage:"",
+    supportSystems:[],
+    disabilityGrade:"",
+    purpose:state.user.purpose
+  };
+
+  state.profileCollected = false;
+
+  clearProfileSession();
+
+  addBotMessage(
+    "プロフィールをリセットしました。\n次に必要な場面で、あらためて伺います。"
+  );
+
+}
+
+function resumeProfileChain(){
+
+  const nextScreen = getResumeScreen();
+
+  if(nextScreen){
+    state.currentScreen = nextScreen;
+    renderScreen();
     return;
-
   }
 
-  renderScreen();
+  // すべて回答済み → そのまま高額療養費の結果を表示
+  addBotMessage(
+    "すでに伺った情報をもとにご案内します。"
+  );
+
+  if(state.user.purpose==="入院中"){
+    showHighCostInpatient();
+  }else{
+    showHighCostOutpatient();
+  }
 
 }
 
@@ -3709,6 +3930,45 @@ function renderButtons(){
       ()=>handleSelect("戻る");
 
     area.appendChild(backButton4);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "profileSummary"){
+
+    const resetButton =
+      document.createElement("button");
+
+    resetButton.className =
+      "choice-button";
+
+    resetButton.innerText =
+      "プロフィールをリセット";
+
+    resetButton.style.background = "#ef4444";
+    resetButton.style.color = "white";
+
+    resetButton.onclick =
+      ()=>handleSelect("プロフィールをリセット");
+
+    area.appendChild(resetButton);
+
+    const backButton5 =
+      document.createElement("button");
+
+    backButton5.className =
+      "choice-button";
+
+    backButton5.innerText = "戻る";
+
+    backButton5.style.background = "#6b7280";
+    backButton5.style.color = "white";
+
+    backButton5.onclick =
+      ()=>handleSelect("戻る");
+
+    area.appendChild(backButton5);
 
     return;
 
@@ -4010,6 +4270,7 @@ const menuScreens = [
   "disabilityMenu",
   "dialysisMenu",
   "rareDiseaseMenu",
+  "welfareMenu",
 
   "inpatientMenu",
   "outpatientMenu",
@@ -4062,7 +4323,8 @@ const menuScreens = [
     "reduceCostResult",
     "careServiceResult",
     "careServiceContentMenu",
-    "homeDischargeResult"
+    "homeDischargeResult",
+    "profileSummary"
   ];
 
   const skipQuestionCard =
@@ -4424,6 +4686,7 @@ function resetApp(){
   careLevel:"",
   mealStage:"",
   supportSystems:[],
+  disabilityGrade:"",
   purpose:""
 };
 
