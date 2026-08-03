@@ -105,6 +105,16 @@ body{
   color:#374151;
   overflow-wrap:anywhere;
   word-break:break-word;
+  white-space:pre-wrap;
+}
+
+.question-card strong{
+  font-size:1.08em;
+  color:#1e3a8a;
+}
+
+.question-card.latest strong{
+  color:#facc15;
 }
 
 .question-card.latest{
@@ -277,12 +287,28 @@ const screens = {
 text:`あなたに必要な支援を、
 一緒に考えます。
 
-制度だけではなく、
-困っていることを整理し、
+例えば、こんなご相談に
+お答えできます。
+
+・医療費が払えるか不安
+・家に帰れるか心配
+・転院と言われて戸惑っている
+・介護サービスの使い方がわからない
+・障害福祉の制度を知りたい
+
+制度の名前を知らなくても
+大丈夫です。
+
+困っていることを一緒に整理しながら、
 必要な支援や相談先をご案内します。
 
-※制度の利用条件は人によって異なります。
-最終的な確認は医療機関や市区町村へご相談ください。`,
+
+※制度の利用条件は
+　人によって異なります。
+
+　最終的な確認は
+　医療機関や市区町村へ
+　ご相談ください。`,
     buttons:[
       "相談開始"
     ]
@@ -291,20 +317,32 @@ text:`あなたに必要な支援を、
   profileChoice:{
 text:`進め方を選んでください。
 
-📋 あなたに合った制度を調べる
-　年齢や保険などを最初に伺うことで、
-　このあとの相談で同じことを
-　何度も聞かれずに済みます。
+
+📋 **あなたに合った制度を調べる**
+
+　年齢や保険などを
+　最初に伺うことで、
+
+　このあとの相談で
+　同じことを何度も
+　聞かれずに済みます。
+
 　（4〜5問、1分ほどです）
 
-💬 かんたん検索
+
+💬 **かんたん検索**
+
 　基本情報の入力なしで、
 　困りごとから探せます。
 
+
 入力していただいた内容は、
-このブラウザの中だけに一時的に保存され、
+このブラウザの中だけに
+一時的に保存され、
 どこにも送信・保存されません。
-ブラウザを閉じると自動的に消えます。`,
+
+ブラウザを閉じると
+自動的に消えます。`,
     buttons:[
       "あなたに合った制度を調べる",
       "かんたん検索"
@@ -688,7 +726,7 @@ careServiceContentMenu:{
   },
 
   mealStage:{
-    text:"食事・居住費負担減額証の区分を選択してください。",
+    text:"（介護保険の）食事・居住費負担減額証の区分を選択してください。",
     buttons:[
       "なし",
       "第四段階（課税）",
@@ -3112,6 +3150,27 @@ purpose:{
         return "supportSystems";
       }
 
+      const MEAL_STAGE_ELIGIBLE_LIMITS =
+        ["オ","低Ⅱ","低Ⅰ"];
+
+      const isLikelyIneligible =
+        state.user.insurance === "生活保護"
+        ||
+        (
+          state.user.limit
+          &&
+          state.user.limit !== "不明"
+          &&
+          !MEAL_STAGE_ELIGIBLE_LIMITS.includes(
+            state.user.limit
+          )
+        );
+
+      if(isLikelyIneligible){
+        state.user.mealStage = "対象外";
+        return "supportSystems";
+      }
+
       return "mealStage";
 
     }
@@ -4218,6 +4277,25 @@ function careServiceNext(text){
 
 }
 
+/* =========================================
+   RICH TEXT（**text** を太字に変換）
+========================================= */
+
+function formatRichText(text){
+
+  const escaped =
+    text
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;");
+
+  return escaped.replace(
+    /\*\*(.+?)\*\*/g,
+    "<strong>$1</strong>"
+  );
+
+}
+
 function addQuestionCard(text){
 
   document
@@ -4237,7 +4315,7 @@ function addQuestionCard(text){
   div.className =
     "question-card latest";
 
-  div.innerText = text;
+  div.innerHTML = formatRichText(text);
 
   document
     .getElementById("chat")
@@ -4570,14 +4648,16 @@ function rebuildChat(){
           ? "question-card latest"
           : "question-card";
 
+      div.innerHTML = formatRichText(msg.text);
+
     }else{
 
       div.className =
         "message " + msg.role;
 
-    }
+      div.innerText = msg.text;
 
-    div.innerText = msg.text;
+    }
 
     chat.appendChild(div);
 
