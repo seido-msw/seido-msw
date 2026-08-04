@@ -4881,8 +4881,28 @@ async function loadVersionInfo(){
         }
       );
 
+    // Linkヘッダーの rel="last" から
+    // 総コミット数（＝更新回数）を取得する
+    let updateCount = 1;
+
+    const linkHeader =
+      res.headers.get("Link");
+
+    if(linkHeader){
+
+      const match =
+        linkHeader.match(
+          /page=(\d+)>; rel="last"/
+        );
+
+      if(match){
+        updateCount = Number(match[1]);
+      }
+
+    }
+
     const displayText =
-      "v" + sha +
+      "ver.1." + updateCount +
       "　最終更新: " + formatted;
 
     el.innerText = displayText;
