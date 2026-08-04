@@ -3023,7 +3023,7 @@ purpose:{
     next:()=>{
 
       if(validators.skipBurdenRate()){
-        return "careLevel";
+        return getAfterLimitScreen();
       }
 
       return "burdenRate";
@@ -3054,14 +3054,14 @@ purpose:{
   next:()=>{
 
   if(state.user.burdenRate === "不明"){
-    return "careLevel";
+    return getAfterLimitScreen();
   }
 
   if(
     state.user.insurance === "後期高齢者" &&
     state.user.burdenRate === "2割"
   ){
-    return "careLevel";
+    return getAfterLimitScreen();
   }
 
   return "limit";
@@ -3074,7 +3074,7 @@ purpose:{
       state.user.limit = text;
     },
     next:()=>{
-      return "careLevel";
+      return getAfterLimitScreen();
     }
   },
 
@@ -3113,16 +3113,14 @@ purpose:{
         ["オ","低Ⅱ","低Ⅰ"];
 
       const isLikelyIneligible =
-        state.user.insurance === "生活保護"
-        ||
-        (
+        state.user.limit
+        &&
+        state.user.limit !== "不明"
+        &&
+        state.user.limit !== "対象外"
+        &&
+        !MEAL_STAGE_ELIGIBLE_LIMITS.includes(
           state.user.limit
-          &&
-          state.user.limit !== "不明"
-          &&
-          !MEAL_STAGE_ELIGIBLE_LIMITS.includes(
-            state.user.limit
-          )
         );
 
       if(isLikelyIneligible){
@@ -3632,6 +3630,38 @@ function formatYen(num){
    （すでに答えた項目は聞き直さず、
    　未回答の項目から再開する）
 ========================================= */
+
+/* =========================================
+   介護保険 対象外年齢の判定
+   （0〜19歳・20代・30代は介護保険の
+   　被保険者ではないため、介護度・
+   　食費区分の質問を丸ごとスキップする）
+========================================= */
+
+const CARE_INSURANCE_INELIGIBLE_AGES = [
+  "0〜19歳",
+  "20代",
+  "30代"
+];
+
+function getAfterLimitScreen(){
+
+  if(
+    CARE_INSURANCE_INELIGIBLE_AGES.includes(
+      state.user.age
+    )
+  ){
+
+    state.user.careLevel = "対象外";
+    state.user.mealStage = "対象外";
+
+    return "supportSystems";
+
+  }
+
+  return "careLevel";
+
+}
 
 function getResumeScreen(){
 
