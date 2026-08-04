@@ -41,13 +41,6 @@ body{
   margin-top:2px;
 }
 
-.notice{
-  background:#fef3c7;
-  padding:5px 10px;
-  border-bottom:1px solid #ddd;
-  font-size:11px;
-}
-
 #chat{
   flex:1;
 
@@ -135,7 +128,7 @@ body{
 box-shadow:0 -2px 8px rgba(0,0,0,.05);
   border-top:1px solid #d1d5db;
 
-  height:160px;
+  height:192px;
   align-content:start;
   overflow-y:auto;
   
@@ -214,9 +207,6 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
     <div id="versionInfo" class="version-info"></div>
   </div>
 
-  <div class="notice">
-    詳細は医療機関の医療福祉相談員へご相談ください
-  </div>
 
   <div id="chat"></div>
 
@@ -4809,6 +4799,21 @@ async function loadVersionInfo(){
     return;
   }
 
+  const CACHE_KEY = "seidoNaviVersionCache";
+
+  // まずキャッシュがあれば先に表示しておく
+  // （API取得中や失敗時も空白にしない）
+  try{
+
+    const cached =
+      localStorage.getItem(CACHE_KEY);
+
+    if(cached){
+      el.innerText = cached;
+    }
+
+  }catch(e){}
+
   try{
 
     const res = await fetch(
@@ -4846,9 +4851,18 @@ async function loadVersionInfo(){
         }
       );
 
-    el.innerText =
+    const displayText =
       "v" + sha +
       "　最終更新: " + formatted;
+
+    el.innerText = displayText;
+
+    try{
+      localStorage.setItem(
+        CACHE_KEY,
+        displayText
+      );
+    }catch(e){}
 
   }catch(e){
 
