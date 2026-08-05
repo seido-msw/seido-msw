@@ -32,13 +32,25 @@ body{
   padding:6px 10px;
   font-size:15px;
   font-weight:bold;
+
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.header-title{
+  white-space:nowrap;
 }
 
 .version-info{
   font-size:10px;
   font-weight:normal;
   opacity:0.85;
-  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-align:right;
 }
 
 #chat{
@@ -203,7 +215,7 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 <div class="container">
 
   <div class="header">
-    制度ナビ
+    <span class="header-title">制度ナビ</span>
     <div id="versionInfo" class="version-info"></div>
   </div>
 
