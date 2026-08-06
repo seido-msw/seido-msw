@@ -24,6 +24,8 @@ body{
   flex-direction:column;
 
   min-height:0;
+
+  position:relative;
 }
 
 .header{
@@ -134,6 +136,28 @@ body{
   border:3px solid #facc15;
 }
 
+#scrollHint{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+
+  background:#1e3a8a;
+  color:#facc15;
+  font-weight:bold;
+  font-size:14px;
+
+  padding:8px 18px;
+  border-radius:999px;
+
+  box-shadow:0 3px 10px rgba(0,0,0,.3);
+
+  cursor:pointer;
+  z-index:30;
+
+  display:none;
+  white-space:nowrap;
+}
+
 #choiceButtons{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -228,6 +252,10 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 
   <div id="chat"></div>
 
+  <div id="scrollHint" onclick="scrollHintClick()">
+    ↓ まだ続きがあります
+  </div>
+
   <div id="choiceButtons"></div>
 
   <div class="control-area">
@@ -276,7 +304,6 @@ user:{
   careLevel:"",
   mealStage:"",
   supportSystems:[],
-  disabilityGrade:"",
   purpose:""
 },
 
@@ -292,7 +319,9 @@ user:{
 const screens = {
 
   start:{
-text:`一人で悩まず、
+text:`**相談員　みちです。**
+
+一人で悩まず、
 まずは一緒に整理してみませんか。
 
 例えば、こんな相談
@@ -733,15 +762,6 @@ careServiceContentMenu:{
     "肝炎",
     "小児慢性特定疾病",
     "決定"
-  ]
-},
-
-  disabilityGradeQuestion:{
-  text:"身体障害者手帳の等級は分かりますか？",
-  buttons:[
-    "1級","2級","3級",
-    "4級","5級","6級",
-    "わからない"
   ]
 },
 
@@ -3243,28 +3263,8 @@ purpose:{
         return "purpose";
       }
 
-      if(
-        selected === "身障者手帳"
-        &&
-        !state.user.disabilityGrade
-      ){
-        return "disabilityGradeQuestion";
-      }
-
       return "supportSystems";
 
-    }
-
-  },
-
-  disabilityGradeQuestion:{
-
-    reducer:(text)=>{
-      state.user.disabilityGrade = text;
-    },
-
-    next:()=>{
-      return "supportSystems";
     }
 
   },
@@ -3776,15 +3776,6 @@ function buildProfileSummaryText(){
   text += `該当する制度: ${support}
 `;
 
-  if(
-    u.supportSystems
-    &&
-    u.supportSystems.includes("身障者手帳")
-  ){
-    text += `身体障害者手帳の等級: ${val(u.disabilityGrade)}
-`;
-  }
-
   text += `
 この内容は、このブラウザを閉じるまで
 一時的に保存されます。
@@ -3808,8 +3799,7 @@ function resetProfileOnly(){
     careLevel:"",
     mealStage:"",
     supportSystems:[],
-    disabilityGrade:"",
-    purpose:state.user.purpose
+      purpose:state.user.purpose
   };
 
   state.profileCollected = false;
@@ -3864,6 +3854,8 @@ function renderScreen(){
     // チャット内での位置
     chat.scrollTop =
       latest.offsetTop - 10;
+
+    updateScrollHint();
 
   });
 
@@ -4221,6 +4213,73 @@ function addMessage(role,text){
 
 }
 
+/* =========================================
+   SCROLL HINT
+   （読みきれていない内容がある時だけ
+   　「↓ まだ続きがあります」を表示する）
+========================================= */
+
+function updateScrollHint(){
+
+  const chat =
+    document.getElementById("chat");
+
+  const hint =
+    document.getElementById("scrollHint");
+
+  if(!chat || !hint){
+    return;
+  }
+
+  const remaining =
+    chat.scrollHeight
+    - chat.scrollTop
+    - chat.clientHeight;
+
+  if(remaining > 40){
+
+    const choiceButtons =
+      document.getElementById("choiceButtons");
+
+    const controlArea =
+      document.querySelector(".control-area");
+
+    const offset =
+      (choiceButtons ? choiceButtons.offsetHeight : 0)
+      +
+      (controlArea ? controlArea.offsetHeight : 0)
+      +
+      12;
+
+    hint.style.bottom = offset + "px";
+    hint.style.display = "block";
+
+  }else{
+
+    hint.style.display = "none";
+
+  }
+
+}
+
+function scrollHintClick(){
+
+  const chat =
+    document.getElementById("chat");
+
+  if(!chat){
+    return;
+  }
+
+  chat.scrollTop =
+    chat.scrollTop
+    +
+    chat.clientHeight * 0.75;
+
+  requestAnimationFrame(updateScrollHint);
+
+}
+
 function addBotMessage(text){
 
   const div = addMessage("bot",text);
@@ -4230,6 +4289,8 @@ function addBotMessage(text){
     const chat = document.getElementById("chat");
 
     chat.scrollTop = div.offsetTop - 10;
+
+    updateScrollHint();
 
   });
 
@@ -4442,6 +4503,7 @@ const menuScreens = [
   if(skipQuestionCard){
 
     renderButtons();
+    requestAnimationFrame(updateScrollHint);
 
   }else{
 
@@ -4795,7 +4857,6 @@ function resetApp(){
   careLevel:"",
   mealStage:"",
   supportSystems:[],
-  disabilityGrade:"",
   purpose:""
 };
 
@@ -4971,6 +5032,16 @@ window.onload = ()=>{
   renderScreen();
 
   loadVersionInfo();
+
+  const chatEl =
+    document.getElementById("chat");
+
+  if(chatEl){
+    chatEl.addEventListener(
+      "scroll",
+      updateScrollHint
+    );
+  }
 
 };
 
