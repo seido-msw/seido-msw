@@ -4231,12 +4231,32 @@ function updateScrollHint(){
     return;
   }
 
-  const remaining =
-    chat.scrollHeight
-    - chat.scrollTop
-    - chat.clientHeight;
+  const children = chat.children;
 
-  if(remaining > 40){
+  if(!children || children.length === 0){
+    hint.style.display = "none";
+    return;
+  }
+
+  // 最後の「実際の返信・質問カード」の下端を基準にする
+  // （scrollHeightだと、スクロール確保用の
+  // 　見えない余白まで「続きがある」と
+  // 　誤判定してしまうため）
+  const lastContent =
+    children[children.length - 1];
+
+  const contentBottom =
+    lastContent.offsetTop
+    + lastContent.offsetHeight;
+
+  const visibleBottom =
+    chat.scrollTop
+    + chat.clientHeight;
+
+  const remaining =
+    contentBottom - visibleBottom;
+
+  if(remaining > 20){
 
     const choiceButtons =
       document.getElementById("choiceButtons");
