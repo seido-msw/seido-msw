@@ -351,7 +351,161 @@ text:`**相談員　みちです。**
 
 ※制度の利用は人によって異なります。最終的な確認は医療機関や市区町村へご相談ください。`,
     buttons:[
-      "相談開始"
+      "相談開始",
+      "相談員みちさんとは"
+    ]
+  },
+
+  aboutMichi:{
+text:`**相談員みちさんとは**
+
+「みちしるべ」の相談員、みちです。
+
+病気になったとき。
+入院したとき。
+医療費のことが心配になったとき。
+
+退院したあと、
+これからどうやって生活していけば
+いいのか分からなくなったとき。
+
+そんなとき、人はたくさんの
+不安を抱えます。
+
+「何を聞けばいいのか分からない」
+「誰に相談したらいいのか分からない」
+「制度があるのは知っているけれど、
+自分が使えるのか分からない」
+
+そんな状態になることは、
+決して珍しいことではありません。
+
+みちさんは、そんなときに、
+
+**一緒に困りごとを整理するための相談員**
+
+です。
+
+---
+
+**みちさんが大切にしていること**
+
+制度をたくさん知ってもらうことだけが、
+みちさんの役割ではありません。
+
+大切なのは、
+
+「あなたが今、何に困っているのか」
+
+を一緒に見つけること。
+
+医療費のことなのか。
+退院後の生活のことなのか。
+介護のことなのか。
+仕事や生活費のことなのか。
+
+あるいは、
+「何が分からないのかも分からない」
+ということなのか。
+
+まずは、そこからで大丈夫です。
+
+---
+
+**みちさんは、答えを押しつけません**
+
+利用できる制度は、
+年齢、病気、保険、収入、生活状況
+などによって変わります。
+
+だから、
+
+「この制度を使えば大丈夫」
+
+と簡単に決めつけるのではなく、
+
+あなたに関係しそうな制度や支援を
+一緒に探し、次にどこへ相談すれば
+よいのかを整理する。
+
+それが、みちさんの役割です。
+
+必要なときには、
+医療機関、市区町村、保険者、
+地域包括支援センターなど、
+実際の相談窓口へつなぐことも
+大切にしています。
+
+---
+
+**「相談する」という最初の一歩を、もっと軽く**
+
+本当は相談したい。
+
+でも、
+
+「こんなことを聞いていいのかな」
+「忙しいところに相談していいのかな」
+「何から話せばいいのか分からない」
+
+そんな気持ちから、
+相談することをためらってしまう人も
+います。
+
+みちさんは、
+そんな人のための最初の一歩で
+ありたいと思っています。
+
+ここでは、うまく話せなくても大丈夫。
+質問に答えていくだけでも大丈夫。
+途中で分からなくなっても大丈夫。
+
+一つずつ、一緒に整理していきましょう。
+
+---
+
+**みちさんが目指していること**
+
+制度を知らないことで、
+本来受けられるはずの支援に
+たどり着けない人を減らしたい。
+
+不安を抱えたまま、
+一人で悩み続ける人を減らしたい。
+
+そして、
+
+「相談してよかった」
+
+と思ってもらえる人を、
+一人でも増やしたい。
+
+みちさんは、
+困っている人の前にある「道」を
+一緒に探し、
+
+必要な場所へつながるための
+みちしるべになりたいと
+思っています。
+
+---
+
+**最後に**
+
+ここで答えが見つからなくても、
+大丈夫です。
+
+相談すること自体が、
+次の一歩になることがあります。
+
+「何に困っているのか分からない」
+
+そんな相談からでも大丈夫。
+
+みちさんと一緒に、
+あなたの「今」を整理してみませんか。`,
+    buttons:[
+      "戻る"
     ]
   },
 
@@ -385,6 +539,19 @@ purpose:{
 
 profileSummary:{
   text:"",
+  buttons:[]
+},
+
+profileUnclearCheck:{
+  text:"プロフィールの中に、\nはっきりしない項目がありました。\n\n確認の仕方をご案内しましょうか？",
+  buttons:[
+    "する",
+    "しない"
+  ]
+},
+
+profileUnclearGuideMenu:{
+  text:"確認したい項目を選んでください。",
   buttons:[]
 },
 
@@ -722,7 +889,7 @@ careServiceContentMenu:{
 },
 
   insurance:{
-    text:"保険を選択してください。"
+    text:"医療機関を受診するときに使う保険証を教えてください。"
   },
 
   burdenRate:{
@@ -1636,7 +1803,8 @@ const validators = {
         "後期高齢者",
         "協会けんぽ",
         "共済・組合等",
-        "生活保護"
+        "生活保護",
+        "わからない"
       ];
 
     }
@@ -1653,7 +1821,8 @@ const validators = {
         "国民健康保険",
         "協会けんぽ",
         "共済・組合等",
-        "生活保護"
+        "生活保護",
+        "わからない"
       ];
 
     }
@@ -1663,7 +1832,8 @@ const validators = {
       "協会けんぽ",
       "共済・組合等",
       "後期高齢者",
-      "生活保護"
+      "生活保護",
+      "わからない"
     ];
 
   },
@@ -1717,8 +1887,9 @@ const validators = {
   skipBurdenRate(){
 
     return (
-      state.user.insurance ===
-      "生活保護"
+      state.user.insurance === "生活保護"
+      ||
+      state.user.insurance === "わからない"
     );
 
   },
@@ -2999,8 +3170,21 @@ const transitions = {
 
   start:{
   reducer:(text)=>{},
-  next:()=>{
+  next:(text)=>{
+
+    if(text==="相談員みちさんとは"){
+      return "aboutMichi";
+    }
+
     return "profileChoice";
+
+  }
+},
+
+  aboutMichi:{
+  reducer:(text)=>{},
+  next:()=>{
+    return "start";
   }
 },
 
@@ -3071,6 +3255,13 @@ purpose:{
 
         state.user.burdenRate = "なし";
         state.user.limit = "対象外";
+
+      }
+
+      if(text === "わからない"){
+
+        state.user.burdenRate = "不明";
+        state.user.limit = "不明";
 
       }
 
@@ -3273,8 +3464,15 @@ purpose:{
         ||
         selected === "なし"
       ){
+
         state.profileCollected = true;
+
+        if(hasUnclearProfileItems()){
+          return "profileUnclearCheck";
+        }
+
         return "purpose";
+
       }
 
       return "supportSystems";
@@ -3293,8 +3491,63 @@ purpose:{
 
     },
 
-    next:()=>{
+    next:(text)=>{
+
+      if(text==="プロフィールを編集する"){
+        return "age";
+      }
+
       return "purpose";
+
+    }
+
+  },
+
+  profileUnclearCheck:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text==="する"){
+        return "profileUnclearGuideMenu";
+      }
+
+      return "purpose";
+
+    }
+
+  },
+
+  profileUnclearGuideMenu:{
+
+    reducer:(text)=>{
+
+      const target =
+        PROFILE_UNCLEAR_BUTTONS.find(
+          b => b.label === text
+        );
+
+      if(target){
+        addBotMessage(
+          PROFILE_UNCLEAR_INFO[target.key]
+        );
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text==="相談に進む"){
+        return "purpose";
+      }
+
+      if(text==="プロフィールを編集する"){
+        return "age";
+      }
+
+      return "profileUnclearGuideMenu";
+
     }
 
   },
@@ -3711,6 +3964,151 @@ function getAfterLimitScreen(){
 
 }
 
+/* =========================================
+   PROFILE UNCLEAR CHECK
+   （「わからない」「不明」だった項目を
+   　まとめて確認できるようにする）
+========================================= */
+
+function hasUnclearProfileItems(){
+
+  const u = state.user;
+
+  return (
+    u.insurance === "わからない"
+    ||
+    u.burdenRate === "不明"
+    ||
+    u.limit === "不明"
+    ||
+    u.careLevel === "わからない"
+    ||
+    u.mealStage === "わからない"
+  );
+
+}
+
+const PROFILE_UNCLEAR_INFO = {
+
+  insurance:
+`【医療保険の確認の仕方】
+
+お手元の保険証（健康保険証）に、
+加入している保険の種類が
+記載されています。
+
+マイナ保険証をお使いの場合は、
+マイナポータルアプリでも
+確認できます。
+
+お手元にない場合は、
+勤務先の担当窓口や、
+お住まいの市区町村の窓口へ
+お尋ねください。`,
+
+  burdenRate:
+`【負担割合の確認の仕方】
+
+保険証（健康保険証）や、
+後期高齢者の方は
+「後期高齢者医療被保険者証」に
+記載されています。
+
+高齢受給者証をお持ちの場合は、
+そちらにも記載があります。
+
+わからない場合は、
+加入している保険者へ
+ご確認ください。`,
+
+  careLevel:
+`【介護度の確認の仕方】
+
+要介護度がわからない場合は、
+「介護保険被保険者証」に
+記載されています。
+
+お手元にない場合は、
+担当のケアマネジャーや
+お住まいの市区町村へ
+ご確認ください。`,
+
+  mealStage:
+`【食事・居住費区分の確認の仕方】
+
+食事・居住費の負担段階が
+わからない場合は、
+「負担限度額認定証」に
+記載されています。
+
+認定証をお持ちでない場合は、
+段階の適用がない
+（通常の負担額の）
+可能性があります。
+
+くわしくは、施設や
+お住まいの市区町村へ
+ご確認ください。`
+
+};
+
+const PROFILE_UNCLEAR_BUTTONS = [
+  { key:"insurance",   label:"医療保険について確認する" },
+  { key:"burdenRate",  label:"負担割合について確認する" },
+  { key:"careLevel",   label:"介護度について確認する" },
+  { key:"mealStage",   label:"食事・居住費区分について確認する" }
+];
+
+function isProfileItemUnclear(key){
+
+  const u = state.user;
+
+  if(key === "insurance"){
+    return u.insurance === "わからない";
+  }
+
+  if(key === "burdenRate"){
+    return (
+      u.burdenRate === "不明"
+      ||
+      u.limit === "不明"
+    );
+  }
+
+  if(key === "careLevel"){
+    return u.careLevel === "わからない";
+  }
+
+  if(key === "mealStage"){
+    return u.mealStage === "わからない";
+  }
+
+  return false;
+
+}
+
+function hasUnclearProfileItems(){
+
+  return PROFILE_UNCLEAR_BUTTONS.some(
+    b => isProfileItemUnclear(b.key)
+  );
+
+}
+
+function getUnclearProfileButtons(){
+
+  const buttons =
+    PROFILE_UNCLEAR_BUTTONS
+      .filter(b => isProfileItemUnclear(b.key))
+      .map(b => b.label);
+
+  buttons.push("プロフィールを編集する");
+  buttons.push("相談に進む");
+
+  return buttons;
+
+}
+
 function getResumeScreen(){
 
   if(!state.user.age){
@@ -4025,6 +4423,20 @@ function renderButtons(){
 
   if(state.currentScreen === "profileSummary"){
 
+    const editButton =
+      document.createElement("button");
+
+    editButton.className =
+      "choice-button";
+
+    editButton.innerText =
+      "プロフィールを編集する";
+
+    editButton.onclick =
+      ()=>handleSelect("プロフィールを編集する");
+
+    area.appendChild(editButton);
+
     const resetButton =
       document.createElement("button");
 
@@ -4068,6 +4480,16 @@ function renderButtons(){
 
     buttons =
       validators.insuranceButtons();
+
+  }
+
+  else if(
+    state.currentScreen ===
+    "profileUnclearGuideMenu"
+  ){
+
+    buttons =
+      getUnclearProfileButtons();
 
   }
 
@@ -4186,7 +4608,11 @@ if(text === "なし"){
   button.style.color = "white";
 }
 
-if(text === "決定"){
+if(
+  text === "決定"
+  ||
+  text === "相談に進む"
+){
   button.style.background = "#15803d";
   button.style.color = "white";
   button.style.fontWeight = "bold";
