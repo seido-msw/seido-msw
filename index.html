@@ -21,16 +21,14 @@ body{
   height:100%;
   overflow:hidden;
   overscroll-behavior:none;
-
-  position:fixed;
-  width:100%;
 }
 
 .container{
   max-width:900px;
   margin:0 auto;
 
-  height:100dvh;
+  height:100vh;
+  height:100svh;
 
   display:flex;
   flex-direction:column;
@@ -247,6 +245,17 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   background:#6b7280;
 }
 
+.start-btn{
+  background:#2563eb;
+  flex:1;
+  min-width:0;
+  padding:0 6px;
+  font-size:12px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
 .reset-btn{
   background:#ef4444;
 }
@@ -278,6 +287,12 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
       class="control-btn back-btn"
       onclick="goBack()">
       戻る
+    </button>
+
+    <button
+      class="control-btn start-btn"
+      onclick="goToStart()">
+      最初の画面に戻る
     </button>
 
     <button
@@ -333,89 +348,63 @@ user:{
 const screens = {
 
   start:{
-text:`**相談員　みちです。**
+text:`**みちしるべ**
 
-病気のこと。
-医療費のこと。
-退院後の生活のこと。
+夜でも、休日でも。
+気になったときに、みちさんに。
 
-「どうしたらいいんだろう」
-と思ったら、
+医療・介護・福祉の制度や支援について、
+みちさんが質問しながら、
+一緒に整理します。
 
-ひとりで答えを探さなくて
-大丈夫です。
-
-一緒に、今の状況を整理して、
-次の一歩を探しましょう。
+一人で悩まず、
+まずは一緒に整理してみませんか。
 
 ---
-※制度の利用は人によって異なります。最終的な確認は医療機関や市区町村へご相談ください。`,
+実際の相談支援の流れをもとに作成しています。
+
+※みちさんは、病気の診断や治療など、個別の医療判断を行うものではありません。必要に応じて、適切な相談窓口をご案内します。`,
     buttons:[
-      "相談をはじめる",
+      "みちさんに相談する",
       "相談員みちさんとは"
     ]
   },
 
   aboutMichi:{
-text:`**こんにちは。
-みちしるべの相談員、みちです。**
+text:`**相談員 みちさん**
+
+こんにちは。
+みちしるべの相談員、みちです。
+
+夜でも、休日でも。
+気になったときに、
+いつでも相談してください。
 
 ---
-病気になった。
-入院した。
-医療費が心配。
+みちさんは、急性期病院の医療ソーシャルワーカー（MSW）が行う相談支援の流れをもとに、医療・介護・福祉の制度や支援について、一緒に整理するWeb上の相談員です。
 
-退院したあと、
-これからどうしたらいいか
-分からなくなった。
+いくつかの質問に答えていただきながら、
 
-何を相談したらいいか、
-分からないときもあると思います。
+・今、何に困っているのか
+・どのような支援が必要なのか
+・利用できそうな制度は何か
+・どこに相談すればよいのか
 
----
-**大丈夫です。
-まずは一緒に整理してみましょう。**
+を整理していきます。
 
 ---
-制度を押しつけるのではなく、
+みちさんだけで、すべてを解決するわけではありません。
 
-「今、何に困っているのか」
+整理した内容をもとに、必要なときには病院のMSWや地域の相談窓口など、適切な支援につながることをお手伝いします。
 
-を一緒に整理する。
+**相談員が一人増えたような安心を。**
 
-それが、みちさんの役割です。
-
----
-「何に困っているのか分からない」
-
-そんな相談も、大切にしています。
-
-医療費のことなのか。
-退院後の生活のことなのか。
-介護のことなのか。
-
-まずは、そこからで大丈夫です。
+それが、みちしるべの目指すところです。
 
 ---
-制度を知らないことで、
-必要な支援につながれない人を
-減らしたい。
-
-不安を抱えたまま、
-ひとりで悩み続ける人を
-減らしたい。
-
----
-「相談してよかった」
-
-そう思ってもらえる人を、
-一人でも増やしたい。
-
-あなたの前にある道を、
-一緒に探す「みちしるべ」に
-なりたいと思っています。`,
+※みちさんは、病気の診断・治療・個別の医療判断などには対応していません。医療に関する判断が必要な場合は、主治医や医療機関へご相談ください。`,
     buttons:[
-      "みちさんに相談してみる",
+      "みちさんに相談する",
       "トップへ戻る"
     ]
   },
@@ -3096,7 +3085,7 @@ const transitions = {
   reducer:(text)=>{},
   next:(text)=>{
 
-    if(text==="みちさんに相談してみる"){
+    if(text==="みちさんに相談する"){
       return "profileChoice";
     }
 
@@ -5086,6 +5075,29 @@ function goBack(){
 
   renderButtons();
 
+  requestAnimationFrame(() => {
+
+    const chat =
+      document.getElementById("chat");
+
+    const latest =
+      document.querySelector(".question-card.latest");
+
+    if(latest){
+
+      chat.scrollTop =
+        latest.offsetTop - 10;
+
+    }else{
+
+      chat.scrollTop = 0;
+
+    }
+
+    updateScrollHint();
+
+  });
+
 }
 /* =========================================
    REBUILD
@@ -5209,6 +5221,35 @@ function clearProfileSession(){
     );
 
   }catch(e){}
+
+}
+
+/* =========================================
+   GO TO START
+   （プロフィールは残したまま、
+   　会話だけ最初の画面に戻す）
+========================================= */
+
+function goToStart(){
+
+  state.currentScreen = "start";
+
+  state.reduceCostTopic = "";
+  state.careServiceStep = -1;
+  state.careServiceListStep = -1;
+  state.homeDischargeTopic = "";
+
+  state.history = [];
+  state.messages = [];
+
+  const chat =
+    document.getElementById("chat");
+
+  chat.innerHTML = "";
+
+  ensureScrollRoom();
+
+  renderScreen();
 
 }
 
