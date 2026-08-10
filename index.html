@@ -355,15 +355,10 @@ text:`**みちしるべ**
 気になった時に、いつでも相談して下さい。
 
 医療・介護・福祉の制度や支援について、
-一緒に整理します。
-
----
-実際の流れをもとに作成しています。
-
-※みちさんは、病気の診断や治療など、個別の医療判断を行うものではありません。必要に応じて、適切な相談窓口をご案内します。`,
+一緒に整理します。`,
     buttons:[
-      "みちさんに相談する",
-      "相談員みちさんとは"
+      "相談員みちさんとは",
+      "みちさんに相談する"
     ]
   },
 
@@ -408,6 +403,7 @@ text:`**相談員 みちさん**
   profileChoice:{
 text:`ありがとうございます。
 
+進め方を選んでください。
 📋 **あなたに合った制度を調べる**
 　年齢や保険などを最初に伺うことで、このあとの相談で同じことを何度も聞かれずに済みます。（4〜5問、1分ほどです）
 
@@ -5316,8 +5312,15 @@ function ensureScrollRoom(){
   const chat =
     document.getElementById("chat");
 
+  // 先に基準の余白へ戻してから高さを測ることで、
+  // 呼び出すたびに余白が積み上がってしまうのを防ぐ
+  chat.style.paddingBottom = "80px";
+
+  const availableHeight =
+    chat.clientHeight;
+
   chat.style.paddingBottom =
-    chat.clientHeight + "px";
+    availableHeight + "px";
 
 }
 
