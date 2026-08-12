@@ -5411,6 +5411,120 @@ function recordConsultationCompleted(){
 
 }
 
+/* =========================================
+   GOOGLE FORM 連携
+   （アンケート回答を、みちさん満足度アンケートへ
+   　自動送信する）
+========================================= */
+
+const GOOGLE_FORM_CONFIG = {
+
+  actionUrl:
+    "https://docs.google.com/forms/d/e/1FAIpQLScpNm_AA-0ZG3EdgCPM5bopQSPOhoXP-QrsyzBXVagwL0qfRw/formResponse",
+
+  entries:{
+    category:    "entry.428405101",
+    rating:      "entry.1902338459",
+    clarified:   "entry.1940153773",
+    willConsult: "entry.1268924046",
+    freeText:    "entry.1641042776"
+  }
+
+};
+
+// アプリ内の文言 → Googleフォームの選択肢文言 への変換
+const GOOGLE_FORM_VALUE_MAP = {
+
+  category:{
+    "医療費・お金":"医療費・お金",
+    "退院後の生活":"退院後の生活",
+    "介護・介護保険":"介護・介護保険",
+    "制度・サービス":"制度",
+    "その他":"その他"
+  },
+
+  rating:{
+    "とても分かりやすい":"とても分かりやすかった",
+    "分かりやすい":"分かりやすかった",
+    "普通":"普通",
+    "やや分かりにくい":"やや分かりづらい",
+    "分かりにくい":"わかりつらい"
+  },
+
+  clarified:{
+    "とてもそう思う":"とてもそう思う",
+    "そう思う":"そう思う",
+    "どちらともいえない":"どちらとも言えない",
+    "あまり思わない":"あまり思わない",
+    "思わない":"思わない"
+  },
+
+  willConsult:{
+    "はい":"はい",
+    "まだ分からない":"まだわからない",
+    "いいえ":"いいえ"
+  }
+
+};
+
+function submitToGoogleForm(){
+
+  try{
+
+    const d = state.surveyData;
+
+    const formData = new FormData();
+
+    formData.append(
+      GOOGLE_FORM_CONFIG.entries.category,
+      GOOGLE_FORM_VALUE_MAP.category[d.category]
+        || d.category
+        || ""
+    );
+
+    formData.append(
+      GOOGLE_FORM_CONFIG.entries.rating,
+      GOOGLE_FORM_VALUE_MAP.rating[d.ratingLabel]
+        || d.ratingLabel
+        || ""
+    );
+
+    formData.append(
+      GOOGLE_FORM_CONFIG.entries.clarified,
+      GOOGLE_FORM_VALUE_MAP.clarified[d.clarified]
+        || d.clarified
+        || ""
+    );
+
+    formData.append(
+      GOOGLE_FORM_CONFIG.entries.willConsult,
+      GOOGLE_FORM_VALUE_MAP.willConsult[d.willConsult]
+        || d.willConsult
+        || ""
+    );
+
+    formData.append(
+      GOOGLE_FORM_CONFIG.entries.freeText,
+      d.freeText || ""
+    );
+
+    fetch(
+      GOOGLE_FORM_CONFIG.actionUrl,
+      {
+        method:"POST",
+        mode:"no-cors",
+        body:formData
+      }
+    );
+
+  }catch(e){
+
+    // 送信に失敗しても、アプリの動作は止めない
+
+  }
+
+}
+
 function saveSurveyResponse(){
 
   try{
@@ -5465,6 +5579,8 @@ function saveSurveyResponse(){
     );
 
   }catch(e){}
+
+  submitToGoogleForm();
 
 }
 
