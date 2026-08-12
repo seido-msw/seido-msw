@@ -219,7 +219,8 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 
 .control-area{
   display:flex;
-  gap:8px;
+  flex-wrap:wrap;
+  gap:6px;
 
   padding:4px 8px;
 
@@ -233,12 +234,18 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   color:white;
 
   height:36px;          /* ←今よりかなり低く */
-  padding:0 14px;       /* ←上下の余白をなくす */
+  padding:0 10px;       /* ←上下の余白をなくす */
 
   font-size:13px;
   font-weight:bold;
 
   cursor:pointer;
+
+  flex:1 1 46%;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .back-btn{
@@ -247,17 +254,14 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 
 .start-btn{
   background:#2563eb;
-  flex:1;
-  min-width:0;
-  padding:0 6px;
-  font-size:12px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
 .reset-btn{
   background:#ef4444;
+}
+
+.complete-btn{
+  background:#15803d;
 }
 
 </style>
@@ -296,6 +300,12 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
     </button>
 
     <button
+      class="control-btn complete-btn"
+      onclick="completeConsultation()">
+      相談を完了する
+    </button>
+
+    <button
       class="control-btn reset-btn"
       onclick="resetApp()">
       リセット
@@ -324,6 +334,15 @@ const state = {
   homeDischargeTopic:"",
 
   profileCollected:false,
+
+  surveyData:{
+    category:"",
+    rating:0,
+    ratingLabel:"",
+    clarified:"",
+    willConsult:"",
+    freeText:""
+  },
 
 user:{
   age:"",
@@ -399,6 +418,85 @@ text:`**相談員 みちです。**
 ※私は、病気の診断や治療、個別の医療判断についてお答えすることはできません。医療について判断が必要な場合は、主治医や医療機関にご相談ください。`,
     buttons:[
       "みちさんに相談する",
+      "トップへ戻る"
+    ]
+  },
+
+  surveyIntro:{
+text:`ありがとうございました。
+
+みちさんとの相談はここで終了です。
+
+よろしければ、みちさんをもっと良くするために、
+簡単なアンケートにご協力ください。
+
+**回答は任意です。**`,
+    buttons:[
+      "アンケートに回答する",
+      "今回は回答しない"
+    ]
+  },
+
+  surveyQ1:{
+    text:"今回、何について相談しましたか？",
+    buttons:[
+      "医療費・お金",
+      "退院後の生活",
+      "介護・介護保険",
+      "制度・サービス",
+      "その他"
+    ]
+  },
+
+  surveyQ2:{
+    text:"みちさんとの相談は分かりやすかったですか？",
+    buttons:[
+      "とても分かりやすい",
+      "分かりやすい",
+      "普通",
+      "やや分かりにくい",
+      "分かりにくい"
+    ]
+  },
+
+  surveyQ3:{
+    text:"相談したことで、\n困っていることが整理できましたか？",
+    buttons:[
+      "とてもそう思う",
+      "そう思う",
+      "どちらともいえない",
+      "あまり思わない",
+      "思わない"
+    ]
+  },
+
+  surveyQ4:{
+    text:"この後、必要な相談先に\n相談してみようと思いましたか？",
+    buttons:[
+      "はい",
+      "まだ分からない",
+      "いいえ"
+    ]
+  },
+
+  surveyQ5:{
+    text:"最後に、みちさんに「こうしてほしい」ということがあれば教えてください。\n\n（自由記載・任意です）",
+    buttons:[
+      "感想を書く",
+      "このまま送信する"
+    ]
+  },
+
+  surveyThanks:{
+text:`ご協力ありがとうございました。
+
+いただいたご意見は、
+みちさんをより良くするために
+活用させていただきます。
+
+またいつでも、
+気になったときにご相談ください。`,
+    buttons:[
       "トップへ戻る"
     ]
   },
@@ -3088,6 +3186,135 @@ const transitions = {
   }
 },
 
+  surveyIntro:{
+
+  reducer:(text)=>{},
+
+  next:(text)=>{
+
+    if(text==="アンケートに回答する"){
+
+      state.surveyData = {
+        category:"",
+        rating:0,
+        ratingLabel:"",
+        clarified:"",
+        willConsult:"",
+        freeText:""
+      };
+
+      return "surveyQ1";
+
+    }
+
+    return "start";
+
+  }
+
+},
+
+  surveyQ1:{
+
+  reducer:(text)=>{
+    state.surveyData.category = text;
+  },
+
+  next:()=>{
+    return "surveyQ2";
+  }
+
+},
+
+  surveyQ2:{
+
+  reducer:(text)=>{
+
+    const ratingMap = {
+      "とても分かりやすい":5,
+      "分かりやすい":4,
+      "普通":3,
+      "やや分かりにくい":2,
+      "分かりにくい":1
+    };
+
+    state.surveyData.ratingLabel = text;
+
+    state.surveyData.rating =
+      ratingMap[text] || 0;
+
+  },
+
+  next:()=>{
+    return "surveyQ3";
+  }
+
+},
+
+  surveyQ3:{
+
+  reducer:(text)=>{
+    state.surveyData.clarified = text;
+  },
+
+  next:()=>{
+    return "surveyQ4";
+  }
+
+},
+
+  surveyQ4:{
+
+  reducer:(text)=>{
+    state.surveyData.willConsult = text;
+  },
+
+  next:()=>{
+    return "surveyQ5";
+  }
+
+},
+
+  surveyQ5:{
+
+  reducer:(text)=>{
+
+    if(text==="感想を書く"){
+
+      const input =
+        window.prompt(
+          "みちさんへのご感想・ご要望があれば教えてください。\n（未記入のまま「OK」でも大丈夫です）",
+          ""
+        );
+
+      state.surveyData.freeText =
+        input || "";
+
+    }else{
+
+      state.surveyData.freeText = "";
+
+    }
+
+    saveSurveyResponse();
+
+  },
+
+  next:()=>{
+    return "surveyThanks";
+  }
+
+},
+
+  surveyThanks:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "start";
+  }
+
+},
+
   profileChoice:{
   reducer:(text)=>{},
   next:(text)=>{
@@ -5150,6 +5377,114 @@ function rebuildChat(){
 ========================================= */
 
 const PROFILE_STORAGE_KEY = "seidoNaviProfile";
+
+/* =========================================
+   MICHI STATS（利用実績・アンケート）
+   ※現状はサーバーがないため、
+   　このブラウザの中だけに保存されます。
+   　将来サーバーと連携する際は、
+   　この2関数の中身を差し替えれば
+   　対応できるようにしてあります。
+========================================= */
+
+function recordConsultationCompleted(){
+
+  try{
+
+    const key = "michiStats";
+
+    const raw =
+      localStorage.getItem(key);
+
+    const stats =
+      raw ? JSON.parse(raw) : {};
+
+    stats.consultationsCompleted =
+      (stats.consultationsCompleted || 0) + 1;
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(stats)
+    );
+
+  }catch(e){}
+
+}
+
+function saveSurveyResponse(){
+
+  try{
+
+    const statsKey = "michiStats";
+
+    const rawStats =
+      localStorage.getItem(statsKey);
+
+    const stats =
+      rawStats ? JSON.parse(rawStats) : {};
+
+    stats.surveyResponses =
+      (stats.surveyResponses || 0) + 1;
+
+    localStorage.setItem(
+      statsKey,
+      JSON.stringify(stats)
+    );
+
+    const responsesKey =
+      "michiSurveyResponses";
+
+    const rawResponses =
+      localStorage.getItem(responsesKey);
+
+    const responses =
+      rawResponses
+        ? JSON.parse(rawResponses)
+        : [];
+
+    responses.push({
+      timestamp:
+        new Date().toISOString(),
+      category:
+        state.surveyData.category,
+      rating:
+        state.surveyData.rating,
+      ratingLabel:
+        state.surveyData.ratingLabel,
+      clarified:
+        state.surveyData.clarified,
+      willConsult:
+        state.surveyData.willConsult,
+      freeText:
+        state.surveyData.freeText
+    });
+
+    localStorage.setItem(
+      responsesKey,
+      JSON.stringify(responses)
+    );
+
+  }catch(e){}
+
+}
+
+/* =========================================
+   相談を完了する
+========================================= */
+
+function completeConsultation(){
+
+  saveHistory();
+
+  state.currentScreen = "surveyIntro";
+
+  renderScreen();
+
+  saveProfileToSession();
+
+  recordConsultationCompleted();
+
+}
 
 function saveProfileToSession(){
 
