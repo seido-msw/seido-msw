@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <title>みちしるべ</title>
 
@@ -11,6 +11,10 @@
 html{
   height:100%;
   overflow:hidden;
+}
+
+*{
+  box-sizing:border-box;
 }
 
 body{
@@ -207,6 +211,62 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   
 }
 
+.inline-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+
+  margin:18px 0 26px;
+
+  justify-content:flex-end;
+}
+
+.inline-button{
+  width:calc(50% - 5px);
+  min-width:120px;
+
+  min-height:52px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:white;
+  border:2px solid #2563eb;
+  color:#2563eb;
+
+  border-radius:10px;
+  padding:8px 16px;
+
+  cursor:pointer;
+}
+
+.inline-button-label{
+  font-size:14px;
+  font-weight:bold;
+  line-height:1.3;
+  text-align:center;
+
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+
+  overflow:hidden;
+  word-break:break-word;
+}
+
+.inline-button.secondary{
+  background:#6b7280;
+  border-color:#6b7280;
+  color:white;
+}
+
+.inline-button.highlight{
+  background:#15803d;
+  border-color:#15803d;
+  color:white;
+}
+
 .choice-button{
 
   width:100%;
@@ -242,6 +302,7 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   gap:6px;
 
   padding:4px 8px;
+  padding-bottom:calc(4px + env(safe-area-inset-bottom));
 
   border-top:1px solid #ddd;
   background:#f6f8fb;
@@ -4487,52 +4548,40 @@ function renderButtons(){
 
   area.innerHTML = "";
 
+  area.style.display = "";
+
   if(state.currentScreen === "reduceCostResult"){
+
+    area.style.display = "none";
 
     const links =
       REDUCE_COST_LINKS[
         state.reduceCostTopic
       ] || [];
 
-    links.forEach(link=>{
+    const inlineButtons =
+      links.map(link=>({
+        label:"詳しく見る（" + link.label + "）",
+        onclick:()=>window.open(link.url,"_blank")
+      }));
 
-      const button =
-        document.createElement("button");
-
-      button.className =
-        "choice-button";
-
-      button.innerText =
-        "制度を見る（" + link.label + "）";
-
-      button.onclick =
-        ()=>window.open(link.url,"_blank");
-
-      area.appendChild(button);
-
+    inlineButtons.push({
+      label:"戻る",
+      secondary:true,
+      onclick:()=>handleSelect("戻る")
     });
 
-    const backButton =
-      document.createElement("button");
+    addInlineButtons(inlineButtons);
 
-    backButton.className =
-      "choice-button";
-
-    backButton.innerText = "戻る";
-
-    backButton.style.background = "#6b7280";
-    backButton.style.color = "white";
-
-    backButton.onclick =
-      ()=>handleSelect("戻る");
-
-    area.appendChild(backButton);
+    ensureScrollRoom();
 
     return;
 
   }
 
   if(state.currentScreen === "careServiceResult"){
+
+    area.style.display = "none";
 
     const idx = state.careServiceStep;
 
@@ -4541,39 +4590,24 @@ function renderButtons(){
         ? CARE_SERVICE_ORDER[idx + 1]
         : null;
 
+    const inlineButtons = [];
+
     if(nextLabel){
-
-      const nextButton =
-        document.createElement("button");
-
-      nextButton.className =
-        "choice-button";
-
-      nextButton.innerText =
-        "次へ：" + nextLabel;
-
-      nextButton.onclick =
-        ()=>handleSelect(nextLabel);
-
-      area.appendChild(nextButton);
-
+      inlineButtons.push({
+        label:"次の質問へ",
+        onclick:()=>handleSelect(nextLabel)
+      });
     }
 
-    const backButton2 =
-      document.createElement("button");
+    inlineButtons.push({
+      label:"戻る",
+      secondary:true,
+      onclick:()=>handleSelect("戻る")
+    });
 
-    backButton2.className =
-      "choice-button";
+    addInlineButtons(inlineButtons);
 
-    backButton2.innerText = "戻る";
-
-    backButton2.style.background = "#6b7280";
-    backButton2.style.color = "white";
-
-    backButton2.onclick =
-      ()=>handleSelect("戻る");
-
-    area.appendChild(backButton2);
+    ensureScrollRoom();
 
     return;
 
@@ -4581,47 +4615,34 @@ function renderButtons(){
 
   if(state.currentScreen === "homeDischargeResult"){
 
+    area.style.display = "none";
+
     const showRelated =
       HOME_DISCHARGE_SHOW_RELATED[
         state.homeDischargeTopic
       ];
 
+    const inlineButtons = [];
+
     if(showRelated){
-
-      const relatedButton =
-        document.createElement("button");
-
-      relatedButton.className =
-        "choice-button";
-
-      relatedButton.innerText =
-        "関連する制度・サービスはこちら";
-
-      relatedButton.onclick =
-        ()=>{
+      inlineButtons.push({
+        label:"関連する制度を詳しく見る",
+        onclick:()=>{
           state.currentScreen = "careServiceMenu";
           renderScreen();
-        };
-
-      area.appendChild(relatedButton);
-
+        }
+      });
     }
 
-    const backButton4 =
-      document.createElement("button");
+    inlineButtons.push({
+      label:"戻る",
+      secondary:true,
+      onclick:()=>handleSelect("戻る")
+    });
 
-    backButton4.className =
-      "choice-button";
+    addInlineButtons(inlineButtons);
 
-    backButton4.innerText = "戻る";
-
-    backButton4.style.background = "#6b7280";
-    backButton4.style.color = "white";
-
-    backButton4.onclick =
-      ()=>handleSelect("戻る");
-
-    area.appendChild(backButton4);
+    ensureScrollRoom();
 
     return;
 
@@ -4629,52 +4650,69 @@ function renderButtons(){
 
   if(state.currentScreen === "profileSummary"){
 
-    const editButton =
-      document.createElement("button");
+    area.style.display = "none";
 
-    editButton.className =
-      "choice-button";
+    addInlineButtons([
+      {
+        label:"プロフィールを編集する",
+        onclick:()=>handleSelect("プロフィールを編集する")
+      },
+      {
+        label:"プロフィールをリセット",
+        onclick:()=>handleSelect("プロフィールをリセット")
+      },
+      {
+        label:"戻る",
+        secondary:true,
+        onclick:()=>handleSelect("戻る")
+      }
+    ]);
 
-    editButton.innerText =
-      "プロフィールを編集する";
+    ensureScrollRoom();
 
-    editButton.onclick =
-      ()=>handleSelect("プロフィールを編集する");
+    return;
 
-    area.appendChild(editButton);
+  }
 
-    const resetButton =
-      document.createElement("button");
+  if(state.currentScreen === "careServiceContentMenu"){
 
-    resetButton.className =
-      "choice-button";
+    area.style.display = "none";
 
-    resetButton.innerText =
-      "プロフィールをリセット";
+    const serviceButtons =
+      (screens.careServiceContentMenu.buttons || [])
+        .map(label=>({
+          label:label,
+          secondary:(label==="次へ"),
+          onclick:()=>handleSelect(label)
+        }));
 
-    resetButton.style.background = "#ef4444";
-    resetButton.style.color = "white";
+    addInlineButtons(serviceButtons);
 
-    resetButton.onclick =
-      ()=>handleSelect("プロフィールをリセット");
+    ensureScrollRoom();
 
-    area.appendChild(resetButton);
+    return;
 
-    const backButton5 =
-      document.createElement("button");
+  }
 
-    backButton5.className =
-      "choice-button";
+  if(state.currentScreen === "profileUnclearGuideMenu"){
 
-    backButton5.innerText = "戻る";
+    area.style.display = "none";
 
-    backButton5.style.background = "#6b7280";
-    backButton5.style.color = "white";
+    const guideButtons =
+      getUnclearProfileButtons()
+        .map(label=>({
+          label:label,
+          secondary:(
+            label==="プロフィールを編集する"
+            ||
+            label==="相談に進む"
+          ),
+          onclick:()=>handleSelect(label)
+        }));
 
-    backButton5.onclick =
-      ()=>handleSelect("戻る");
+    addInlineButtons(guideButtons);
 
-    area.appendChild(backButton5);
+    ensureScrollRoom();
 
     return;
 
@@ -4686,16 +4724,6 @@ function renderButtons(){
 
     buttons =
       validators.insuranceButtons();
-
-  }
-
-  else if(
-    state.currentScreen ===
-    "profileUnclearGuideMenu"
-  ){
-
-    buttons =
-      getUnclearProfileButtons();
 
   }
 
@@ -4799,35 +4827,23 @@ function renderButtons(){
 
   }
 
-  buttons.forEach(text=>{
+  area.style.display = "none";
 
-    const button =
-      document.createElement("button");
+  const commonButtons =
+    buttons.map(text=>({
+      label:text,
+      secondary:(text==="なし"),
+      highlight:(
+        text==="決定"
+        ||
+        text==="相談に進む"
+      ),
+      onclick:()=>handleSelect(text)
+    }));
 
-    button.className =
-      "choice-button";
+  addInlineButtons(commonButtons);
 
-    button.innerText = text;
-
-if(text === "なし"){
-  button.style.background = "#6b7280";
-  button.style.color = "white";
-}
-
-if(
-  text === "決定"
-  ||
-  text === "相談に進む"
-){
-  button.style.background = "#15803d";
-  button.style.color = "white";
-  button.style.fontWeight = "bold";
-}
-    button.onclick =
-      ()=>handleSelect(text);
-      area.appendChild(button);
-
-});
+  ensureScrollRoom();
 
 }
 
@@ -4941,6 +4957,54 @@ function scrollHintClick(){
     chat.scrollTop
     +
     chat.clientHeight * 0.75;
+
+  requestAnimationFrame(updateScrollHint);
+
+}
+
+/* =========================================
+   INLINE BUTTONS
+   （回答の直後に、控えめなボタンを
+   　通常配置する。固定エリアは使わない）
+========================================= */
+
+function addInlineButtons(buttons){
+
+  const chat =
+    document.getElementById("chat");
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className = "inline-buttons";
+
+  buttons.forEach(b=>{
+
+    const btn =
+      document.createElement("button");
+
+    btn.className =
+      "inline-button" +
+      (b.secondary ? " secondary" : "") +
+      (b.highlight ? " highlight" : "");
+
+    const labelSpan =
+      document.createElement("span");
+
+    labelSpan.className =
+      "inline-button-label";
+
+    labelSpan.innerText = b.label;
+
+    btn.appendChild(labelSpan);
+
+    btn.onclick = b.onclick;
+
+    wrapper.appendChild(btn);
+
+  });
+
+  chat.appendChild(wrapper);
 
   requestAnimationFrame(updateScrollHint);
 
