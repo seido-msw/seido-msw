@@ -46,13 +46,32 @@ body{
   font-weight:bold;
 
   display:flex;
-  align-items:baseline;
+  align-items:center;
   justify-content:space-between;
   gap:8px;
 }
 
 .header-title{
   white-space:nowrap;
+}
+
+.header-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+}
+
+.restart-btn{
+  background:transparent;
+  border:1px solid white;
+  color:white;
+  border-radius:6px;
+  padding:2px 8px;
+  font-size:12px;
+  font-weight:bold;
+  white-space:nowrap;
+  cursor:pointer;
 }
 
 .version-info{
@@ -252,14 +271,6 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   background:#6b7280;
 }
 
-.start-btn{
-  background:#2563eb;
-}
-
-.reset-btn{
-  background:#ef4444;
-}
-
 .complete-btn{
   background:#15803d;
 }
@@ -273,7 +284,15 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 
   <div class="header">
     <span class="header-title">みちしるべ</span>
-    <div id="versionInfo" class="version-info"></div>
+    <div class="header-right">
+      <button
+        id="restartBtn"
+        class="restart-btn"
+        onclick="handleRestartClick()">
+        ↻ 最初から
+      </button>
+      <div id="versionInfo" class="version-info"></div>
+    </div>
   </div>
 
 
@@ -288,27 +307,16 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   <div class="control-area">
 
     <button
+      id="backBtn"
       class="control-btn back-btn"
       onclick="goBack()">
-      戻る
-    </button>
-
-    <button
-      class="control-btn start-btn"
-      onclick="goToStart()">
-      最初の画面に戻る
+      ← 前の質問
     </button>
 
     <button
       class="control-btn complete-btn"
       onclick="completeConsultation()">
       相談を完了する
-    </button>
-
-    <button
-      class="control-btn reset-btn"
-      onclick="resetApp()">
-      リセット
     </button>
 
   </div>
@@ -497,7 +505,7 @@ text:`ご協力ありがとうございました。
 またいつでも、
 気になったときにご相談ください。`,
     buttons:[
-      "トップへ戻る"
+      "もう一度相談する"
     ]
   },
 
@@ -4470,6 +4478,8 @@ function renderScreen(){
 }
 function renderButtons(){
 
+  updateFooterVisibility();
+
   const area =
     document.getElementById(
       "choiceButtons"
@@ -5764,6 +5774,71 @@ function goToStart(){
   ensureScrollRoom();
 
   renderScreen();
+
+}
+
+/* =========================================
+   最初から（確認ダイアログ付き）
+========================================= */
+
+/* =========================================
+   FOOTER / HEADER 表示切り替え
+   （アンケート中は「前の質問」「最初から」を隠し、
+   　通常の相談中だけ表示する）
+========================================= */
+
+const SURVEY_SCREENS = [
+  "surveyIntro",
+  "surveyQ1",
+  "surveyQ2",
+  "surveyQ3",
+  "surveyQ4",
+  "surveyQ5",
+  "surveyThanks"
+];
+
+function updateFooterVisibility(){
+
+  const isSurveyScreen =
+    SURVEY_SCREENS.includes(
+      state.currentScreen
+    );
+
+  const backBtn =
+    document.getElementById("backBtn");
+
+  const restartBtn =
+    document.getElementById("restartBtn");
+
+  const completeBtn =
+    document.querySelector(".complete-btn");
+
+  if(backBtn){
+    backBtn.style.display =
+      isSurveyScreen ? "none" : "";
+  }
+
+  if(restartBtn){
+    restartBtn.style.display =
+      isSurveyScreen ? "none" : "";
+  }
+
+  if(completeBtn){
+    completeBtn.style.display =
+      isSurveyScreen ? "none" : "";
+  }
+
+}
+
+function handleRestartClick(){
+
+  const confirmed = confirm(
+    "最初から相談し直しますか？\n今までの回答はリセットされます。"
+  );
+
+  if(confirmed){
+    resetApp();
+  }
 
 }
 
