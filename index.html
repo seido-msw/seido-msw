@@ -6101,7 +6101,43 @@ async function loadVersionInfo(){
 
 }
 
+/* =========================================
+   VIEWPORT HEIGHT（実測値で高さを固定する）
+   iOSのSafariはCSSの100vh/100svhが
+   ツールバーの表示状態と合わず、
+   下部が見切れることがあるため、
+   JavaScriptで実際の高さを直接指定する
+========================================= */
+
+function setViewportHeight(){
+
+  const container =
+    document.querySelector(".container");
+
+  if(!container){
+    return;
+  }
+
+  container.style.height =
+    window.innerHeight + "px";
+
+}
+
+window.addEventListener(
+  "resize",
+  setViewportHeight
+);
+
+window.addEventListener(
+  "orientationchange",
+  ()=>{
+    setTimeout(setViewportHeight, 100);
+  }
+);
+
 window.onload = ()=>{
+
+  setViewportHeight();
 
   loadProfileFromSession();
 
