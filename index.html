@@ -6118,22 +6118,53 @@ function setViewportHeight(){
     return;
   }
 
+  const height =
+    (window.visualViewport)
+      ? window.visualViewport.height
+      : window.innerHeight;
+
   container.style.height =
-    window.innerHeight + "px";
+    height + "px";
+
+  ensureScrollRoom();
 
 }
 
-window.addEventListener(
-  "resize",
-  setViewportHeight
-);
+if(window.visualViewport){
+
+  window.visualViewport.addEventListener(
+    "resize",
+    setViewportHeight
+  );
+
+  window.visualViewport.addEventListener(
+    "scroll",
+    setViewportHeight
+  );
+
+}else{
+
+  window.addEventListener(
+    "resize",
+    setViewportHeight
+  );
+
+}
 
 window.addEventListener(
   "orientationchange",
   ()=>{
     setTimeout(setViewportHeight, 100);
+    setTimeout(setViewportHeight, 400);
   }
 );
+
+// ページを開いた直後は、Safariのツールバーの
+// 表示状態が少し遅れて確定することがあるため、
+// 何度か測り直して最新の高さに合わせる
+[0, 100, 300, 600, 1000].forEach(delay=>{
+  setTimeout(setViewportHeight, delay);
+});
 
 window.onload = ()=>{
 
