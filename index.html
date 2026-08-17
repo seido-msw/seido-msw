@@ -125,6 +125,12 @@ body{
   word-break:break-word;
 }
 
+.message-link{
+  color:#1d4ed8;
+  text-decoration:underline;
+  font-weight:bold;
+}
+
 .bot{
   background:#eff6ff;
   border-left:5px solid #2563eb;
@@ -708,14 +714,6 @@ palliativeCareMenu:{
   ]
 },
 
-longStayMenu:{
-  text:"長く入院できないと言われた",
-  buttons:[
-    "まだ治っていないのに転院？",
-    "次の病院はどう決まる？"
-  ]
-},
-
 facilityMenu:{
   text:"施設について知りたい内容を選択してください。",
   buttons:[
@@ -929,7 +927,7 @@ careServiceContentMenu:{
     "デイケア（通所リハビリ）",
     "福祉用具・住宅改修",
     "小規模多機能・看護多機能",
-    "次へ"
+    "費用についてへ"
   ]
 },
   
@@ -1934,6 +1932,16 @@ const validators = {
 
     }
 
+    if(state.user.age === "70歳〜74歳"){
+
+      return [
+        "不明",
+        "2割",
+        "3割"
+      ];
+
+    }
+
     return [
       "不明",
       "1割",
@@ -2119,15 +2127,21 @@ const menuModules = {
   },
 
   "自立支援医療":()=>{
-    addBotMessage(REDUCE_COST_INFO.jiritsu);
+    showReduceCostResult("jiritsu");
+    state.currentScreen = "reduceCostResult";
+    renderButtons();
   },
 
   "難病医療":()=>{
-    addBotMessage(REDUCE_COST_INFO.nanbyo);
+    showReduceCostResult("nanbyo");
+    state.currentScreen = "reduceCostResult";
+    renderButtons();
   },
 
   "特定疾病":()=>{
-    addBotMessage(REDUCE_COST_INFO.tousekiTokutei);
+    showReduceCostResult("tousekiTokutei");
+    state.currentScreen = "reduceCostResult";
+    renderButtons();
   },
 
   "身体障害者手帳":()=>{
@@ -2820,8 +2834,33 @@ renderButtons();
 },
 
 "長く入院できないと言われた":()=>{
-    state.currentScreen="longStayMenu";
-    renderScreen();
+
+addBotMessage(`【長く入院できないと言われた】
+
+完全に治ってから退院・転院する
+わけではありません。
+
+急性期治療が終了し、
+病状が安定した段階で、
+今後必要な医療やリハビリに
+合った病院へ移ることがあります。
+
+転院後も必要な治療は継続されます。
+
+次の病院は、
+
+・病状や必要な医療
+・ご本人・ご家族の希望
+・通院しやすさ
+
+などを考慮して調整します。
+
+病院の空き状況などにより、
+希望どおりにならない場合もあります。
+
+担当MSWが転院先探しを
+お手伝いします。`);
+
 },
 
 "特別養護老人ホーム（特養）":()=>{
@@ -2830,48 +2869,47 @@ addBotMessage(`【特別養護老人ホーム（特養）】
 
 **役割**
 
-自宅での生活が難しくなった方が、
-生活の場として長く暮らすための
-施設です。
-
-終の住処として
-利用することもできます。
+生活の場（終の住処）として
+過ごす施設となります。
 
 **対象者**
 
-要介護3以上の方が
-入所の対象です。
+原則、要介護3以上の方から
+申込みが可能です。
 
 **施設体制**
 
 ■医療
-嘱託医が診察や薬の処方を
-行います。
-
-施設で診療を受けられるため、
-医療機関への通院が
-少なくなる場合があります。
+嘱託医が施設に往診に来て、
+診察や処方を行う為、
+基本的に通院が無くなります。
 
 看取りに対応している施設も
 ありますが、どこまで対応できるかは
 施設の医療体制によって異なります。
 
 ■看護
-看護師は基本的に日中の勤務と
-なるため、夜間の吸引など、
-対応できる医療処置には
-限りがあります。
+看護師は基本的に日中の
+勤務のみとなる為、
+夜間に医療処置は
+対応ができません。
+（夜間の吸引や点滴等）
 
-胃ろうや経管栄養に
+胃瘻や経鼻栄養等に
 対応している施設もありますが、
-継続的な点滴が必要など、
-医療的な管理が多い場合は
-受け入れが難しいことがあります。
+継続的に点滴や酸素が必要などの
+医療的な管理が多い方は
+受け入れが難しい場合があります。
 
 ■介護
 介護職員が24時間いて、
 食事・排泄・入浴などの
-日常生活を支援します。`);
+日常生活を支援します。
+
+**申込み方法**
+
+まずはケアマネもしくはMSW等に
+相談しましょう。`);
 
 },
 
@@ -2889,8 +2927,8 @@ addBotMessage(`【介護老人保健施設（老健）】
 
 **対象者**
 
-要介護1以上の方が
-入所の対象です。
+要介護1以上の方から
+申込みが可能です。
 
 **施設体制**
 
@@ -2927,9 +2965,10 @@ addBotMessage(`【介護老人保健施設（老健）】
 介護職員が、食事・排泄・入浴などの
 日常生活を支援します。
 
-リハビリや介護を受けながら、
-自宅へ戻った後の生活を
-イメージして生活を整えていきます。`);
+**申込み**
+
+まずはケアマネやMSW等に
+相談しましょう。`);
 
 },
 
@@ -3242,39 +3281,6 @@ addBotMessage(`【転院先は選べる？】
 
 できる限り患者さんやご家族の希望を伺いながら
 転院先を調整します。`);
-},
-
-"まだ治っていないのに転院？":()=>{
-addBotMessage(`【まだ治っていないのに転院？】
-
-完全に治ってから退院・転院する
-わけではありません。
-
-急性期治療が終了し、
-
-病状が安定した段階で、
-
-今後必要な医療やリハビリに
-合った病院へ移ることがあります。
-
-転院後も必要な治療は継続されます。`);
-},
-
-"次の病院はどう決まる？":()=>{
-addBotMessage(`【次の病院はどう決まる？】
-
-病状や必要な医療、
-
-ご本人・ご家族の希望、
-
-通院しやすさなどを考慮して
-転院先を調整します。
-
-病院の空き状況などにより、
-希望どおりにならない場合もあります。
-
-担当MSWが転院先探しを
-お手伝いします。`);
 },
 
   /* メイン */
@@ -4119,7 +4125,7 @@ careServiceContentMenu:{
 
   reducer:(text)=>{
 
-    if(text==="次へ"){
+    if(text==="費用についてへ"){
       careServiceReducer("費用について");
       return;
     }
@@ -4135,7 +4141,7 @@ careServiceContentMenu:{
 
   next:(text)=>{
 
-    if(text==="次へ"){
+    if(text==="費用についてへ"){
       return "careServiceResult";
     }
 
@@ -4607,13 +4613,13 @@ function renderButtons(){
 
     if(nextLabel){
       inlineButtons.push({
-        label:"次の質問へ",
+        label:nextLabel + "へ",
         onclick:()=>handleSelect(nextLabel)
       });
     }
 
     inlineButtons.push({
-      label:"戻る",
+      label:"一覧に戻る",
       secondary:true,
       onclick:()=>handleSelect("戻る")
     });
@@ -4695,7 +4701,7 @@ function renderButtons(){
       (screens.careServiceContentMenu.buttons || [])
         .map(label=>({
           label:label,
-          secondary:(label==="次へ"),
+          secondary:(label==="費用についてへ"),
           onclick:()=>handleSelect(label)
         }));
 
@@ -4978,7 +4984,7 @@ function addMessage(role,text){
   div.className =
     "message " + role;
 
-  div.innerText = text;
+  div.innerHTML = formatRichText(text);
 
   document
     .getElementById("chat")
@@ -5247,9 +5253,16 @@ function formatRichText(text){
       '<hr class="dotted-divider">'
     );
 
-  return withDivider.replace(
-    /\*\*([\s\S]+?)\*\*/g,
-    "<strong>$1</strong>"
+  const withBold =
+    withDivider.replace(
+      /\*\*([\s\S]+?)\*\*/g,
+      "<strong>$1</strong>"
+    );
+
+  // URLをタップできるリンクに変換する
+  return withBold.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener" class="message-link">$1</a>'
   );
 
 }
@@ -5317,7 +5330,6 @@ const menuScreens = [
   "transferRehabMenu",
   "medicalProcedureMenu",
   "palliativeCareMenu",   // ←追加
-  "longStayMenu",
   "facilityMenu",
   "careInpatientMenu",
   "disabilityInpatientMenu"
@@ -5637,7 +5649,7 @@ function rebuildChat(){
       div.className =
         "message " + msg.role;
 
-      div.innerText = msg.text;
+      div.innerHTML = formatRichText(msg.text);
 
     }
 
