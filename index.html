@@ -267,6 +267,15 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   color:white;
 }
 
+.inline-button.active{
+  background:#2563eb;
+  color:white;
+}
+
+.inline-button.active::after{
+  content:" ✓";
+}
+
 .choice-button{
 
   width:100%;
@@ -3618,6 +3627,7 @@ purpose:{
     next:()=>{
 
       if(state.user.careLevel === "なし"){
+        state.user.supportSystems = [];
         return "supportSystems";
       }
 
@@ -3637,6 +3647,7 @@ purpose:{
 
       if(isLikelyIneligible){
         state.user.mealStage = "対象外";
+        state.user.supportSystems = [];
         return "supportSystems";
       }
 
@@ -3671,6 +3682,7 @@ purpose:{
     },
 
     next:()=>{
+      state.user.supportSystems = [];
       return "supportSystems";
     }
 
@@ -4220,6 +4232,7 @@ function getAfterLimitScreen(){
 
     state.user.careLevel = "対象外";
     state.user.mealStage = "対象外";
+    state.user.supportSystems = [];
 
     return "supportSystems";
 
@@ -4718,6 +4731,106 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "supportSystems"){
+
+    area.style.display = "none";
+
+    const chatEl =
+      document.getElementById("chat");
+
+    if(
+      currentInlineButtonsInfo.screen === state.currentScreen
+      &&
+      currentInlineButtonsInfo.element
+      &&
+      currentInlineButtonsInfo.element.parentNode === chatEl
+    ){
+      chatEl.removeChild(
+        currentInlineButtonsInfo.element
+      );
+    }
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className = "inline-buttons";
+
+    (screens.supportSystems.buttons || [])
+      .forEach(text=>{
+
+        const isToggleItem =
+          (text !== "なし" && text !== "決定");
+
+        const btn =
+          document.createElement("button");
+
+        btn.className =
+          "inline-button" +
+          (text==="なし" ? " secondary" : "") +
+          (text==="決定" ? " highlight" : "") +
+          (
+            isToggleItem
+            &&
+            state.user.supportSystems.includes(text)
+              ? " active"
+              : ""
+          );
+
+        const labelSpan =
+          document.createElement("span");
+
+        labelSpan.className =
+          "inline-button-label";
+
+        labelSpan.innerText = text;
+
+        btn.appendChild(labelSpan);
+
+        if(isToggleItem){
+
+          btn.onclick = ()=>{
+
+            const idx =
+              state.user.supportSystems
+                .indexOf(text);
+
+            if(idx === -1){
+              state.user.supportSystems.push(text);
+              btn.classList.add("active");
+            }else{
+              state.user.supportSystems
+                .splice(idx,1);
+              btn.classList.remove("active");
+            }
+
+          };
+
+        }else{
+
+          btn.onclick =
+            ()=>handleSelect(text);
+
+        }
+
+        wrapper.appendChild(btn);
+
+      });
+
+    chatEl.appendChild(wrapper);
+
+    currentInlineButtonsInfo = {
+      screen:state.currentScreen,
+      element:wrapper
+    };
+
+    ensureScrollRoom();
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
   let buttons = [];
 
   if(state.currentScreen === "insurance"){
@@ -4968,10 +5081,30 @@ function scrollHintClick(){
    　通常配置する。固定エリアは使わない）
 ========================================= */
 
+let currentInlineButtonsInfo = {
+  screen:null,
+  element:null
+};
+
 function addInlineButtons(buttons){
 
   const chat =
     document.getElementById("chat");
+
+  // 同じ画面のボタン塊がすでにあれば、
+  // （間にユーザーの発言などが挟まっていても）
+  // それを消してから新しいものを追加する
+  if(
+    currentInlineButtonsInfo.screen === state.currentScreen
+    &&
+    currentInlineButtonsInfo.element
+    &&
+    currentInlineButtonsInfo.element.parentNode === chat
+  ){
+    chat.removeChild(
+      currentInlineButtonsInfo.element
+    );
+  }
 
   const wrapper =
     document.createElement("div");
@@ -5005,6 +5138,11 @@ function addInlineButtons(buttons){
   });
 
   chat.appendChild(wrapper);
+
+  currentInlineButtonsInfo = {
+    screen:state.currentScreen,
+    element:wrapper
+  };
 
   requestAnimationFrame(updateScrollHint);
 
