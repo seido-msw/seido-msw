@@ -1206,6 +1206,72 @@ const HIGH_COST_DATA = {
    REDUCE COST INFO
 ========================================= */
 
+/* =========================================
+   施設費用の計算用データ
+   （2026年8月改定時点の基準額をもとに、
+   　特養・多床室の場合を想定した簡易計算）
+========================================= */
+
+// 介護サービス費：要介護度別の単位数（従来型・多床室、1日あたり）
+const FACILITY_CARE_UNITS = {
+  "要介護1":652,
+  "要介護2":720,
+  "要介護3":793,
+  "要介護4":862,
+  "要介護5":929
+};
+
+const UNIT_PRICE = 10; // 円/単位（地域差は考慮しない簡易計算）
+
+// 食費：基準費用額・負担限度額（1日あたり、円）
+const FACILITY_MEAL_COST = {
+  "第四段階（課税）":1545,
+  "対象外":1545,
+  "第三段階②":1420,
+  "第三段階①":680,
+  "第二段階":390,
+  "第一段階":300
+};
+
+// 居住費：基準費用額・負担限度額（多床室・特養、1日あたり、円）
+const FACILITY_HOUSING_COST = {
+  "第四段階（課税）":855,
+  "対象外":855,
+  "第三段階②":530,
+  "第三段階①":430,
+  "第二段階":430,
+  "第一段階":0
+};
+
+// 高額介護サービス費：自己負担上限額（月額・世帯、円）
+const FACILITY_HIGH_COST_LIMIT = {
+  "第四段階（課税）":44400,
+  "対象外":44400,
+  "第三段階②":24600,
+  "第三段階①":24600,
+  "第二段階":24600,
+  "第一段階":15000
+};
+
+const FACILITY_OTHER_COST_ESTIMATE = 10000; // その他自費の目安（円/月）
+
+// グループホーム：介護サービス費の月額目安（1割負担、加算込み概算、円）
+// 特養等と異なり、食費・居住費の軽減制度（補足給付）の対象外
+const GROUP_HOME_CARE_COST_1WARI = {
+  "要支援2":25000,
+  "要介護1":26000,
+  "要介護2":27000,
+  "要介護3":28000,
+  "要介護4":29000,
+  "要介護5":30000
+};
+
+const BURDEN_RATE_FRACTION = {
+  "1割":0.1,
+  "2割":0.2,
+  "3割":0.3
+};
+
 const REDUCE_COST_INFO = {
 
   jiritsu:
@@ -2911,6 +2977,11 @@ addBotMessage(`【特別養護老人ホーム（特養）】
 まずはケアマネもしくはMSW等に
 相談しましょう。`);
 
+addStandaloneInlineButton(
+  "費用の目安を見る",
+  ()=>showFacilityCostOverview("特別養護老人ホーム")
+);
+
 },
 
 "介護老人保健施設（老健）":()=>{
@@ -2970,6 +3041,11 @@ addBotMessage(`【介護老人保健施設（老健）】
 まずはケアマネやMSW等に
 相談しましょう。`);
 
+addStandaloneInlineButton(
+  "費用の目安を見る",
+  ()=>showFacilityCostOverview("介護老人保健施設")
+);
+
 },
 
 "介護医療院":()=>{
@@ -3015,6 +3091,11 @@ addBotMessage(`【介護医療院】
 
 医療と介護の両方を受けながら
 生活することができます。`);
+
+addStandaloneInlineButton(
+  "費用の目安を見る",
+  ()=>showFacilityCostOverview("介護医療院")
+);
 
 },
 
@@ -3063,6 +3144,11 @@ addBotMessage(`【有料老人ホーム・サービス付き高齢者向け住�
 難しい場合に、選択肢と
 なることがあります。`);
 
+addStandaloneInlineButton(
+  "費用の目安を見る",
+  ()=>showPaidHomeCostOverview()
+);
+
 },
 
 "グループホーム":()=>{
@@ -3106,6 +3192,11 @@ addBotMessage(`【認知症対応型共同生活介護（グループホーム�
 生活そのものを支える介護を
 受けます。`);
 
+addStandaloneInlineButton(
+  "費用の目安を見る",
+  ()=>showGroupHomeCostOverview()
+);
+
 },
 
 "自分にはどの施設が合う？":()=>{
@@ -3134,28 +3225,93 @@ addBotMessage(`【自分にはどの施設が合う？】
 
 "費用について":()=>{
 
-addBotMessage(`【施設の費用について】
+addBotMessage(`【施設の費用にかかわる制度について】
 
-施設の費用は、
+施設の費用は、収入や資産などによって
+利用できる制度が変わります。
 
-・介護度
-・利用する施設の種類
-・個室か多床室か
-・所得区分
+ここでは、費用にかかわる
+主な制度をご紹介します。
 
-などによって異なります。
+---
+**① 介護保険の自己負担割合**
 
-また、
+介護サービスの自己負担は、
+所得に応じて1〜3割です。
 
-・介護保険の自己負担割合
-・高額介護サービス費
-・食費・居住費負担軽減制度（負担限度額認定）
+・1割：一般的な所得の方
+（多くの方が該当します）
 
-などの制度を利用できる場合があります。
+・2割：一定以上の所得がある方
+（単身で年金収入等280万円以上が目安）
 
-詳しい金額は、
-施設や利用する制度によって異なるため、
-担当MSWやケアマネジャーへご相談ください。`);
+・3割：現役並みの所得がある方
+（単身で年金収入等340万円以上が目安）
+
+※40〜64歳の方（第2号被保険者）は
+原則1割です。
+
+---
+**② 高額介護サービス費**
+
+1か月の介護サービス費の自己負担が、
+上限額を超えた場合、
+超えた分があとで払い戻されます。
+
+上限額（月・世帯）の目安
+
+・課税世帯：44,400円
+・住民税非課税世帯：24,600円
+・生活保護受給者等：15,000円
+・現役並み所得の方：140,100円
+
+いったん自己負担分を支払い、
+あとから申請すると
+差額が戻ってくる仕組みです。
+
+---
+**③ 食費・居住費の負担限度額認定**
+（補足給付）
+
+住民税非課税世帯など、
+所得の低い方を対象に、
+食費・居住費の自己負担を
+軽くする制度です。
+
+貯蓄額や年金収入などによって、
+軽減される段階が異なります。
+
+**申請した月の1日にさかのぼって
+適用される**ため、対象になりそうな方は
+早めに市区町村へ申請することが
+大切です。
+
+---
+**④ 社会福祉法人等による
+利用者負担軽減制度**
+
+生計が困難な方などを対象に、
+社会福祉法人が運営する施設で、
+利用料の一部を軽減する制度です。
+
+・対象：生活保護受給者や
+住民税非課税世帯の方など
+（施設・自治体により異なります）
+
+・助成範囲：介護サービス費・食費・
+居住費などの一部
+
+・手続き窓口：お住まいの
+市区町村の福祉担当窓口
+
+---
+どの制度が使えるかは、
+収入・資産・世帯の状況によって
+異なります。
+
+くわしくは、担当MSWや
+ケアマネジャー、市区町村の
+窓口へご相談ください。`);
 
 },
 
@@ -4569,6 +4725,108 @@ function renderButtons(){
 
   area.style.display = "";
 
+  if(state.currentScreen === "facilityCostResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"自分の場合の費用を詳しく見る",
+        highlight:true,
+        onclick:()=>showFacilityCostPersonal()
+      },
+      {
+        label:"施設一覧に戻る",
+        secondary:true,
+        onclick:()=>{
+          state.currentScreen = "facilityMenu";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilityCostNeedsProfile"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"あなたに合った制度を調べる",
+        highlight:true,
+        onclick:()=>{
+          state.currentScreen = "age";
+          renderScreen();
+        }
+      },
+      {
+        label:"施設一覧に戻る",
+        secondary:true,
+        onclick:()=>{
+          state.currentScreen = "facilityMenu";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilityCostPersonalResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"施設一覧に戻る",
+        secondary:true,
+        onclick:()=>{
+          state.currentScreen = "facilityMenu";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "groupHomeCostResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"自分の場合の費用を詳しく見る",
+        highlight:true,
+        onclick:()=>showGroupHomeCostPersonal()
+      },
+      {
+        label:"施設一覧に戻る",
+        secondary:true,
+        onclick:()=>{
+          state.currentScreen = "facilityMenu";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
   if(state.currentScreen === "reduceCostResult"){
 
     area.style.display = "none";
@@ -5092,6 +5350,42 @@ let currentInlineButtonsInfo = {
   element:null
 };
 
+// メニュー内の各説明の直後にだけ、単発の案内ボタンを
+// 差し込むための軽量版（画面全体のボタン一覧は変更しない）
+function addStandaloneInlineButton(label, onclick){
+
+  const chat =
+    document.getElementById("chat");
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className = "inline-buttons";
+
+  const btn =
+    document.createElement("button");
+
+  btn.className = "inline-button";
+
+  const labelSpan =
+    document.createElement("span");
+
+  labelSpan.className = "inline-button-label";
+
+  labelSpan.innerText = label;
+
+  btn.appendChild(labelSpan);
+
+  btn.onclick = onclick;
+
+  wrapper.appendChild(btn);
+
+  chat.appendChild(wrapper);
+
+  requestAnimationFrame(updateScrollHint);
+
+}
+
 function addInlineButtons(buttons){
 
   const chat =
@@ -5185,6 +5479,360 @@ function showReduceCostResult(topicKey){
   addBotMessage(
     REDUCE_COST_INFO[topicKey]
   );
+
+}
+
+/* =========================================
+   施設費用の計算
+========================================= */
+
+function showFacilityCostOverview(facilityName){
+
+  const name = facilityName || "施設";
+
+addBotMessage(`【${name}の費用について】
+
+${name}に入所すると、介護サービス費のほかに、
+食費・居住費・日用品などの
+費用がかかります。
+
+介護度や所得などによって
+金額は変わりますが、
+まずは1か月にどのくらいかかるのか
+見てみましょう。
+
+**① 介護サービス費**
+介護度に応じた費用がかかり、
+自己負担は原則1～3割です。
+
+**② 食費・居住費**
+食事代や、施設で暮らすための
+居住費がかかります。
+
+所得などの条件によって、
+負担が軽くなる制度があります。
+
+**③ その他の自費**
+日用品、理美容、医療費、薬代など、
+施設や利用状況によって
+別途かかる費用があります。
+
+---
+**1か月の費用のイメージ**
+（例：課税世帯・1割負担・
+要介護4・多床室の場合）
+
+介護サービス費　約2.6万円
+食費　　　　　　約4.6万円
+居住費　　　　　約2.6万円
+その他の自費　　約1万円（目安）
+────────────
+合計　　　　　約10.8万円／月
+
+※2026年8月時点の基準額をもとにした
+目安です。介護度・所得などに
+よって実際の金額は異なります。
+
+詳しい金額は、担当MSWや
+ケアマネジャーへご相談ください。
+
+---
+**あなたの場合はいくら？**
+
+年齢や介護度、所得などをもとに、
+あなたの場合の費用を
+詳しく確認できます。`);
+
+  state.currentScreen = "facilityCostResult";
+
+  renderButtons();
+
+}
+
+function hasFacilityCostProfile(){
+
+  const u = state.user;
+
+  return (
+    !!FACILITY_CARE_UNITS[u.careLevel]
+    &&
+    !!BURDEN_RATE_FRACTION[u.burdenRate]
+    &&
+    !!FACILITY_MEAL_COST[u.mealStage]
+  );
+
+}
+
+function showFacilityCostPersonal(){
+
+  const chat = document.getElementById("chat");
+
+  if(!hasFacilityCostProfile()){
+
+    addBotMessage(`あなたの場合の費用を計算するには、
+いくつかプロフィール情報が必要です。
+
+「あなたに合った制度を調べる」から、
+年齢・介護度・所得区分などを
+教えていただけますか？`);
+
+    state.currentScreen = "facilityCostNeedsProfile";
+
+    renderButtons();
+
+    return;
+
+  }
+
+  const u = state.user;
+
+  const careUnit =
+    FACILITY_CARE_UNITS[u.careLevel];
+
+  const burdenFraction =
+    BURDEN_RATE_FRACTION[u.burdenRate];
+
+  const careCost =
+    Math.round(
+      careUnit * UNIT_PRICE * 30 * burdenFraction
+    );
+
+  const mealCost =
+    FACILITY_MEAL_COST[u.mealStage] * 30;
+
+  const housingCost =
+    FACILITY_HOUSING_COST[u.mealStage] * 30;
+
+  const otherCost =
+    FACILITY_OTHER_COST_ESTIMATE;
+
+  const highCostLimit =
+    FACILITY_HIGH_COST_LIMIT[u.mealStage]
+      ?? FACILITY_HIGH_COST_LIMIT["第四段階（課税）"];
+
+  const totalPay =
+    careCost + mealCost + housingCost + otherCost;
+
+  // 高額介護サービス費の対象は「介護サービス費」部分のみ
+  const refund =
+    Math.max(0, careCost - highCostLimit);
+
+  const actualBurden =
+    totalPay - refund;
+
+  const yen = (n)=>n.toLocaleString("ja-JP");
+
+  addBotMessage(`【あなたの場合の費用（目安）】
+
+介護度：${u.careLevel}
+負担割合：${u.burdenRate}
+食費・居住費の区分：${u.mealStage}
+
+■介護サービス費
+月 約${yen(careCost)}円
+
+■食費
+月 約${yen(mealCost)}円
+
+■居住費
+月 約${yen(housingCost)}円
+
+■その他の自費
+月 約${yen(otherCost)}円（目安）
+
+---
+**施設へいったん支払う金額**
+約${yen(totalPay)}円
+
+**後から戻る可能性がある金額**
+（高額介護サービス費）
+約${yen(refund)}円
+
+**実際の負担**
+約${yen(actualBurden)}円／月
+
+---
+※あくまで目安の計算です。
+施設の種類・居室タイプ・加算などにより
+実際の金額は異なります。
+
+正確な金額は、施設やケアマネジャー、
+市区町村へご確認ください。`);
+
+  state.currentScreen = "facilityCostPersonalResult";
+
+  renderButtons();
+
+}
+
+/* =========================================
+   グループホームの費用
+   （補足給付の対象外のため、
+   　特養等とは別の仕組みで案内する）
+========================================= */
+
+function showGroupHomeCostOverview(){
+
+addBotMessage(`【グループホームの費用について】
+
+グループホームは、特養などと違い、
+食費・居住費を軽くする制度（補足給付）の
+対象になりません。
+
+そのため、家賃・食費・水道光熱費などは
+全額自己負担となります。
+
+**① 介護サービス費**
+要介護度に応じた費用がかかり、
+自己負担は原則1～3割です。
+
+**② 家賃・食費・管理費など**
+施設ごとに金額が異なり、
+地域差も大きい項目です。
+
+---
+**1か月の費用のイメージ**
+（例：1割負担・要介護3の場合）
+
+介護サービス費　　約2.8万円
+家賃・食費・管理費　約7万～15万円
+────────────
+合計　　　　約10万～18万円／月
+
+※家賃などは施設によって
+大きく異なるため、幅のある
+目安になります。
+
+---
+**あなたの場合はいくら？**
+
+要介護度と負担割合をもとに、
+介護サービス費の部分だけ
+詳しく確認できます。`);
+
+  state.currentScreen = "groupHomeCostResult";
+
+  renderButtons();
+
+}
+
+function hasGroupHomeCostProfile(){
+
+  const u = state.user;
+
+  return (
+    !!GROUP_HOME_CARE_COST_1WARI[u.careLevel]
+    &&
+    !!BURDEN_RATE_FRACTION[u.burdenRate]
+  );
+
+}
+
+function showGroupHomeCostPersonal(){
+
+  if(!hasGroupHomeCostProfile()){
+
+    addBotMessage(`あなたの場合の費用を計算するには、
+いくつかプロフィール情報が必要です。
+
+「あなたに合った制度を調べる」から、
+年齢・介護度などを
+教えていただけますか？`);
+
+    state.currentScreen = "facilityCostNeedsProfile";
+
+    renderButtons();
+
+    return;
+
+  }
+
+  const u = state.user;
+
+  const baseCost1Wari =
+    GROUP_HOME_CARE_COST_1WARI[u.careLevel];
+
+  const burdenMultiplier =
+    { "1割":1, "2割":2, "3割":3 }[u.burdenRate]
+      || 1;
+
+  const careCost =
+    baseCost1Wari * burdenMultiplier;
+
+  const yen = (n)=>n.toLocaleString("ja-JP");
+
+  addBotMessage(`【あなたの場合の介護サービス費（目安）】
+
+介護度：${u.careLevel}
+負担割合：${u.burdenRate}
+
+■介護サービス費
+月 約${yen(careCost)}円
+
+---
+これに加えて、家賃・食費・
+水道光熱費・管理費などが
+施設ごとに別途かかります
+（月7万～15万円程度が目安です）。
+
+---
+※あくまで目安の計算です。
+実際の金額は施設にご確認ください。
+
+正確な金額は、施設やケアマネジャー、
+市区町村へご確認ください。`);
+
+  state.currentScreen = "facilityCostPersonalResult";
+
+  renderButtons();
+
+}
+
+/* =========================================
+   有料老人ホーム・サ高住の費用
+   （市場価格のため、個別計算は行わず
+   　目安レンジのみ案内する）
+========================================= */
+
+function showPaidHomeCostOverview(){
+
+addBotMessage(`【有料老人ホーム・サ高住の費用について】
+
+有料老人ホームやサ高住は、
+公的な基準額がなく、
+施設ごとに料金を設定しています。
+
+そのため、みちさんでは
+個別の金額計算は行っていません。
+あくまで目安として、
+タイプ別の相場をご紹介します。
+
+**介護付き**
+入居時費用：0円～数百万円
+月額：15万～25万円程度
+
+**住宅型・サ高住**
+入居時費用：0円～数十万円
+月額：15万～25万円程度
+（別途、利用した介護サービスの
+費用がかかります）
+
+**医療特化型**
+医療的なケアが多いため、
+比較的費用が高くなる
+傾向があります。
+
+---
+※あくまで一般的な目安です。
+立地や設備、サービス内容により
+金額は大きく異なります。
+
+正確な金額は、各施設への
+直接のお問い合わせをおすすめします。`);
+
+  state.currentScreen = "facilityCostPersonalResult";
+
+  renderButtons();
 
 }
 
