@@ -447,6 +447,21 @@ user:{
   limit:"",
   careLevel:"",
   mealStage:"",
+  adlLevel:"",
+  dementia:"",
+  livingWith:"",
+  employment:"",
+  workOnLeave:"",
+  leaveType:"",
+  sickLeaveAllowanceApplied:"",
+  familyMembers:[],
+  livingWithFamily:[],
+  workingFamilyMembers:[],
+  deceasedFamilyMembers:[],
+  aloneDuringDay:"",
+  potentialCaregivers:[],
+  spouseCareLevel:"",
+  spouseDementia:"",
   supportSystems:[],
   purpose:""
 },
@@ -614,6 +629,11 @@ homeDischargeMenu:{
 homeDischargeResult:{
   text:"",
   buttons:[]
+},
+
+adlSeverityCheck:{
+  text:"どのくらいの介助が\n必要な状態ですか？",
+  buttons:["見守り程度で大丈夫","一部介助が必要","ほぼ全介助が必要（寝たきりに近い）"]
 },
 
 transferReasonMenu:{
@@ -827,6 +847,71 @@ careServiceContentMenu:{
   supportSystems:{
   text:"現在該当する制度はありますか？",
   buttons:["なし","身障者手帳","精神手帳","自立支援医療","県障","県親","特定疾病","難病医療","肝炎","小児慢性特定疾病","決定"]
+},
+
+  employmentStatus:{
+  text:"あなたは今、\n就労をされていますか？",
+  buttons:["はい","いいえ"]
+},
+
+  workOnLeave:{
+  text:"今、仕事を休んでいますか？",
+  buttons:["はい","いいえ"]
+},
+
+  leaveType:{
+  text:"休んでいる取り扱いは？",
+  buttons:["有給","欠勤","わからない"]
+},
+
+  sickLeaveAllowanceCheck:{
+  text:"傷病手当金は\n申請済（予定）ですか？",
+  buttons:["はい","いいえ","わからない"]
+},
+
+  familyStructure:{
+  text:"家族構成を教えてください。\n（複数選択できます）",
+  buttons:[]
+},
+
+  childSpouseCheck:{
+  text:"選んだ方の配偶者も\nいらっしゃいますか？\n（複数選択できます、\nいなければそのまま「決定」）",
+  buttons:[]
+},
+
+  deceasedFamilyCheck:{
+  text:"この中で、すでに\n他界されている方は\nいらっしゃいますか？\n（複数選択できます、\nいなければそのまま「決定」）",
+  buttons:[]
+},
+
+  livingWithFamily:{
+  text:"同居している家族を\n教えてください。\n（複数選択できます）",
+  buttons:[]
+},
+
+  workingFamilyMembers:{
+  text:"同居家族で就労している人を\n選択してください。\n（複数選択できます）",
+  buttons:[]
+},
+
+  aloneDuringDayCheck:{
+  text:"日中、ご本人は\n一人になりますか？",
+  buttons:["はい","いいえ"]
+},
+
+  potentialCaregiverCheck:{
+  text:"同居家族の中で、介護や生活の\n支援をしてくれそうな人は\nいますか？\n（複数選択できます、\nいなければそのまま「決定」）",
+  buttons:[]
+},
+
+  spouseCareCheck:{
+  text:"配偶者ご自身は、\n要介護認定を受けていますか？",
+  buttons:["はい","いいえ","わからない"]
+},
+
+  spouseDementiaCheck:{
+  text:"配偶者に認知症は\nありますか？",
+  buttons:["なし","疑いあり","診断あり","わからない"]
 },
 
   mainMenu:{
@@ -4159,7 +4244,7 @@ purpose:{
           return "profileUnclearCheck";
         }
 
-        return "purpose";
+        return "employmentStatus";
 
       }
 
@@ -4201,7 +4286,7 @@ purpose:{
         return "profileUnclearGuideMenu";
       }
 
-      return "purpose";
+      return "employmentStatus";
 
     }
 
@@ -4223,7 +4308,7 @@ purpose:{
     next:(text)=>{
 
       if(text==="相談に進む"){
-        return "purpose";
+        return "employmentStatus";
       }
 
       if(text==="プロフィールを編集する"){
@@ -4232,6 +4317,263 @@ purpose:{
 
       return "profileUnclearGuideMenu";
 
+    }
+
+  },
+
+  employmentStatus:{
+
+    reducer:(text)=>{
+      state.user.employment = text;
+    },
+
+    next:(text)=>{
+
+      if(text==="はい"){
+        return "workOnLeave";
+      }
+
+      return "familyStructure";
+
+    }
+
+  },
+
+  workOnLeave:{
+
+    reducer:(text)=>{
+      state.user.workOnLeave = text;
+    },
+
+    next:(text)=>{
+
+      if(text==="はい"){
+        return "leaveType";
+      }
+
+      return "familyStructure";
+
+    }
+
+  },
+
+  leaveType:{
+
+    reducer:(text)=>{
+      state.user.leaveType = text;
+    },
+
+    next:(text)=>{
+
+      const eligibleInsurance = ["協会けんぽ","共済・組合等"];
+
+      if(
+        text==="欠勤"
+        &&
+        eligibleInsurance.includes(state.user.insurance)
+      ){
+        return "sickLeaveAllowanceCheck";
+      }
+
+      return "familyStructure";
+
+    }
+
+  },
+
+  sickLeaveAllowanceCheck:{
+
+    reducer:(text)=>{
+      state.user.sickLeaveAllowanceApplied = text;
+    },
+
+    next:()=>{
+      return "familyStructure";
+    }
+
+  },
+
+  familyStructure:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "familyStructure";
+      }
+
+      if(state.user.familyMembers.length === 0){
+        state.user.livingWithFamily = [];
+        state.user.workingFamilyMembers = [];
+        return "purpose";
+      }
+
+      const CHILD_LABELS = ["長男","長女","次男","次女","三男","三女"];
+
+      const hasChild =
+        state.user.familyMembers.some(
+          m=>CHILD_LABELS.includes(m)
+        );
+
+      if(hasChild){
+        return "childSpouseCheck";
+      }
+
+      return "deceasedFamilyCheck";
+
+    }
+
+  },
+
+  childSpouseCheck:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "childSpouseCheck";
+      }
+
+      return "deceasedFamilyCheck";
+
+    }
+
+  },
+
+  deceasedFamilyCheck:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "deceasedFamilyCheck";
+      }
+
+      const survivors =
+        state.user.familyMembers.filter(
+          m=>!state.user.deceasedFamilyMembers.includes(m)
+        );
+
+      if(survivors.length === 0){
+        state.user.livingWithFamily = [];
+        state.user.workingFamilyMembers = [];
+        return "purpose";
+      }
+
+      return "livingWithFamily";
+
+    }
+
+  },
+
+  livingWithFamily:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "livingWithFamily";
+      }
+
+      if(state.user.livingWithFamily.length === 0){
+        state.user.workingFamilyMembers = [];
+        return "purpose";
+      }
+
+      return "workingFamilyMembers";
+
+    }
+
+  },
+
+  workingFamilyMembers:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "workingFamilyMembers";
+      }
+
+      return "aloneDuringDayCheck";
+
+    }
+
+  },
+
+  aloneDuringDayCheck:{
+
+    reducer:(text)=>{
+      state.user.aloneDuringDay = text;
+    },
+
+    next:()=>{
+
+      const survivors =
+        state.user.familyMembers.filter(
+          m=>!state.user.deceasedFamilyMembers.includes(m)
+        );
+
+      const hasLivingWithFamily =
+        state.user.livingWithFamily
+        &&
+        state.user.livingWithFamily.length > 0;
+
+      if(survivors.length === 0 || !hasLivingWithFamily){
+        return "purpose";
+      }
+
+      return "potentialCaregiverCheck";
+
+    }
+
+  },
+
+  potentialCaregiverCheck:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "potentialCaregiverCheck";
+      }
+
+      if(state.user.potentialCaregivers.includes("配偶者")){
+        return "spouseCareCheck";
+      }
+
+      return "purpose";
+
+    }
+
+  },
+
+  spouseCareCheck:{
+
+    reducer:(text)=>{
+      state.user.spouseCareLevel = text;
+    },
+
+    next:()=>{
+      return "spouseDementiaCheck";
+    }
+
+  },
+
+  spouseDementiaCheck:{
+
+    reducer:(text)=>{
+      state.user.spouseDementia = text;
+    },
+
+    next:()=>{
+      return "purpose";
     }
 
   },
@@ -4553,6 +4895,16 @@ homeDischargeMenu:{
       return;
     }
 
+    if(text==="身の回りのことが一人では難しくなった"){
+
+      if(state.user.adlLevel){
+        showAdlLevelResult(state.user.adlLevel);
+      }
+
+      return;
+
+    }
+
     const topic = HOME_DISCHARGE_TOPIC_MAP[text];
 
     if(topic){
@@ -4568,8 +4920,44 @@ homeDischargeMenu:{
       return "careServiceMenu";
     }
 
+    if(text==="身の回りのことが一人では難しくなった"){
+
+      if(state.user.adlLevel){
+        return routeByAdlLevel(state.user.adlLevel);
+      }
+
+      return "adlSeverityCheck";
+
+    }
+
     return "homeDischargeResult";
 
+  }
+
+},
+
+adlSeverityCheck:{
+
+  reducer:(text)=>{
+
+    state.user.adlLevel = text;
+
+    showAdlLevelResult(text);
+
+  },
+
+  next:(text)=>{
+    return routeByAdlLevel(text);
+  }
+
+},
+
+facilityCompareResult:{
+
+  reducer:()=>{},
+
+  next:()=>{
+    return "facilityCompareResult";
   }
 
 },
@@ -4825,6 +5213,148 @@ function getResumeScreen(){
    PROFILE SUMMARY
 ========================================= */
 
+/* =========================================
+   介助の程度（基本情報）
+   （プロフィールに保存し、以降は
+   　同じ質問を繰り返さないようにする）
+========================================= */
+
+/* =========================================
+   家族構成・就労状況（基本情報）
+========================================= */
+
+const FAMILY_MEMBER_OPTIONS = ["父","母","兄","姉","弟","妹","配偶者","長男","長女","次男","次女","三男","三女","孫1","孫2","孫3"];
+
+// 複数選択トグル画面を共通で描画する
+// （supportSystemsと同じ考え方。同じ画面のまま
+// 　トグルし、間に発言が挟まっても正しく置き換える）
+function renderToggleMultiSelect(options, arrayField, extraButtons){
+
+  const area = document.getElementById("choiceButtons");
+
+  area.style.display = "none";
+
+  const chatEl = document.getElementById("chat");
+
+  if(
+    currentInlineButtonsInfo.screen === state.currentScreen
+    &&
+    currentInlineButtonsInfo.element
+    &&
+    currentInlineButtonsInfo.element.parentNode === chatEl
+  ){
+    chatEl.removeChild(currentInlineButtonsInfo.element);
+  }
+
+  const wrapper = document.createElement("div");
+
+  wrapper.className = "inline-buttons";
+
+  options.forEach(text=>{
+
+    const btn = document.createElement("button");
+
+    const isActive = state.user[arrayField].includes(text);
+
+    btn.className = "inline-button" + (isActive ? " active" : "");
+
+    const labelSpan = document.createElement("span");
+
+    labelSpan.className = "inline-button-label";
+
+    labelSpan.innerText = text;
+
+    btn.appendChild(labelSpan);
+
+    btn.onclick = ()=>{
+
+      const idx = state.user[arrayField].indexOf(text);
+
+      if(idx === -1){
+        state.user[arrayField].push(text);
+        btn.classList.add("active");
+      }else{
+        state.user[arrayField].splice(idx,1);
+        btn.classList.remove("active");
+      }
+
+    };
+
+    wrapper.appendChild(btn);
+
+  });
+
+  extraButtons.forEach(b=>{
+
+    const btn = document.createElement("button");
+
+    btn.className =
+      "inline-button" +
+      (b.secondary ? " secondary" : "") +
+      (b.highlight ? " highlight" : "");
+
+    const labelSpan = document.createElement("span");
+
+    labelSpan.className = "inline-button-label";
+
+    labelSpan.innerText = b.label;
+
+    btn.appendChild(labelSpan);
+
+    btn.onclick = b.onclick;
+
+    wrapper.appendChild(btn);
+
+  });
+
+  chatEl.appendChild(wrapper);
+
+  currentInlineButtonsInfo = {
+    screen:state.currentScreen,
+    element:wrapper
+  };
+
+  ensureScrollRoom();
+
+}
+
+function showAdlLevelResult(level){
+
+  if(level==="ほぼ全介助が必要（寝たきりに近い）"){
+
+    addBotMessage(`身の回りのことの多くに
+介助が必要な状態だと、
+自宅での生活の継続が
+難しい場合があります。
+
+無理に自宅にこだわらず、
+次のような選択肢も
+比較しながら考えてみましょう。
+
+それぞれ役割や費用が
+異なりますので、
+気になるものから
+見てみてください。`);
+
+  }else{
+
+    state.homeDischargeTopic = "adl";
+    addBotMessage(HOME_DISCHARGE_INFO.adl);
+
+  }
+
+}
+
+function routeByAdlLevel(level){
+
+  if(level==="ほぼ全介助が必要（寝たきりに近い）"){
+    return "facilityCompareResult";
+  }
+
+  return "homeDischargeResult";
+
+}
+
 function buildProfileSummaryText(){
 
   const u = state.user;
@@ -4856,6 +5386,67 @@ function buildProfileSummaryText(){
 `;
   }
 
+  if(u.adlLevel){
+    text += `介助の程度: ${val(u.adlLevel)}
+`;
+  }
+
+  if(u.dementia){
+    text += `認知症: ${val(u.dementia)}
+`;
+  }
+
+  if(u.livingWith){
+    text += `同居家族: ${val(u.livingWith)}
+`;
+  }
+
+  if(u.familyMembers && u.familyMembers.length){
+
+    text += `家族構成: ${u.familyMembers.join("、")}
+`;
+
+    if(u.deceasedFamilyMembers && u.deceasedFamilyMembers.length){
+      text += `（うち他界: ${u.deceasedFamilyMembers.join("、")}）
+`;
+    }
+
+    text += `同居している家族: ${
+      (u.livingWithFamily && u.livingWithFamily.length)
+        ? u.livingWithFamily.join("、")
+        : "なし"
+    }
+`;
+
+    text += `同居家族で就労中: ${
+      (u.workingFamilyMembers && u.workingFamilyMembers.length)
+        ? u.workingFamilyMembers.join("、")
+        : "なし"
+    }
+`;
+
+    if(u.potentialCaregivers && u.potentialCaregivers.length){
+      text += `支援が期待できる家族: ${u.potentialCaregivers.join("、")}
+`;
+    }
+
+  }
+
+  if(u.aloneDuringDay){
+    text += `日中独居: ${val(u.aloneDuringDay)}
+`;
+  }
+
+  if(u.spouseCareLevel){
+    text += `配偶者の要介護認定: ${val(u.spouseCareLevel)}
+`;
+  }
+
+  if(u.spouseDementia){
+    text += `配偶者の認知症: ${val(u.spouseDementia)}
+`;
+  }
+
   text += `該当する制度: ${support}
 `;
 
@@ -4881,6 +5472,21 @@ function resetProfileOnly(){
     limit:"",
     careLevel:"",
     mealStage:"",
+    adlLevel:"",
+    dementia:"",
+    livingWith:"",
+    employment:"",
+    workOnLeave:"",
+    leaveType:"",
+    sickLeaveAllowanceApplied:"",
+    familyMembers:[],
+    livingWithFamily:[],
+    workingFamilyMembers:[],
+  deceasedFamilyMembers:[],
+  aloneDuringDay:"",
+  potentialCaregivers:[],
+  spouseCareLevel:"",
+  spouseDementia:"",
     supportSystems:[],
       purpose:state.user.purpose
   };
@@ -5096,6 +5702,47 @@ function renderButtons(){
         secondary:true,
         onclick:()=>{
           state.currentScreen = "facilityMenu";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilityCompareResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"特別養護老人ホームを見る",
+        onclick:()=>menuModules["特別養護老人ホーム（特養）"]()
+      },
+      {
+        label:"介護医療院を見る",
+        onclick:()=>menuModules["介護医療院"]()
+      },
+      {
+        label:"有料老人ホームを見る",
+        onclick:()=>menuModules["有料老人ホーム・サービス付き高齢者向け住宅（サ高住）"]()
+      },
+      {
+        label:"やっぱり在宅サービスも見る",
+        secondary:true,
+        onclick:()=>{
+          state.homeDischargeTopic = "adl";
+          addBotMessage(HOME_DISCHARGE_INFO.adl);
+        }
+      },
+      {
+        label:"相談の一覧に戻る",
+        secondary:true,
+        onclick:()=>{
+          state.currentScreen = "homeDischargeMenu";
           renderScreen();
         }
       }
@@ -5393,6 +6040,130 @@ function renderButtons(){
     };
 
     ensureScrollRoom();
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "familyStructure"){
+
+    renderToggleMultiSelect(
+      FAMILY_MEMBER_OPTIONS,
+      "familyMembers",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "childSpouseCheck"){
+
+    const CHILD_LABELS = ["長男","長女","次男","次女","三男","三女"];
+
+    const options =
+      state.user.familyMembers
+        .filter(m=>CHILD_LABELS.includes(m))
+        .map(m=>m + "の配偶者");
+
+    renderToggleMultiSelect(
+      options,
+      "familyMembers",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "deceasedFamilyCheck"){
+
+    renderToggleMultiSelect(
+      state.user.familyMembers,
+      "deceasedFamilyMembers",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "livingWithFamily"){
+
+    const options =
+      state.user.familyMembers.filter(
+        m=>!state.user.deceasedFamilyMembers.includes(m)
+      );
+
+    renderToggleMultiSelect(
+      options,
+      "livingWithFamily",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "workingFamilyMembers"){
+
+    const options = state.user.livingWithFamily;
+
+    renderToggleMultiSelect(
+      options,
+      "workingFamilyMembers",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "potentialCaregiverCheck"){
+
+    const options = state.user.livingWithFamily;
+
+    renderToggleMultiSelect(
+      options,
+      "potentialCaregivers",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
 
     requestAnimationFrame(updateScrollHint);
 
@@ -6279,7 +7050,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -6960,6 +7731,21 @@ function resetApp(){
   limit:"",
   careLevel:"",
   mealStage:"",
+  adlLevel:"",
+  dementia:"",
+  livingWith:"",
+  employment:"",
+  workOnLeave:"",
+  leaveType:"",
+  sickLeaveAllowanceApplied:"",
+  familyMembers:[],
+  livingWithFamily:[],
+  workingFamilyMembers:[],
+  deceasedFamilyMembers:[],
+  aloneDuringDay:"",
+  potentialCaregivers:[],
+  spouseCareLevel:"",
+  spouseDementia:"",
   supportSystems:[],
   purpose:""
 };
