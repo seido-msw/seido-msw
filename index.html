@@ -426,6 +426,7 @@ const state = {
   careServiceViewedItems:[],
 
   disease40to64Shown:false,
+  pendingCostBreakdown:false,
 
   homeDischargeTopic:"",
 
@@ -462,6 +463,14 @@ user:{
   potentialCaregivers:[],
   spouseCareLevel:"",
   spouseDementia:"",
+  childConditions:{},
+  currentChildBeingAsked:"",
+  currentChildConditionsTemp:[],
+  currentSituation:"",
+  mainConcern:"",
+  insuranceHolderType:"",
+  pensionIncome:"",
+  familyLivelihoodNoWorry:"",
   supportSystems:[],
   purpose:""
 },
@@ -593,7 +602,22 @@ text:`ありがとうございます。
 
 purpose:{
   text:"こんにちは、みちです。\n\nまずは、今どんな状況か教えてください。",
-  buttons:["入院中","外来通院中","制度を知りたい","プロフィールを確認する"]
+  buttons:["入院しています","通院しています","通院している医療機関はありません"]
+},
+
+intakeStep2Inpatient:{
+  text:"今、一番気になっていることは\n何ですか？",
+  buttons:["医療費","退院後の生活"]
+},
+
+intakeStep2Outpatient:{
+  text:"今、一番気になっていることは\n何ですか？",
+  buttons:["医療費","介護保険サービス"]
+},
+
+intakeStep2Unclear:{
+  text:"大丈夫です。\nみちさんがいくつか質問しながら、\n一緒に整理します。\n\n今、一番大きな変化や\n心配はありますか？",
+  buttons:["病気・治療","生活","介護","お金","家族","特に分からない"]
 },
 
 profileSummary:{
@@ -723,7 +747,7 @@ homeCare:{
   
   medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
-  buttons:["入院費がいくらかかるか知りたい","医療費が支払えない","傷病手当金","医療費助成制度"]
+  buttons:["入院費がいくらかかるか知りたい","医療費が支払えない"]
 },
 
 medicalCostMenu:{
@@ -749,6 +773,41 @@ paymentWorkResult:{
 paymentDebtResult:{
   text:"",
   buttons:["生活困窮者支援","生活保護"]
+},
+
+paymentAssessmentEmployment:{
+  text:"現在、雇用されて\n毎月の給料が出ていますか？",
+  buttons:["はい","いいえ"]
+},
+
+paymentAssessmentLeaveType:{
+  text:"現在、休んでいる扱いを\n教えてください。",
+  buttons:["有給休暇","欠勤","わからない"]
+},
+
+paymentAssessmentPaidLeaveSufficient:{
+  text:"入院期間や療養期間を、\n有給休暇で\n足りますか？",
+  buttons:["はい","いいえ"]
+},
+
+paymentLeaveTypeChoice:{
+  text:"",
+  buttons:[]
+},
+
+paymentAssessmentPensionCheck:{
+  text:"給与所得以外より\n所得（年金等）が\n支給されていますか？",
+  buttons:["はい","いいえ"]
+},
+
+paymentAssessmentFamilyLivelihoodCheck:{
+  text:"家族と生計を一緒にしていて、\n入院しなければ\nお金に心配は\nおきなかったですか？",
+  buttons:["はい","いいえ"]
+},
+
+paymentAssessmentLivingCost:{
+  text:"医療費以外の生活は\n成り立っていますか？",
+  buttons:["はい","いいえ"]
 },
 
 paymentInstallmentResult:{
@@ -823,6 +882,11 @@ careServiceContentMenu:{
 
   insurance:{
     text:"医療機関を受診するときに使う保険証を教えてください。"
+  },
+
+  insuranceHolderCheck:{
+    text:"その健康保険は、\n本人の保険証ですか？\nそれとも家族の扶養ですか？",
+    buttons:["本人","家族の扶養"]
   },
 
   burdenRate:{
@@ -914,6 +978,11 @@ careServiceContentMenu:{
   buttons:["なし","疑いあり","診断あり","わからない"]
 },
 
+  childConditionCheck:{
+  text:"当てはまるものがあれば\n選んでください。\n（複数選択できます、\nなければそのまま「決定」）",
+  buttons:[]
+},
+
   mainMenu:{
 text:"どのことについて、\nもう少し詳しくお話ししましょうか。",
 buttons:["医療費","介護保険","退院・生活","障害福祉"]
@@ -969,28 +1038,30 @@ buttons:["自立支援医療","県障","県親","子ども医療"]
    HIGH COST DATA
 ========================================= */
 
+// 2026年8月改定（自己負担限度額）・
+// 2026年6月改定（入院時食事代）を反映
 const HIGH_COST_DATA = {
 
   outpatient:{
 
     over70:{
 
-      "現役Ⅲ":{ limit:252600 },
-      "現役Ⅱ":{ limit:167400 },
-      "現役Ⅰ":{ limit:80100 },
-      "一般":{ limit:18000 },
-      "低Ⅱ":{ limit:8000 },
+      "現役Ⅲ":{ limit:270300 },
+      "現役Ⅱ":{ limit:179100 },
+      "現役Ⅰ":{ limit:85800 },
+      "一般":{ limit:22000 },
+      "低Ⅱ":{ limit:11000 },
       "低Ⅰ":{ limit:8000 }
 
     },
 
     under70:{
 
-      "ア":{ limit:252600 },
-      "イ":{ limit:167400 },
-      "ウ":{ limit:80100 },
-      "エ":{ limit:57600 },
-      "オ":{ limit:35400 }
+      "ア":{ limit:270300 },
+      "イ":{ limit:179100 },
+      "ウ":{ limit:85800 },
+      "エ":{ limit:61500 },
+      "オ":{ limit:36900 }
 
     }
 
@@ -1001,33 +1072,33 @@ const HIGH_COST_DATA = {
     over70:{
 
       "現役Ⅲ":{
-        limit:252600,
-        mealCost:510
+        limit:270300,
+        mealCost:550
       },
 
       "現役Ⅱ":{
-        limit:167400,
-        mealCost:510
+        limit:179100,
+        mealCost:550
       },
 
       "現役Ⅰ":{
-        limit:80100,
-        mealCost:510
+        limit:85800,
+        mealCost:550
       },
 
       "一般":{
-        limit:57600,
-        mealCost:510
+        limit:61500,
+        mealCost:550
       },
 
       "低Ⅱ":{
-        limit:24600,
-        mealCost:240
+        limit:25700,
+        mealCost:270
       },
 
       "低Ⅰ":{
-        limit:15000,
-        mealCost:110
+        limit:15700,
+        mealCost:130
       }
 
     },
@@ -1035,28 +1106,28 @@ const HIGH_COST_DATA = {
     under70:{
 
       "ア":{
-        limit:252600,
-        mealCost:510
+        limit:270300,
+        mealCost:550
       },
 
       "イ":{
-        limit:167400,
-        mealCost:510
+        limit:179100,
+        mealCost:550
       },
 
       "ウ":{
-        limit:80100,
-        mealCost:510
+        limit:85800,
+        mealCost:550
       },
 
       "エ":{
-        limit:57600,
-        mealCost:510
+        limit:61500,
+        mealCost:550
       },
 
       "オ":{
-        limit:35400,
-        mealCost:240
+        limit:36900,
+        mealCost:270
       }
 
     }
@@ -1158,7 +1229,8 @@ const REDUCE_COST_INFO = {
 
 などが利用できる可能性があります。
 
-詳しくは医療機関やお住まいの市区町村へご相談ください。`,
+人工透析に伴う制度を
+一つずつ説明します。`,
 
   ketsuyuHiv:
 `【血友病・HIVと医療費助成】
@@ -1259,7 +1331,98 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 病状や生活状況によって
 利用できる制度がある場合があります。
 
-詳しくは医療機関または市区町村へご相談ください。`
+詳しくは医療機関または市区町村へご相談ください。`,
+
+  touseki_tokuteishippei:
+`【特定疾病療養受療証】
+
+人工透析・血友病・HIVなど、
+長期間にわたり継続して
+高額な医療費がかかる病気の方が
+対象になります。
+
+1つの医療機関での自己負担が
+1か月あたり1万円
+（上位所得の方は2万円）
+までになります。
+
+【制度適応日】
+保険者に申請した日の
+月から適用されます。
+
+【申請先】
+加入している健康保険
+（保険者）へ申請します。`,
+
+  touseki_kousei:
+`【自立支援医療（更生医療）】
+
+身体障害者手帳をお持ちの
+18歳以上の方が対象です。
+
+人工透析など、
+障害の程度を軽くしたり、
+機能を回復させたりする
+医療について、
+自己負担が原則1割になります
+（所得に応じて上限あり）。
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。`,
+
+  touseki_techou:
+`【身体障害者手帳（腎機能障害）】
+
+人工透析をしなければ
+いけないぐらいの腎臓の場合、
+腎機能障害として
+該当する場合があります
+（多くの場合、1級）。
+
+手帳を取得すると、
+
+・医療費の助成
+・税制の優遇
+・各種福祉サービス
+
+などが利用できる場合があります。
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。
+
+【適応日】
+申請から2か月後程度に、
+郵送で自宅や手帳交付の
+通知文書が届きます。
+
+その後に、各手続きが
+開始となります。
+
+【主な制度】
+・重度心身障害者医療費助成制度
+・自立支援医療（更生医療）`,
+
+  touseki_juudo:
+`【重度心身障害者医療費助成】
+
+身体障害者手帳などを
+お持ちの方を対象に、
+都道府県・市区町村が
+独自に実施している
+医療費助成制度です。
+
+自己負担額の仕組みは
+地域によって異なります
+（定額制、1割負担＋上限額制、
+無料　など）。
+
+【申請先】
+お住まいの市区町村の
+窓口へ申請します。`
 
 };
 
@@ -1276,12 +1439,7 @@ const REDUCE_COST_LINKS = {
     }
   ],
 
-  touseki:[
-    {
-      label:"全国健康保険協会で確認する",
-      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
-    }
-  ],
+  touseki:[],
 
   ketsuyuHiv:[
     {
@@ -2068,6 +2226,11 @@ ${formatYen(data.mealCost)}
    HIGH COST SERVICE
 ========================================= */
 
+// CSセット（入院時の衣類・タオル・日用品レンタル）の
+// 日額の目安。病院により異なる（複数病院の相場：
+// 396円〜605円/日）ため、中間的な金額を採用。
+const CS_SET_DAILY_COST = 500;
+
 const highCostService = {
 
   getOutpatientData(){
@@ -2223,13 +2386,44 @@ addBotMessage(`【精神障害者保健福祉手帳】
 },
 
 "入院費がいくらかかるか知りたい":()=>{
-    state.currentScreen="medicalCostMenu";
-    renderScreen();
+
+    const nextScreen = getResumeScreen();
+
+    if(nextScreen){
+      state.pendingCostBreakdown = true;
+      state.currentScreen = nextScreen;
+      renderScreen();
+      return;
+    }
+
+    showInpatientCostBreakdown();
+    state.currentScreen = "inpatientCostResult";
+    renderButtons();
+
 },
 
 "医療費が支払えない":()=>{
-    state.currentScreen="paymentProblemMenu";
-    renderScreen();
+
+    addBotMessage(`退院当日に必ず全額を
+支払わなければならない
+とは限りません。
+
+分割払いや支払期限の
+延長に対応している
+病院もあります。
+
+まずは、あなたの状況に
+合わせて、利用できる
+制度がないか確認しましょう。`);
+
+    addStandaloneInlineButton(
+      "該当する制度があるか確認します",
+      ()=>{
+        state.currentScreen="reduceCostQ1";
+        renderScreen();
+      }
+    );
+
 },
 
 "医療費助成制度":()=>{
@@ -3987,27 +4181,135 @@ purpose:{
       return;
     }
 
-    state.user.purpose=text;
+    state.user.currentSituation = text;
+    state.user.purpose = text;
+
   },
 
   next:(text)=>{
 
-    if(text==="入院中"){
-      return "inpatientMenu";
+    if(text==="プロフィールを確認する"){
+      return "profileSummary";
     }
 
-    if(text==="外来通院中"){
-      return "outpatientMenu";
+    if(text==="入院しています"){
+      return "intakeStep2Inpatient";
     }
 
-    if(text==="制度を知りたい"){
+    // 「通院しています」「通院している医療機関はありません」は
+    // 現時点では同じ内容を使う（今後、必要に応じて分ける）
+    return "intakeStep2Outpatient";
+
+  }
+
+},
+
+intakeStep2Inpatient:{
+
+  reducer:(text)=>{
+
+    if(text!=="何を相談したらいいか分からない"){
+      state.user.mainConcern = text;
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="何を相談したらいいか分からない"){
+      return "intakeStep2Unclear";
+    }
+
+    if(text==="医療費"){
+      return "medicalConcernMenu";
+    }
+
+    if(text==="退院後の生活"){
+      return "dischargeMenu";
+    }
+
+    if(text==="介護・福祉"){
+      return "mainMenu";
+    }
+
+    if(text==="使える制度"){
       const resumeScreen = getResumeScreen();
       return resumeScreen ? resumeScreen : "mainMenu";
     }
 
-    if(text==="プロフィールを確認する"){
-      return "profileSummary";
+  }
+
+},
+
+intakeStep2Outpatient:{
+
+  reducer:(text)=>{
+
+    if(text!=="何を相談したらいいか分からない"){
+      state.user.mainConcern = text;
     }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="何を相談したらいいか分からない"){
+      return "intakeStep2Unclear";
+    }
+
+    if(text==="医療費"){
+      return "medicalConcernMenu";
+    }
+
+    if(text==="介護保険サービス"){
+      return "careServiceMenu";
+    }
+
+    if(text==="介護・福祉"){
+      return "mainMenu";
+    }
+
+    if(text==="使える制度"){
+      const resumeScreen = getResumeScreen();
+      return resumeScreen ? resumeScreen : "mainMenu";
+    }
+
+  }
+
+},
+
+intakeStep2Unclear:{
+
+  reducer:(text)=>{
+    state.user.mainConcern = text;
+  },
+
+  next:(text)=>{
+
+    if(text==="病気・治療"){
+      return "transferReasonMenu";
+    }
+
+    if(text==="生活"){
+      return "dischargeMenu";
+    }
+
+    if(text==="介護"){
+      return "mainMenu";
+    }
+
+    if(text==="お金"){
+      return "medicalConcernMenu";
+    }
+
+    if(text==="家族"){
+      return "dischargeMenu";
+    }
+
+    // 「特に分からない」場合は、
+    // 制度の全体像から一緒に見る
+    const resumeScreen = getResumeScreen();
+    return resumeScreen ? resumeScreen : "mainMenu";
 
   }
 
@@ -4050,8 +4352,26 @@ purpose:{
         return getAfterLimitScreen();
       }
 
+      const eligibleInsurance = ["協会けんぽ","共済・組合等"];
+
+      if(eligibleInsurance.includes(state.user.insurance)){
+        return "insuranceHolderCheck";
+      }
+
       return "burdenRate";
 
+    }
+
+  },
+
+  insuranceHolderCheck:{
+
+    reducer:(text)=>{
+      state.user.insuranceHolderType = text;
+    },
+
+    next:()=>{
+      return "burdenRate";
     }
 
   },
@@ -4244,7 +4564,7 @@ purpose:{
           return "profileUnclearCheck";
         }
 
-        return "employmentStatus";
+        return resolveAfterProfileComplete();
 
       }
 
@@ -4286,7 +4606,7 @@ purpose:{
         return "profileUnclearGuideMenu";
       }
 
-      return "employmentStatus";
+      return resolveAfterProfileComplete();
 
     }
 
@@ -4308,7 +4628,7 @@ purpose:{
     next:(text)=>{
 
       if(text==="相談に進む"){
-        return "employmentStatus";
+        return resolveAfterProfileComplete();
       }
 
       if(text==="プロフィールを編集する"){
@@ -4371,6 +4691,8 @@ purpose:{
         text==="欠勤"
         &&
         eligibleInsurance.includes(state.user.insurance)
+        &&
+        state.user.insuranceHolderType !== "家族の扶養"
       ){
         return "sickLeaveAllowanceCheck";
       }
@@ -4548,7 +4870,7 @@ purpose:{
         return "spouseCareCheck";
       }
 
-      return "purpose";
+      return routeAfterCaregiverAssessment();
 
     }
 
@@ -4573,7 +4895,224 @@ purpose:{
     },
 
     next:()=>{
-      return "purpose";
+      return routeAfterCaregiverAssessment();
+    }
+
+  },
+
+  childConditionCheck:{
+
+    reducer:(text)=>{
+
+      if(text!=="決定"){
+        return;
+      }
+
+      state.user.childConditions[
+        state.user.currentChildBeingAsked
+      ] = state.user.currentChildConditionsTemp;
+
+    },
+
+    next:(text)=>{
+
+      if(text!=="決定"){
+        return "childConditionCheck";
+      }
+
+      return routeAfterCaregiverAssessment();
+
+    }
+
+  },
+
+  paymentAssessmentEmployment:{
+
+    reducer:(text)=>{},
+
+    next:(text)=>{
+
+      if(text==="はい"){
+        return "paymentAssessmentLeaveType";
+      }
+
+      return "paymentAssessmentPensionCheck";
+
+    }
+
+  },
+
+  paymentAssessmentPensionCheck:{
+
+    reducer:(text)=>{
+      state.user.pensionIncome = text;
+    },
+
+    next:(text)=>{
+
+      if(text==="いいえ"){
+        return "paymentAssessmentFamilyLivelihoodCheck";
+      }
+
+      return "paymentAssessmentLivingCost";
+
+    }
+
+  },
+
+  paymentAssessmentFamilyLivelihoodCheck:{
+
+    reducer:(text)=>{
+      state.user.familyLivelihoodNoWorry = text;
+    },
+
+    next:()=>{
+      return "paymentAssessmentLivingCost";
+    }
+
+  },
+
+  paymentAssessmentLeaveType:{
+
+    reducer:(text)=>{
+
+      if(text==="有給休暇"){
+
+        // 質問は次の画面（足りるかどうか）で行うため、
+        // ここでは何もしない
+
+      }else if(text==="欠勤"){
+
+        const u = state.user;
+
+        const insuranceLabel =
+          u.insurance || "（未回答）";
+
+        const holderLabel =
+          u.insuranceHolderType || "（未回答）";
+
+        addBotMessage(`協会けんぽと共済組合の
+健康保険に加入していて、
+家族の扶養でない人は、
+傷病手当金の申請が
+可能な場合があります。
+
+【あなたのプロフィール】
+健康保険の種類：${insuranceLabel}
+本人／扶養：${holderLabel}`);
+
+      }else{
+
+        addBotMessage(`【病気で仕事を休み収入が減った】
+
+会社員や公務員など、
+健康保険に加入している方は、
+傷病手当金を利用できる
+場合があります。
+
+病気やけがで仕事を休み、
+給与の支払いがない期間の
+生活を支える制度です。
+
+また、
+健康保険組合や共済組合では、
+独自の給付制度が利用できる
+場合もあります。
+
+制度の対象になるか
+分からない場合は、
+MSWへご相談ください。`);
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text==="有給休暇"){
+        return "paymentAssessmentPaidLeaveSufficient";
+      }
+
+      if(text==="欠勤"){
+        return "paymentLeaveTypeChoice";
+      }
+
+      return "paymentWorkResult";
+
+    }
+
+  },
+
+  paymentAssessmentPaidLeaveSufficient:{
+
+    reducer:(text)=>{
+
+      if(text==="はい"){
+
+        addBotMessage(`有給休暇で足りる場合、
+その間の収入は維持されます。
+
+有給休暇中は給与が
+支払われるため、
+傷病手当金の対象には
+なりません。
+
+---
+` + buildApplicableSystemsMessage());
+
+      }else{
+
+        addBotMessage(`有給休暇だけでは
+足りない場合、休暇を
+使い切った後は、
+欠勤（無給）として
+扱われることが
+多くあります。
+
+その場合は、傷病手当金の
+対象になる可能性があるため、
+休暇を使い切るタイミングで
+あらためて確認しましょう。`);
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text==="はい"){
+        return "paymentIncomeResult";
+      }
+
+      return "paymentIncomeResult";
+    }
+
+  },
+
+  paymentAssessmentLivingCost:{
+
+    reducer:(text)=>{
+
+      if(text==="はい"){
+
+        menuModules["収入が少なく支払えない"]();
+
+      }else{
+
+        menuModules["借金・生活費が多く支払えない"]();
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text==="はい"){
+        return "paymentIncomeResult";
+      }
+
+      return "paymentDebtResult";
+
     }
 
   },
@@ -5318,6 +5857,53 @@ function renderToggleMultiSelect(options, arrayField, extraButtons){
 
 }
 
+/* =========================================
+   同居している子の状態確認
+   （配偶者と同じ考え方で、子1人ずつ
+   　個別に確認する）
+========================================= */
+
+const CHILD_LABELS = ["長男","長女","次男","次女","三男","三女"];
+
+// まだ聞いていない、同居中の子を1人返す（いなければnull）
+function getNextChildToAsk(){
+
+  const cohabitingChildren =
+    state.user.livingWithFamily.filter(
+      m=>CHILD_LABELS.includes(m)
+    );
+
+  const unasked =
+    cohabitingChildren.find(
+      m=>!(m in state.user.childConditions)
+    );
+
+  return unasked || null;
+
+}
+
+// 配偶者アセスメント終了後の共通の行き先判定
+// （次に聞くべき同居の子がいればその質問へ、
+// 　いなければpurposeへ）
+function routeAfterCaregiverAssessment(){
+
+  const nextChild = getNextChildToAsk();
+
+  if(nextChild){
+
+    state.user.currentChildBeingAsked = nextChild;
+    state.user.currentChildConditionsTemp = [];
+
+    addBotMessage(nextChild + "について伺います。");
+
+    return "childConditionCheck";
+
+  }
+
+  return "purpose";
+
+}
+
 function showAdlLevelResult(level){
 
   if(level==="ほぼ全介助が必要（寝たきりに近い）"){
@@ -5371,6 +5957,11 @@ function buildProfileSummaryText(){
 年齢: ${val(u.age)}
 保険: ${val(u.insurance)}
 `;
+
+  if(u.insuranceHolderType){
+    text += `保険証の種別: ${val(u.insuranceHolderType)}
+`;
+  }
 
   if(u.insurance !== "生活保護"){
     text += `負担割合: ${val(u.burdenRate)}
@@ -5447,6 +6038,21 @@ function buildProfileSummaryText(){
 `;
   }
 
+  if(u.childConditions && Object.keys(u.childConditions).length){
+
+    Object.keys(u.childConditions).forEach(child=>{
+
+      const conditions = u.childConditions[child];
+
+      text += `${child}の状態: ${
+        conditions.length ? conditions.join("、") : "なし"
+      }
+`;
+
+    });
+
+  }
+
   text += `該当する制度: ${support}
 `;
 
@@ -5487,6 +6093,14 @@ function resetProfileOnly(){
   potentialCaregivers:[],
   spouseCareLevel:"",
   spouseDementia:"",
+  childConditions:{},
+  currentChildBeingAsked:"",
+  currentChildConditionsTemp:[],
+  currentSituation:"",
+  mainConcern:"",
+  insuranceHolderType:"",
+  pensionIncome:"",
+  familyLivelihoodNoWorry:"",
     supportSystems:[],
       purpose:state.user.purpose
   };
@@ -5496,6 +6110,25 @@ function resetProfileOnly(){
   clearProfileSession();
 
   addBotMessage("プロフィールをリセットしました。\n次に必要な場面で、あらためて伺います。");
+
+}
+
+// プロフィールの本流が完了した際の行き先を判定する。
+// 保留中のアクション（入院費の計算など）があれば、
+// それを実行してからそちらへ進む。
+function resolveAfterProfileComplete(){
+
+  if(state.pendingCostBreakdown){
+
+    state.pendingCostBreakdown = false;
+
+    showInpatientCostBreakdown();
+
+    return "inpatientCostResult";
+
+  }
+
+  return "purpose";
 
 }
 
@@ -5520,28 +6153,467 @@ function resumeProfileChain(){
 
 }
 
+/* =========================================
+   入院費の内訳（医療費上限＋食事代＋CSセット）
+========================================= */
+
+// 重度心身障害者医療費助成制度（県障・県親）の自己負担額
+// 都道府県・市区町村ごとに制度内容が異なるため、
+// 地域ごとにデータを追加していける構造にしている。
+// 現時点では、確認が取れている地域の数値のみ登録。
+const SEVERE_DISABILITY_MEDICAL_SUBSIDY = {
+
+  default:{
+    outpatientCopay:530,      // 円/回（外来）
+    inpatientDailyCopay:1200  // 円/日（入院）
+  }
+
+  // 他の地域のデータが分かり次第、
+  // ここに追加していく
+  // 例）hokkaido:{ outpatientCopay:..., inpatientDailyCopay:... }
+
+};
+
+/* =========================================
+   傷病手当金：対象外の場合の案内
+========================================= */
+
+/* =========================================
+   使える制度の確認
+   （保険証・限度額区分・受給者証等を
+   　プロフィールから再確認する。
+   　分からない項目があれば、
+   　そこから案内する）
+========================================= */
+
+function buildApplicableSystemsMessage(){
+
+  const u = state.user;
+
+  const insuranceUnclear =
+    !u.insurance || u.insurance === "わからない";
+
+  const limitUnclear =
+    !u.limit || u.limit === "不明";
+
+  if(insuranceUnclear){
+
+    return `使える制度を確認するには、
+まず健康保険証の種類を
+確認しましょう。
+
+【健康保険証の種類の確認方法】
+
+お手元の保険証に、
+発行している保険者名が
+記載されています。
+
+（例）
+〇〇市国民健康保険、
+協会けんぽ、
+〇〇健康保険組合　など
+
+保険証をお持ちでない場合は、
+マイナ保険証の資格情報で
+確認できます。`;
+
+  }
+
+  if(limitUnclear){
+
+    return `健康保険証：${u.insurance}
+
+次に、限度額区分を
+確認しましょう。
+
+【限度額区分の確認方法】
+
+マイナ保険証をお持ちの方は、
+医療機関の窓口で
+限度額情報の確認ができます。
+
+お持ちでない方は、
+加入している健康保険（保険者）へ
+「限度額適用認定証」の
+発行を申請することで
+確認できます。`;
+
+  }
+
+  const data = highCostService.getInpatientData();
+
+  let message =
+`【あなたのプロフィール】
+健康保険証：${u.insurance}
+限度額区分：${u.limit}
+`;
+
+  if(u.supportSystems && u.supportSystems.length){
+    message += `受給者証等：${u.supportSystems.join("、")}
+`;
+  }
+
+  message += `
+【医療費の自己負担上限】
+1か月あたり　約${formatYen(data.limit)}
+
+これが、入院した場合の
+医療費として実際に
+負担する上限の目安です。`;
+
+  return message;
+
+}
+
+function showSickLeaveAllowanceNotEligible(){
+
+  addBotMessage(`【傷病手当金の対象外の場合】
+
+国民健康保険や、家族の扶養に
+入っている方は、傷病手当金の
+対象外です。
+
+その場合は、以下の制度が
+参考になります。
+
+・高額療養費制度
+・医療費助成制度
+・生活困窮者自立支援制度
+
+など、他の支援を
+一緒に確認しましょう。`);
+
+  state.currentScreen = "paymentIncomeResult";
+
+  renderButtons();
+
+}
+
+/* =========================================
+   医療費の計算方法を具体的に説明する
+   （プロフィールと、区分ごとの一覧表を
+   　あわせて示し、どこに該当するかを
+   　明確にする）
+========================================= */
+
+function showDetailedCostExplanation(){
+
+  const u = state.user;
+
+  const insuranceLabel = u.insurance || "（未回答）";
+  const holderLabel = u.insuranceHolderType || "（該当なし）";
+  const limitLabel = u.limit || "（未回答）";
+
+  let intro =
+`【あなたのプロフィール】
+健康保険証：${insuranceLabel}
+`;
+
+  if(holderLabel !== "（該当なし）"){
+    intro += `保険証の種別：${holderLabel}
+`;
+  }
+
+  intro += `限度額区分：${limitLabel}
+
+`;
+
+  if(u.insurance === "生活保護"){
+
+    addBotMessage(intro + `生活保護を受給されている場合、
+医療費の自己負担は
+発生しません。`);
+
+    state.currentScreen = "medicalConcernMenu";
+    renderButtons();
+    return;
+
+  }
+
+  if(u.insurance === "わからない" || !u.insurance){
+
+    addBotMessage(intro + `健康保険証の種類が
+分からないため、
+正確な金額をお伝え
+できません。
+
+まずは、お手元の保険証で
+発行している保険者名を
+ご確認ください。
+
+（例）
+〇〇市国民健康保険、
+協会けんぽ、
+〇〇健康保険組合　など
+
+保険証をお持ちでない場合は、
+マイナ保険証の資格情報で
+確認できます。`);
+
+    state.currentScreen = "medicalConcernMenu";
+    renderButtons();
+    return;
+
+  }
+
+  if(!u.limit || u.limit === "不明"){
+
+    addBotMessage(intro + `限度額区分が分からないため、
+一般的な年収別の目安表を
+ご案内します。
+
+まず、正確な区分を
+確認しましょう。
+
+【マイナ保険証をお持ちの方】
+医療機関の窓口で
+限度額情報の確認手続きを
+行うことで分かります。
+
+【マイナ保険証をお持ちでない方】
+保険者へ限度額適用認定証の
+申請が必要です。
+
+区分が分かれば、
+もう一度こちらのボタンから
+確認できます。`);
+
+    state.currentScreen = "medicalConcernMenu";
+    renderButtons();
+    return;
+
+  }
+
+  const isOver70 = validators.isOver70();
+
+  const data =
+    isOver70
+      ? HIGH_COST_DATA.inpatient.over70
+      : HIGH_COST_DATA.inpatient.under70;
+
+  let table =
+`【${isOver70 ? "70歳以上" : "69歳未満"}の方の
+区分ごとの目安（1か月）】
+
+`;
+
+  Object.keys(data).forEach(key=>{
+
+    const isYou = (key === u.limit);
+
+    const marker = isYou ? "★" : "　";
+
+    table += `${marker}${key}
+${marker}医療費上限：約${formatYen(data[key].limit)}
+${marker}食事代：${formatYen(data[key].mealCost)}/食
+
+`;
+
+  });
+
+  const yourData = data[u.limit];
+
+  addBotMessage(intro + table +
+`あなたは「★${u.limit}」に
+該当するため、
+
+医療費の自己負担上限額は
+約${formatYen(yourData.limit)}、
+
+食事代は1食
+${formatYen(yourData.mealCost)}に
+なります。`);
+
+  state.currentScreen = "medicalConcernMenu";
+
+  renderButtons();
+
+}
+
+function showInpatientCostBreakdown(){
+
+  if(!state.user.limit || state.user.limit === "不明"){
+
+    const isOver70 = validators.isOver70();
+
+    const tableText =
+      isOver70
+        ?
+`【年収の目安ごとの
+自己負担上限額（70歳以上）】
+※世帯単位・1か月あたり
+
+年収約1,160万円〜
+　約270,300円
+
+年収約770万〜1,160万円
+　約179,100円
+
+年収約370万〜770万円
+　約85,800円
+
+年収約156万〜370万円
+（一般）
+　約61,500円
+
+住民税非課税世帯
+　約25,700円
+
+住民税非課税世帯
+（さらに所得が低い方）
+　約15,700円`
+        :
+`【年収の目安ごとの
+自己負担上限額（69歳以下）】
+※1か月あたり
+
+年収約1,160万円〜
+　約270,300円
+
+年収約770万〜1,160万円
+　約179,100円
+
+年収約370万〜770万円
+　約85,800円
+
+年収約156万〜370万円
+　約61,500円
+
+住民税非課税世帯
+　約36,900円`;
+
+    addBotMessage(`【入院費の目安】
+
+限度額区分が分からないため、
+正確な自己負担上限額を
+お伝えできません。
+
+ただし、年収の目安から、
+おおよその金額を
+確認することはできます。
+
+${tableText}
+
+※あくまで目安です。
+正確な金額は、下記の方法で
+ご確認ください。
+
+【マイナ保険証をお持ちの方】
+
+医療機関の窓口で限度額情報の
+確認手続きを行うことで、
+自己負担限度額を確認できます。
+
+【マイナ保険証をお持ちでない方】
+
+保険者
+（市区町村国保・協会けんぽ・
+共済組合・健康保険組合等）へ
+限度額適用認定証の申請が必要です。`);
+
+    return;
+
+  }
+
+  if(validators.skipBurdenRate()){
+    addBotMessage(templates.highCost.welfare());
+    return;
+  }
+
+  const data = highCostService.getInpatientData();
+
+  const hasSevereDisabilitySubsidy =
+    state.user.supportSystems.includes("県障")
+    ||
+    state.user.supportSystems.includes("県親");
+
+  let medicalCost = data.limit;
+  let subsidyNote = "";
+
+  if(hasSevereDisabilitySubsidy){
+
+    const subsidy =
+      SEVERE_DISABILITY_MEDICAL_SUBSIDY.default;
+
+    const subsidyCap =
+      subsidy.inpatientDailyCopay * 30;
+
+    medicalCost = Math.min(data.limit, subsidyCap);
+
+    subsidyNote = `
+
+※重度心身障害者医療費助成の対象のため、
+入院1日${formatYen(subsidy.inpatientDailyCopay)}を上限に
+医療費が軽減されています
+（実際の医療費がこれより低い場合は、
+そちらの金額が優先されます）。`;
+
+  }
+
+  const monthlyMeal = data.mealCost * 3 * 30;
+  const monthlyCsSet = CS_SET_DAILY_COST * 30;
+  const total = medicalCost + monthlyMeal + monthlyCsSet;
+
+  addBotMessage(`【1か月の入院費の目安】
+
+あなたのプロフィールをもとに
+計算した、1か月あたりの
+目安です。
+
+■医療費（自己負担上限額）
+約${formatYen(medicalCost)}${subsidyNote}
+
+■入院食事代
+1食${formatYen(data.mealCost)} × 3食 × 30日
+＝約${formatYen(monthlyMeal)}
+
+■CSセット
+（衣類・タオル・日用品のレンタル）
+約${formatYen(CS_SET_DAILY_COST)}/日 × 30日
+＝約${formatYen(monthlyCsSet)}
+※病院により金額は異なります
+
+────────────
+合計　約${formatYen(total)}／月
+
+※個室代・差額ベッド代は
+含まれていません。
+
+※医療費は高額療養費制度の
+上限額です。実際にかかった
+医療費がこれより低い場合は、
+その金額が自己負担額になります。`);
+
+}
+
 function renderScreen(){
 
   const screen = screens[state.currentScreen];
 
-  addQuestionCard(screen.text);
+  let questionText = screen.text;
+
+  if(
+    state.currentScreen === "purpose"
+    &&
+    state.profileCollected
+  ){
+
+    questionText =
+`プロフィールを教えていただき
+ありがとうございました。
+
+ここからは具体的な相談事を
+伺います。
+
+今の状況を教えてください。`;
+
+  }
+
+  addQuestionCard(questionText);
 
   renderButtons();
 
-  requestAnimationFrame(() => {
-
-    const latest = document.querySelector(".question-card.latest");
-
-    if (!latest) return;
-
-    const chat = document.getElementById("chat");
-
-    // チャット内での位置
-    chat.scrollTop = latest.offsetTop - 10;
-
-    updateScrollHint();
-
-  });
+  scheduleScrollUpdate();
 
 }
 function renderButtons(){
@@ -5713,6 +6785,49 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "paymentLeaveTypeChoice"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"傷病手当金について見る",
+        onclick:()=>menuModules["傷病手当金"]()
+      },
+      {
+        label:"該当しない場合を見る",
+        secondary:true,
+        onclick:()=>showSickLeaveAllowanceNotEligible()
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "inpatientCostResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"医療費計算方法を具体的に知りたい",
+        onclick:()=>showDetailedCostExplanation()
+      },
+      {
+        label:"医療費が支払えない",
+        onclick:()=>menuModules["医療費が支払えない"]()
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
   if(state.currentScreen === "facilityCompareResult"){
 
     area.style.display = "none";
@@ -5763,16 +6878,92 @@ function renderButtons(){
         state.reduceCostTopic
       ] || [];
 
-    const inlineButtons =
-      links.map(link=>({
+    const inlineButtons = [];
+
+    if(state.reduceCostTopic === "touseki"){
+
+      inlineButtons.push(
+        {
+          label:"特定疾病療養受療証",
+          onclick:()=>{
+            showTokuteishippeiDetail();
+            renderButtons();
+          }
+        },
+        {
+          label:"身体障害者手帳（腎機能障害）",
+          onclick:()=>{
+            showReduceCostResult("touseki_techou");
+            renderButtons();
+          }
+        },
+        {
+          label:"重度心身障害者医療費助成",
+          onclick:()=>{
+            showReduceCostResult("touseki_juudo");
+            renderButtons();
+          }
+        },
+        {
+          label:"自立支援医療（更生医療）",
+          onclick:()=>{
+            showReduceCostResult("touseki_kousei");
+            renderButtons();
+          }
+        }
+      );
+
+    }
+
+    if(state.reduceCostTopic === "touseki_techou"){
+
+      inlineButtons.push(
+        {
+          label:"重度心身障害者医療費助成制度",
+          onclick:()=>{
+            showReduceCostResult("touseki_juudo");
+            renderButtons();
+          }
+        },
+        {
+          label:"自立支援医療（更生医療）",
+          onclick:()=>{
+            showReduceCostResult("touseki_kousei");
+            renderButtons();
+          }
+        }
+      );
+
+    }
+
+    links.forEach(link=>{
+      inlineButtons.push({
         label:"詳しく見る（" + link.label + "）",
         onclick:()=>window.open(link.url,"_blank")
-      }));
+      });
+    });
+
+    const tousekiSubTopics = [
+      "touseki_tokuteishippei",
+      "touseki_kousei",
+      "touseki_techou",
+      "touseki_juudo"
+    ];
 
     inlineButtons.push({
       label:"戻る",
       secondary:true,
-      onclick:()=>handleSelect("戻る")
+      onclick:()=>{
+
+        if(tousekiSubTopics.includes(state.reduceCostTopic)){
+          showReduceCostResult("touseki");
+          renderButtons();
+          return;
+        }
+
+        handleSelect("戻る");
+
+      }
     });
 
     addInlineButtons(inlineButtons);
@@ -6171,6 +7362,24 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "childConditionCheck"){
+
+    renderToggleMultiSelect(
+      ["要支援","要介護","身体障害","精神障害"],
+      "currentChildConditionsTemp",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
   let buttons = [];
 
   if(state.currentScreen === "insurance"){
@@ -6293,6 +7502,12 @@ function addMessage(role,text){
   document
     .getElementById("chat")
     .appendChild(div);
+
+  // このタップ操作で最初に追加された「相手側（bot/question）」の
+  // 要素を記録する（自分の発言はスクロールで隠れてよいため対象外）
+  if(!turnStartElement && role !== "user"){
+    turnStartElement = div;
+  }
 
   return div;
 
@@ -6481,19 +7696,68 @@ function addInlineButtons(buttons){
 
 }
 
-function addBotMessage(text){
+// スクロール調整を1回にまとめるための仕組み。
+// 同じタイミングで何度呼ばれても、実際の
+// スクロール処理は最後に1回だけ・最新の
+// 対象（質問カードがあればそちら優先）に対して行う。
+let scrollUpdatePending = false;
 
-  const div = addMessage("bot",text);
+// このタップ操作で最初に追加された要素
+// （スクロールは常にここを優先して表示する）
+let turnStartElement = null;
+
+function scheduleScrollUpdate(){
+
+  if(scrollUpdatePending){
+    return;
+  }
+
+  scrollUpdatePending = true;
 
   requestAnimationFrame(() => {
 
+    scrollUpdatePending = false;
+
     const chat = document.getElementById("chat");
 
-    chat.scrollTop = div.offsetTop - 10;
+    if(!chat) return;
+
+    if(turnStartElement){
+
+      // 今回の操作で追加された内容の先頭を表示する
+      chat.scrollTop = turnStartElement.offsetTop - 10;
+
+      // 次の操作のために必ずリセットする
+      turnStartElement = null;
+
+    }else{
+
+      // 質問カードがあれば、そちらを優先して表示する
+      const latestCard =
+        document.querySelector(".question-card.latest");
+
+      if(latestCard){
+        chat.scrollTop = latestCard.offsetTop - 10;
+      }else if(chat.lastElementChild){
+        chat.scrollTop =
+          chat.lastElementChild.offsetTop - 10;
+      }
+
+    }
 
     updateScrollHint();
 
   });
+
+}
+
+function addBotMessage(text){
+
+  const div = addMessage("bot",text);
+
+  scheduleScrollUpdate();
+
+  return div;
 
 }
 
@@ -6504,6 +7768,86 @@ function addUserMessage(text){
 /* =========================================
    REDUCE COST RESULT HELPER
 ========================================= */
+
+/* =========================================
+   特定疾病療養受療証
+   （プロフィールの限度額区分があれば、
+   　具体的な金額まで示す）
+========================================= */
+
+function showTokuteishippeiDetail(){
+
+  state.reduceCostTopic = "touseki_tokuteishippei";
+
+  const u = state.user;
+
+  let body =
+`【特定疾病療養受療証】
+
+人工透析・血友病・HIVなど、
+長期間にわたり継続して
+高額な医療費がかかる病気の方が
+対象になります。
+
+1つの医療機関での自己負担が
+1か月あたり1万円
+（上位所得の方は2万円）
+までになります。`;
+
+  if(u.limit && u.limit !== "不明" && u.limit !== "対象外"){
+
+    const isOver70 = validators.isOver70();
+
+    const isHighIncome =
+      !isOver70
+      &&
+      (u.limit === "ア" || u.limit === "イ");
+
+    const yourAmount =
+      isHighIncome ? 20000 : 10000;
+
+    const normalData =
+      highCostService.getInpatientData();
+
+    const normalLimit = normalData.limit;
+
+    const savedAmount =
+      Math.max(0, normalLimit - yourAmount);
+
+    body += `
+
+【あなたの場合】
+限度額区分：${u.limit}
+
+通常の高額療養費の
+自己負担上限額：
+約${formatYen(normalLimit)}／月
+
+　　　↓
+特定疾病療養受療証を
+使うと…
+
+自己負担上限額：
+${formatYen(yourAmount)}／月
+
+（約${formatYen(savedAmount)}の
+負担軽減になります）`;
+
+  }
+
+  body += `
+
+【制度適応日】
+保険者に申請した日の
+月から適用されます。
+
+【申請先】
+加入している健康保険
+（保険者）へ申請します。`;
+
+  addBotMessage(body);
+
+}
 
 function showReduceCostResult(topicKey){
 
@@ -6885,6 +8229,7 @@ function careServiceReducer(text){
   }
   else if(text==="申請の仕方"){
     state.disease40to64Shown = false;
+  state.pendingCostBreakdown = false;
     addBotMessage(CARE_SERVICE_INFO.apply);
   }
   else if(text==="利用までの流れ"){
@@ -6894,6 +8239,7 @@ function careServiceReducer(text){
     state.careServiceListStep = -1;
     state.careServiceViewedItems = [];
   state.disease40to64Shown = false;
+  state.pendingCostBreakdown = false;
     addBotMessage(CARE_SERVICE_INFO.serviceIntro);
   }
   else if(text==="費用について"){
@@ -6976,6 +8322,10 @@ function addQuestionCard(text){
     .getElementById("chat")
     .appendChild(div);
 
+  if(!turnStartElement){
+    turnStartElement = div;
+  }
+
 }
 /* =========================================
    HANDLE SELECT
@@ -7050,7 +8400,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -7273,25 +8623,7 @@ function goBack(){
 
   renderButtons();
 
-  requestAnimationFrame(() => {
-
-    const chat = document.getElementById("chat");
-
-    const latest = document.querySelector(".question-card.latest");
-
-    if(latest){
-
-      chat.scrollTop = latest.offsetTop - 10;
-
-    }else{
-
-      chat.scrollTop = 0;
-
-    }
-
-    updateScrollHint();
-
-  });
+  scheduleScrollUpdate();
 
 }
 /* =========================================
@@ -7645,6 +8977,7 @@ function goToStart(){
   state.careServiceListStep = -1;
   state.careServiceViewedItems = [];
   state.disease40to64Shown = false;
+  state.pendingCostBreakdown = false;
   state.homeDischargeTopic = "";
 
   state.history = [];
@@ -7719,6 +9052,7 @@ function resetApp(){
 
   state.careServiceViewedItems = [];
   state.disease40to64Shown = false;
+  state.pendingCostBreakdown = false;
 
   state.homeDischargeTopic = "";
 
@@ -7746,6 +9080,14 @@ function resetApp(){
   potentialCaregivers:[],
   spouseCareLevel:"",
   spouseDementia:"",
+  childConditions:{},
+  currentChildBeingAsked:"",
+  currentChildConditionsTemp:[],
+  currentSituation:"",
+  mainConcern:"",
+  insuranceHolderType:"",
+  pensionIncome:"",
+  familyLivelihoodNoWorry:"",
   supportSystems:[],
   purpose:""
 };
