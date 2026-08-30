@@ -250,6 +250,56 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   cursor:pointer;
 }
 
+.nanbyo-search-box{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.nanbyo-search-input{
+  width:100%;
+  box-sizing:border-box;
+  min-height:48px;
+  padding:10px 14px;
+  font-size:16px;
+  border:2px solid #2563eb;
+  border-radius:10px;
+  color:#1e293b;
+}
+
+.nanbyo-search-btn{
+  width:100%;
+  min-height:48px;
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+  font-size:15px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.nanbyo-result-list{
+  width:100%;
+  max-height:260px;
+  overflow-y:auto;
+  border:1px solid #dbeafe;
+  border-radius:10px;
+  margin-top:4px;
+}
+
+.nanbyo-result-item{
+  padding:10px 14px;
+  font-size:14px;
+  border-bottom:1px solid #eff6ff;
+  color:#1e293b;
+}
+
+.nanbyo-result-item:last-child{
+  border-bottom:none;
+}
+
 .inline-button-label{
   font-size:14px;
   font-weight:bold;
@@ -418,6 +468,7 @@ const state = {
   currentScreen:"start",
 
   reduceCostTopic:"",
+  reduceCostParentTopic:"",
 
   careServiceStep:-1,
 
@@ -747,7 +798,7 @@ homeCare:{
   
   medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
-  buttons:["入院費がいくらかかるか知りたい","医療費が支払えない"]
+  buttons:["入院費がいくらかかるか知りたい"]
 },
 
 medicalCostMenu:{
@@ -821,7 +872,7 @@ reduceCostMenu:{
 },
 
 reduceCostQ1:{
-  text:"心の病気やてんかんで、\n継続して精神科へ通院していますか？",
+  text:"今回の入院は、\n心の病気やてんかんに\nともなう入院ですか？",
   buttons:["はい","いいえ"]
 },
 
@@ -1206,6 +1257,362 @@ const BURDEN_RATE_FRACTION = {
   "3割":0.3
 };
 
+/* =========================================
+   指定難病一覧（348疾病、令和7年4月時点）
+   厚生労働省公表資料に基づく
+========================================= */
+
+const NANBYO_LIST = [
+  {no:135,name:"アイカルディ症候群"},
+  {no:119,name:"アイザックス症候群"},
+  {no:66,name:"IgA腎症"},
+  {no:300,name:"IgG4関連疾患"},
+  {no:24,name:"亜急性硬化性全脳炎"},
+  {no:46,name:"悪性関節リウマチ"},
+  {no:83,name:"アジソン病"},
+  {no:303,name:"アッシャー症候群"},
+  {no:116,name:"アトピー性脊髄炎"},
+  {no:182,name:"アペール症候群"},
+  {no:297,name:"アラジール症候群"},
+  {no:231,name:"α1-アンチトリプシン欠乏症"},
+  {no:218,name:"アルポート症候群"},
+  {no:131,name:"アレキサンダー病"},
+  {no:201,name:"アンジェルマン症候群"},
+  {no:184,name:"アントレー・ビクスラー症候群"},
+  {no:247,name:"イソ吉草酸血症"},
+  {no:222,name:"一次性ネフローゼ症候群"},
+  {no:223,name:"一次性膜性増殖性糸球体腎炎"},
+  {no:197,name:"1p36欠失症候群"},
+  {no:325,name:"遺伝性自己炎症疾患"},
+  {no:120,name:"遺伝性ジストニア"},
+  {no:115,name:"遺伝性周期性四肢麻痺"},
+  {no:298,name:"遺伝性膵炎"},
+  {no:286,name:"遺伝性鉄芽球性貧血"},
+  {no:175,name:"ウィーバー症候群"},
+  {no:179,name:"ウィリアムズ症候群"},
+  {no:171,name:"ウィルソン病"},
+  {no:145,name:"ウエスト症候群"},
+  {no:191,name:"ウェルナー症候群"},
+  {no:233,name:"ウォルフラム症候群"},
+  {no:29,name:"ウルリッヒ病"},
+  {no:123,name:"HTRA1関連脳小血管病"},
+  {no:26,name:"HTLV-1関連脊髄症"},
+  {no:180,name:"ATR-X症候群"},
+  {no:168,name:"エーラス・ダンロス症候群"},
+  {no:287,name:"エプスタイン症候群"},
+  {no:217,name:"エプスタイン病"},
+  {no:204,name:"エマヌエル症候群"},
+  {no:339,name:"MECP2重複症候群"},
+  {no:342,name:"LMNB1関連大脳白質脳症"},
+  {no:30,name:"遠位型ミオパチー"},
+  {no:68,name:"黄色靭帯骨化症"},
+  {no:301,name:"黄斑ジストロフィー"},
+  {no:146,name:"大田原症候群"},
+  {no:170,name:"オクシピタル・ホーン症候群"},
+  {no:227,name:"オスラー病"},
+  {no:232,name:"カーニー複合"},
+  {no:141,name:"海馬硬化を伴う内側側頭葉てんかん"},
+  {no:97,name:"潰瘍性大腸炎"},
+  {no:72,name:"下垂体性ADH分泌異常症"},
+  {no:76,name:"下垂体性ゴナドトロピン分泌亢進症"},
+  {no:77,name:"下垂体性成長ホルモン分泌亢進症"},
+  {no:73,name:"下垂体性TSH分泌亢進症"},
+  {no:74,name:"下垂体性PRL分泌亢進症"},
+  {no:78,name:"下垂体前葉機能低下症"},
+  {no:79,name:"家族性高コレステロール血症（ホモ接合体）"},
+  {no:266,name:"家族性地中海熱"},
+  {no:336,name:"家族性低βリポタンパク血症1（ホモ接合体）"},
+  {no:161,name:"家族性良性慢性天疱瘡"},
+  {no:307,name:"カナバン病"},
+  {no:269,name:"化膿性無菌性関節炎・壊疽性膿皮症・アクネ症候群"},
+  {no:187,name:"歌舞伎症候群"},
+  {no:258,name:"ガラクトース-1-リン酸ウリジルトランスフェラーゼ欠損症"},
+  {no:316,name:"カルニチン回路異常症"},
+  {no:257,name:"肝型糖原病"},
+  {no:226,name:"間質性膀胱炎（ハンナ型）"},
+  {no:150,name:"環状20番染色体症候群"},
+  {no:209,name:"完全大血管転位症"},
+  {no:164,name:"眼皮膚白皮症"},
+  {no:236,name:"偽性副甲状腺機能低下症"},
+  {no:219,name:"ギャロウェイ・モワト症候群"},
+  {no:1,name:"球脊髄性筋萎縮症"},
+  {no:220,name:"急速進行性糸球体腎炎"},
+  {no:271,name:"強直性脊椎炎"},
+  {no:41,name:"巨細胞性動脈炎"},
+  {no:279,name:"巨大静脈奇形（頚部口腔咽頭びまん性病変）"},
+  {no:280,name:"巨大動静脈奇形（頚部顔面又は四肢病変）"},
+  {no:100,name:"巨大膀胱短小結腸腸管蠕動不全症"},
+  {no:278,name:"巨大リンパ管奇形（頚部顔面病変）"},
+  {no:2,name:"筋萎縮性側索硬化症"},
+  {no:256,name:"筋型糖原病"},
+  {no:113,name:"筋ジストロフィー"},
+  {no:75,name:"クッシング病"},
+  {no:106,name:"クリオピリン関連周期熱症候群"},
+  {no:281,name:"クリッペル・トレノネー・ウェーバー症候群"},
+  {no:181,name:"クルーゾン症候群"},
+  {no:248,name:"グルコーストランスポーター1欠損症"},
+  {no:249,name:"グルタル酸血症1型"},
+  {no:250,name:"グルタル酸血症2型"},
+  {no:16,name:"クロウ・深瀬症候群"},
+  {no:96,name:"クローン病"},
+  {no:289,name:"クロンカイト・カナダ症候群"},
+  {no:129,name:"痙攣重積型（二相性）急性脳症"},
+  {no:158,name:"結節性硬化症"},
+  {no:42,name:"結節性多発動脈炎"},
+  {no:64,name:"血栓性血小板減少性紫斑病"},
+  {no:137,name:"限局性皮質異形成"},
+  {no:346,name:"原発性肝外門脈閉塞症"},
+  {no:262,name:"原発性高カイロミクロン血症"},
+  {no:94,name:"原発性硬化性胆管炎"},
+  {no:48,name:"原発性抗リン脂質抗体症候群"},
+  {no:4,name:"原発性側索硬化症"},
+  {no:93,name:"原発性胆汁性胆管炎"},
+  {no:65,name:"原発性免疫不全症候群"},
+  {no:43,name:"顕微鏡的多発血管炎"},
+  {no:267,name:"高IgD症候群"},
+  {no:98,name:"好酸球性消化管疾患"},
+  {no:45,name:"好酸球性多発血管炎性肉芽腫症"},
+  {no:306,name:"好酸球性副鼻腔炎"},
+  {no:221,name:"抗糸球体基底膜腎炎"},
+  {no:69,name:"後縦靭帯骨化症"},
+  {no:80,name:"甲状腺ホルモン不応症"},
+  {no:59,name:"拘束型心筋症"},
+  {no:241,name:"高チロシン血症1型"},
+  {no:242,name:"高チロシン血症2型"},
+  {no:243,name:"高チロシン血症3型"},
+  {no:283,name:"後天性赤芽球癆"},
+  {no:70,name:"広範脊柱管狭窄症"},
+  {no:332,name:"膠様滴状角膜ジストロフィー"},
+  {no:344,name:"極長鎖アシル-CoA脱水素酵素欠損症"},
+  {no:192,name:"コケイン症候群"},
+  {no:104,name:"コステロ症候群"},
+  {no:274,name:"骨形成不全症"},
+  {no:199,name:"5p欠失症候群"},
+  {no:185,name:"コフィン・シリス症候群"},
+  {no:176,name:"コフィン・ローリー症候群"},
+  {no:52,name:"混合性結合組織病"},
+  {no:190,name:"鰓耳腎症候群"},
+  {no:60,name:"再生不良性貧血"},
+  {no:55,name:"再発性多発軟骨炎"},
+  {no:211,name:"左心低形成症候群"},
+  {no:84,name:"サルコイドーシス"},
+  {no:212,name:"三尖弁閉鎖症"},
+  {no:317,name:"三頭酵素欠損症"},
+  {no:103,name:"CFC症候群"},
+  {no:53,name:"シェーグレン症候群"},
+  {no:159,name:"色素性乾皮症"},
+  {no:32,name:"自己貪食空胞性ミオパチー"},
+  {no:95,name:"自己免疫性肝炎"},
+  {no:288,name:"自己免疫性後天性凝固因子欠乏症"},
+  {no:61,name:"自己免疫性溶血性貧血"},
+  {no:260,name:"シトステロール血症"},
+  {no:318,name:"シトリン欠損症"},
+  {no:224,name:"紫斑病性腎炎"},
+  {no:265,name:"脂肪萎縮症"},
+  {no:107,name:"若年性特発性関節炎"},
+  {no:304,name:"若年発症型両側性感音難聴"},
+  {no:10,name:"シャルコー・マリー・トゥース病"},
+  {no:11,name:"重症筋無力症"},
+  {no:208,name:"修正大血管転位症"},
+  {no:347,name:"出血性線溶異常症"},
+  {no:177,name:"ジュベール症候群関連疾患"},
+  {no:33,name:"シュワルツ・ヤンペル症候群"},
+  {no:138,name:"神経細胞移動異常症"},
+  {no:125,name:"神経軸索スフェロイド形成を伴う遺伝性びまん性白質脳症"},
+  {no:34,name:"神経線維腫症"},
+  {no:9,name:"神経有棘赤血球症"},
+  {no:5,name:"進行性核上性麻痺"},
+  {no:338,name:"進行性家族性肝内胆汁うっ滞症"},
+  {no:272,name:"進行性骨化性線維異形成症"},
+  {no:25,name:"進行性多巣性白質脳症"},
+  {no:308,name:"進行性白質脳症"},
+  {no:309,name:"進行性ミオクローヌスてんかん"},
+  {no:214,name:"心室中隔欠損を伴う肺動脈閉鎖症"},
+  {no:213,name:"心室中隔欠損を伴わない肺動脈閉鎖症"},
+  {no:154,name:"睡眠時棘徐波活性化を示す発達性てんかん性脳症及びてんかん性脳症"},
+  {no:157,name:"スタージ・ウェーバー症候群"},
+  {no:38,name:"スティーヴンス・ジョンソン症候群"},
+  {no:202,name:"スミス・マギニス症候群"},
+  {no:206,name:"脆弱X症候群"},
+  {no:205,name:"脆弱X症候群関連疾患"},
+  {no:54,name:"成人発症スチル病"},
+  {no:117,name:"脊髄空洞症"},
+  {no:18,name:"脊髄小脳変性症(多系統萎縮症を除く。)"},
+  {no:118,name:"脊髄髄膜瘤"},
+  {no:3,name:"脊髄性筋萎縮症"},
+  {no:319,name:"セピアプテリン還元酵素（SR）欠損症"},
+  {no:328,name:"前眼部形成異常"},
+  {no:28,name:"全身性アミロイドーシス"},
+  {no:49,name:"全身性エリテマトーデス"},
+  {no:51,name:"全身性強皮症"},
+  {no:310,name:"先天異常症候群"},
+  {no:294,name:"先天性横隔膜ヘルニア"},
+  {no:132,name:"先天性核上性球麻痺"},
+  {no:330,name:"先天性気管狭窄症／先天性声門下狭窄症"},
+  {no:160,name:"先天性魚鱗癬"},
+  {no:12,name:"先天性筋無力症候群"},
+  {no:320,name:"先天性グリコシルホスファチジルイノシトール（GPI）欠損症"},
+  {no:311,name:"先天性三尖弁狭窄症"},
+  {no:225,name:"先天性腎性尿崩症"},
+  {no:282,name:"先天性赤血球形成異常性貧血"},
+  {no:312,name:"先天性僧帽弁狭窄症"},
+  {no:139,name:"先天性大脳白質形成不全症"},
+  {no:313,name:"先天性肺静脈狭窄症"},
+  {no:82,name:"先天性副腎低形成症"},
+  {no:81,name:"先天性副腎皮質酵素欠損症"},
+  {no:111,name:"先天性ミオパチー"},
+  {no:130,name:"先天性無痛無汗症"},
+  {no:253,name:"先天性葉酸吸収不全"},
+  {no:127,name:"前頭側頭葉変性症"},
+  {no:340,name:"線毛機能不全症候群（カルタゲナー症候群を含む。）"},
+  {no:147,name:"早期ミオクロニー脳症"},
+  {no:207,name:"総動脈幹遺残症"},
+  {no:293,name:"総排泄腔遺残"},
+  {no:292,name:"総排泄腔外反症"},
+  {no:194,name:"ソトス症候群"},
+  {no:200,name:"第14番染色体父親性ダイソミー症候群"},
+  {no:284,name:"ダイアモンド・ブラックファン貧血"},
+  {no:7,name:"大脳皮質基底核変性症"},
+  {no:326,name:"大理石骨病"},
+  {no:40,name:"高安動脈炎"},
+  {no:17,name:"多系統萎縮症"},
+  {no:275,name:"タナトフォリック骨異形成症"},
+  {no:44,name:"多発血管炎性肉芽腫症"},
+  {no:13,name:"多発性硬化症／視神経脊髄炎"},
+  {no:67,name:"多発性嚢胞腎"},
+  {no:188,name:"多脾症候群"},
+  {no:261,name:"タンジール病"},
+  {no:210,name:"単心室症"},
+  {no:166,name:"弾性線維性仮性黄色腫"},
+  {no:296,name:"胆道閉鎖症"},
+  {no:305,name:"遅発性内リンパ水腫"},
+  {no:105,name:"チャージ症候群"},
+  {no:134,name:"中隔視神経形成異常症/ドモルシア症候群"},
+  {no:39,name:"中毒性表皮壊死症"},
+  {no:101,name:"腸管神経節細胞僅少症"},
+  {no:268,name:"中條・西村症候群"},
+  {no:174,name:"那須・ハコラ病"},
+  {no:276,name:"軟骨無形成症"},
+  {no:153,name:"難治頻回部分発作重積型急性脳炎"},
+  {no:203,name:"22q11.2欠失症候群"},
+  {no:345,name:"乳児発症STING関連血管炎"},
+  {no:295,name:"乳幼児肝巨大血管腫"},
+  {no:251,name:"尿素サイクル異常症"},
+  {no:195,name:"ヌーナン症候群"},
+  {no:315,name:"ネイルパテラ症候群（爪膝蓋骨症候群）／LMX1B関連腎症"},
+  {no:335,name:"ネフロン癆"},
+  {no:334,name:"脳クレアチン欠乏症"},
+  {no:263,name:"脳腱黄色腫症"},
+  {no:121,name:"脳内鉄沈着神経変性症"},
+  {no:122,name:"脳表ヘモジデリン沈着症"},
+  {no:37,name:"膿疱性乾癬（汎発型）"},
+  {no:299,name:"嚢胞性線維症"},
+  {no:6,name:"パーキンソン病"},
+  {no:47,name:"バージャー病"},
+  {no:87,name:"肺静脈閉塞症／肺毛細血管腫症"},
+  {no:86,name:"肺動脈性肺高血圧症"},
+  {no:229,name:"肺胞蛋白症（自己免疫性又は先天性）"},
+  {no:230,name:"肺胞低換気症候群"},
+  {no:333,name:"ハッチンソン・ギルフォード症候群"},
+  {no:91,name:"バッド・キアリ症候群"},
+  {no:8,name:"ハンチントン病"},
+  {no:152,name:"PCDH19関連症候群"},
+  {no:343,name:"PURA関連神経発達異常症"},
+  {no:321,name:"非ケトーシス型高グリシン血症"},
+  {no:165,name:"肥厚性皮膚骨膜症"},
+  {no:114,name:"非ジストロフィー性ミオトニー症候群"},
+  {no:124,name:"皮質下梗塞と白質脳症を伴う常染色体優性脳動脈症"},
+  {no:58,name:"肥大型心筋症"},
+  {no:239,name:"ビタミンD依存性くる病／骨軟化症"},
+  {no:238,name:"ビタミンD抵抗性くる病／骨軟化症"},
+  {no:314,name:"左肺動脈右肺動脈起始症"},
+  {no:128,name:"ビッカースタッフ脳幹脳炎"},
+  {no:109,name:"非典型溶血性尿毒症症候群"},
+  {no:290,name:"非特異性多発性小腸潰瘍症"},
+  {no:50,name:"皮膚筋炎／多発性筋炎"},
+  {no:36,name:"表皮水疱症"},
+  {no:291,name:"ヒルシュスプルング病（全結腸型又は小腸型）"},
+  {no:173,name:"VATER症候群"},
+  {no:183,name:"ファイファー症候群"},
+  {no:215,name:"ファロー四徴症"},
+  {no:285,name:"ファンコニ貧血"},
+  {no:15,name:"封入体筋炎"},
+  {no:240,name:"フェニルケトン尿症"},
+  {no:255,name:"複合カルボキシラーゼ欠損症"},
+  {no:235,name:"副甲状腺機能低下症"},
+  {no:20,name:"副腎白質ジストロフィー"},
+  {no:237,name:"副腎皮質刺激ホルモン不応症"},
+  {no:110,name:"ブラウ症候群"},
+  {no:193,name:"プラダー・ウィリ症候群"},
+  {no:23,name:"プリオン病"},
+  {no:245,name:"プロピオン酸血症"},
+  {no:228,name:"閉塞性細気管支炎"},
+  {no:322,name:"β-ケトチオラーゼ欠損症"},
+  {no:56,name:"ベーチェット病"},
+  {no:31,name:"ベスレムミオパチー"},
+  {no:126,name:"ペリー病"},
+  {no:234,name:"ペルオキシソーム病（副腎白質ジストロフィーを除く。）"},
+  {no:136,name:"片側巨脳症"},
+  {no:149,name:"片側痙攣・片麻痺・てんかん症候群"},
+  {no:323,name:"芳香族L-アミノ酸脱炭酸酵素欠損症"},
+  {no:62,name:"発作性夜間ヘモグロビン尿症"},
+  {no:337,name:"ホモシスチン尿症"},
+  {no:254,name:"ポルフィリン症"},
+  {no:112,name:"マリネスコ・シェーグレン症候群"},
+  {no:167,name:"マルファン症候群／ロイス・ディーツ症候群"},
+  {no:14,name:"慢性炎症性脱髄性多発神経炎／多巣性運動ニューロパチー"},
+  {no:88,name:"慢性血栓塞栓性肺高血圧症"},
+  {no:270,name:"慢性再発性多発性骨髄炎"},
+  {no:99,name:"慢性特発性偽性腸閉塞症"},
+  {no:142,name:"ミオクロニー欠神てんかん"},
+  {no:143,name:"ミオクロニー脱力発作を伴うてんかん"},
+  {no:21,name:"ミトコンドリア病"},
+  {no:329,name:"無虹彩症"},
+  {no:189,name:"無脾症候群"},
+  {no:264,name:"無βリポタンパク血症"},
+  {no:244,name:"メープルシロップ尿症"},
+  {no:324,name:"メチルグルタコン酸尿症"},
+  {no:246,name:"メチルマロン酸血症"},
+  {no:133,name:"メビウス症候群"},
+  {no:63,name:"免疫性血小板減少症"},
+  {no:169,name:"メンケス病"},
+  {no:90,name:"網膜色素変性症"},
+  {no:22,name:"もやもや病"},
+  {no:178,name:"モワット・ウィルソン症候群"},
+  {no:196,name:"ヤング・シンプソン症候群"},
+  {no:148,name:"遊走性焦点発作を伴う乳児てんかん"},
+  {no:198,name:"4p欠失症候群"},
+  {no:19,name:"ライソゾーム病"},
+  {no:151,name:"ラスムッセン脳炎"},
+  {no:155,name:"ランドウ・クレフナー症候群"},
+  {no:252,name:"リジン尿性蛋白不耐症"},
+  {no:216,name:"両大血管右室起始症"},
+  {no:277,name:"リンパ管腫症／ゴーハム病"},
+  {no:89,name:"リンパ脈管筋腫症"},
+  {no:162,name:"類天疱瘡（後天性表皮水疱症を含む。）"},
+  {no:102,name:"ルビンシュタイン・テイビ症候群"},
+  {no:302,name:"レーベル遺伝性視神経症"},
+  {no:259,name:"レシチンコレステロールアシルトランスフェラーゼ欠損症"},
+  {no:156,name:"レット症候群"},
+  {no:144,name:"レノックス・ガストー症候群"},
+  {no:348,name:"ロウ症候群"},
+  {no:186,name:"ロスムンド・トムソン症候群"},
+  {no:273,name:"肋骨異常を伴う先天性側弯症"},
+  {no:341,name:"TRPV4異常症"},
+  {no:108,name:"TNF受容体関連周期性症候群"},
+  {no:172,name:"低ホスファターゼ症"},
+  {no:35,name:"天疱瘡"},
+  {no:57,name:"特発性拡張型心筋症"},
+  {no:85,name:"特発性間質性肺炎"},
+  {no:27,name:"特発性基底核石灰化症"},
+  {no:327,name:"特発性血栓症（遺伝性血栓性素因によるものに限る。）"},
+  {no:163,name:"特発性後天性全身性無汗症"},
+  {no:71,name:"特発性大腿骨頭壊死症"},
+  {no:331,name:"特発性多中心性キャッスルマン病"},
+  {no:92,name:"特発性門脈圧亢進症"},
+  {no:140,name:"ドラベ症候群"},
+];
+
 const REDUCE_COST_INFO = {
 
   jiritsu:
@@ -1235,11 +1642,17 @@ const REDUCE_COST_INFO = {
   ketsuyuHiv:
 `【血友病・HIVと医療費助成】
 
-血友病・HIVの場合、
+血友病・HIVの場合、利用できる制度として、
 
-特定疾病療養受療証などの対象になる場合があります。
+・特定疾病療養受療証
+・自立支援医療（更生医療）
+・身体障害者手帳
+・重度心身障害者医療費助成
 
-詳しくは医療機関やお住まいの市区町村へご相談ください。`,
+などが利用できる可能性があります。
+
+血友病・HIVに伴う制度を
+一つずつ説明します。`,
 
   tousekiTokutei:
 `【人工透析など（特定疾病）】
@@ -1267,9 +1680,9 @@ const REDUCE_COST_INFO = {
 病名や重症度によって
 対象となるかどうかが異なります。
 
-対象疾病はこちらで確認できます。
-
-https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000084783.html
+対象疾病(348疾病)は、
+病名や告示番号でこの場で
+検索できます。
 
 詳しくは、お住まいの都道府県・保健所へご相談ください。`,
 
@@ -1367,6 +1780,10 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 自己負担が原則1割になります
 （所得に応じて上限あり）。
 
+【適応日】
+申請（受理）した日から
+適用されます。
+
 【申請先】
 お住まいの市区町村の
 障害福祉窓口へ
@@ -1380,6 +1797,50 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 腎機能障害として
 該当する場合があります
 （多くの場合、1級）。
+
+手帳を取得すると、
+
+・医療費の助成
+・税制の優遇
+・各種福祉サービス
+
+などが利用できる場合があります。
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。
+
+【適応日】
+申請から2か月後程度に、
+郵送で自宅や手帳交付の
+通知文書が届きます。
+
+その後に、各手続きが
+開始となります。
+
+【主な制度】
+・重度心身障害者医療費助成制度
+・自立支援医療（更生医療）`,
+
+  ketsuyu_techou:
+`【身体障害者手帳】
+
+HIVにより免疫機能が
+著しく低下している場合、
+「免疫機能障害」として
+該当する場合があります。
+
+血友病そのものは、
+これとは別の扱いです。
+血友病自体は、直接
+手帳の対象にはなりません。
+
+ただし、血友病性関節症
+（関節の損傷）など、
+別の合併症がある場合は、
+「肢体不自由」などの区分で
+対象になることがあります。
 
 手帳を取得すると、
 
@@ -1420,6 +1881,15 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 （定額制、1割負担＋上限額制、
 無料　など）。
 
+【適応日】
+市区町村から手帳が交付された
+後に、この制度の手続きを
+行い、翌月から適用となります。
+
+※所得制限あり
+年収が600万円程度あると、
+非該当となる可能性があります。
+
 【申請先】
 お住まいの市区町村の
 窓口へ申請します。`
@@ -1441,12 +1911,7 @@ const REDUCE_COST_LINKS = {
 
   touseki:[],
 
-  ketsuyuHiv:[
-    {
-      label:"全国健康保険協会で確認する",
-      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
-    }
-  ],
+  ketsuyuHiv:[],
 
   tousekiTokutei:[
     {
@@ -1455,16 +1920,7 @@ const REDUCE_COST_LINKS = {
     }
   ],
 
-  nanbyo:[
-    {
-      label:"厚生労働省で確認する",
-      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000084783.html"
-    },
-    {
-      label:"難病情報センターで確認する",
-      url:"https://www.nanbyou.or.jp/"
-    }
-  ],
+  nanbyo:[],
 
   shoman:[
     {
@@ -6158,19 +6614,22 @@ function resumeProfileChain(){
 ========================================= */
 
 // 重度心身障害者医療費助成制度（県障・県親）の自己負担額
-// 都道府県・市区町村ごとに制度内容が異なるため、
-// 地域ごとにデータを追加していける構造にしている。
-// 現時点では、確認が取れている地域の数値のみ登録。
+// 都道府県・市区町村ごとに制度内容が大きく異なるため、
+// 現在は具体的な金額計算には使用していない
+// （地域を明示できないツールで特定地域の金額を
+// 　断定するのは危険なため、窓口案内に留めている）。
+// 将来、利用者の地域を特定できる仕組みができた場合に
+// 備えて、データ構造だけ残している。
 const SEVERE_DISABILITY_MEDICAL_SUBSIDY = {
 
   default:{
-    outpatientCopay:530,      // 円/回（外来）
-    inpatientDailyCopay:1200  // 円/日（入院）
+    outpatientCopay:530,      // 円/回（外来・新潟県の例）
+    inpatientDailyCopay:1200  // 円/日（入院・新潟県の例）
   }
 
-  // 他の地域のデータが分かり次第、
+  // 他の地域の正確なデータが分かり次第、
   // ここに追加していく
-  // 例）hokkaido:{ outpatientCopay:..., inpatientDailyCopay:... }
+  // 例）niigata:{ outpatientCopay:530, inpatientDailyCopay:1200 }
 
 };
 
@@ -6324,7 +6783,7 @@ function showDetailedCostExplanation(){
 医療費の自己負担は
 発生しません。`);
 
-    state.currentScreen = "medicalConcernMenu";
+    state.currentScreen = "detailedCostExplanationResult";
     renderButtons();
     return;
 
@@ -6350,7 +6809,7 @@ function showDetailedCostExplanation(){
 マイナ保険証の資格情報で
 確認できます。`);
 
-    state.currentScreen = "medicalConcernMenu";
+    state.currentScreen = "detailedCostExplanationResult";
     renderButtons();
     return;
 
@@ -6378,7 +6837,7 @@ function showDetailedCostExplanation(){
 もう一度こちらのボタンから
 確認できます。`);
 
-    state.currentScreen = "medicalConcernMenu";
+    state.currentScreen = "detailedCostExplanationResult";
     renderButtons();
     return;
 
@@ -6424,7 +6883,7 @@ ${marker}食事代：${formatYen(data[key].mealCost)}/食
 ${formatYen(yourData.mealCost)}に
 なります。`);
 
-  state.currentScreen = "medicalConcernMenu";
+  state.currentScreen = "detailedCostExplanationResult";
 
   renderButtons();
 
@@ -6527,26 +6986,31 @@ ${tableText}
     ||
     state.user.supportSystems.includes("県親");
 
-  let medicalCost = data.limit;
+  const medicalCost = data.limit;
   let subsidyNote = "";
 
   if(hasSevereDisabilitySubsidy){
 
-    const subsidy =
-      SEVERE_DISABILITY_MEDICAL_SUBSIDY.default;
-
-    const subsidyCap =
-      subsidy.inpatientDailyCopay * 30;
-
-    medicalCost = Math.min(data.limit, subsidyCap);
-
     subsidyNote = `
 
-※重度心身障害者医療費助成の対象のため、
-入院1日${formatYen(subsidy.inpatientDailyCopay)}を上限に
-医療費が軽減されています
-（実際の医療費がこれより低い場合は、
-そちらの金額が優先されます）。`;
+※重度心身障害者医療費助成
+（マル障）の対象の可能性があります。
+
+この制度は、対象になる方や
+自己負担額が、お住まいの
+市区町村によって大きく異なります
+（無料の地域、定額の地域、
+1割負担＋上限額の地域など）。
+
+そのため、ここでは金額の
+計算に含めていません。
+
+お住まいの市区町村の
+障害福祉窓口（または、お持ちの
+手帳を交付した窓口）で、
+「マル障の対象になるか、
+対象ならいくらになるか」を
+確認してみてください。`;
 
   }
 
@@ -6807,6 +7271,26 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "detailedCostExplanationResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"該当する制度があるか確認します",
+        onclick:()=>{
+          state.currentScreen = "reduceCostQ1";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
   if(state.currentScreen === "inpatientCostResult"){
 
     area.style.display = "none";
@@ -6817,8 +7301,11 @@ function renderButtons(){
         onclick:()=>showDetailedCostExplanation()
       },
       {
-        label:"医療費が支払えない",
-        onclick:()=>menuModules["医療費が支払えない"]()
+        label:"該当する制度があるか確認します",
+        onclick:()=>{
+          state.currentScreen = "reduceCostQ1";
+          renderScreen();
+        }
       }
     ]);
 
@@ -6873,6 +7360,24 @@ function renderButtons(){
 
     area.style.display = "none";
 
+    if(state.reduceCostTopic === "nanbyo"){
+
+      renderNanbyoSearch();
+
+      addInlineButtons([
+        {
+          label:"戻る",
+          secondary:true,
+          onclick:()=>handleSelect("戻る")
+        }
+      ]);
+
+      ensureScrollRoom();
+
+      return;
+
+    }
+
     const links =
       REDUCE_COST_LINKS[
         state.reduceCostTopic
@@ -6907,7 +7412,7 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
-            showReduceCostResult("touseki_kousei");
+            showKouseiIryouDetail();
             renderButtons();
           }
         }
@@ -6928,7 +7433,63 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
-            showReduceCostResult("touseki_kousei");
+            showKouseiIryouDetail();
+            renderButtons();
+          }
+        }
+      );
+
+    }
+
+    if(state.reduceCostTopic === "ketsuyuHiv"){
+
+      inlineButtons.push(
+        {
+          label:"特定疾病療養受療証",
+          onclick:()=>{
+            showTokuteishippeiDetail();
+            renderButtons();
+          }
+        },
+        {
+          label:"身体障害者手帳",
+          onclick:()=>{
+            showReduceCostResult("ketsuyu_techou");
+            renderButtons();
+          }
+        },
+        {
+          label:"重度心身障害者医療費助成",
+          onclick:()=>{
+            showReduceCostResult("touseki_juudo");
+            renderButtons();
+          }
+        },
+        {
+          label:"自立支援医療（更生医療）",
+          onclick:()=>{
+            showKouseiIryouDetail();
+            renderButtons();
+          }
+        }
+      );
+
+    }
+
+    if(state.reduceCostTopic === "ketsuyu_techou"){
+
+      inlineButtons.push(
+        {
+          label:"重度心身障害者医療費助成制度",
+          onclick:()=>{
+            showReduceCostResult("touseki_juudo");
+            renderButtons();
+          }
+        },
+        {
+          label:"自立支援医療（更生医療）",
+          onclick:()=>{
+            showKouseiIryouDetail();
             renderButtons();
           }
         }
@@ -6943,11 +7504,12 @@ function renderButtons(){
       });
     });
 
-    const tousekiSubTopics = [
+    const subTopics = [
       "touseki_tokuteishippei",
       "touseki_kousei",
       "touseki_techou",
-      "touseki_juudo"
+      "touseki_juudo",
+      "ketsuyu_techou"
     ];
 
     inlineButtons.push({
@@ -6955,8 +7517,12 @@ function renderButtons(){
       secondary:true,
       onclick:()=>{
 
-        if(tousekiSubTopics.includes(state.reduceCostTopic)){
-          showReduceCostResult("touseki");
+        if(subTopics.includes(state.reduceCostTopic)){
+
+          const parent =
+            state.reduceCostParentTopic || "touseki";
+
+          showReduceCostResult(parent);
           renderButtons();
           return;
         }
@@ -7775,6 +8341,201 @@ function addUserMessage(text){
    　具体的な金額まで示す）
 ========================================= */
 
+/* =========================================
+   自立支援医療（更生医療）
+   （プロフィールの課税状況から、
+   　該当する自己負担額を示す）
+========================================= */
+
+function showKouseiIryouDetail(){
+
+  state.reduceCostTopic = "touseki_kousei";
+
+  const u = state.user;
+
+  let body =
+`【自立支援医療（更生医療）】
+
+身体障害者手帳をお持ちの
+18歳以上の方が対象です。
+
+人工透析など、障害の程度を
+軽くしたり、機能を回復
+させたりする医療について、
+自己負担が原則1割になります
+（所得に応じて上限あり）。
+
+【適応日】
+申請（受理）した日から
+適用されます。`;
+
+  // 生活保護
+  if(u.insurance === "生活保護"){
+
+    body += `
+
+【あなたのプロフィール】
+保険：生活保護
+
+【医療費自己負担（月額上限）】
+0円`;
+
+    body += `
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。`;
+
+    addBotMessage(body);
+
+    return;
+
+  }
+
+  // mealStageから課税/非課税を判定
+  const nonTaxedStages = [
+    "第一段階","第二段階","第三段階①","第三段階②"
+  ];
+
+  let taxStatus = "";
+  let basisLabel = "";
+
+  // 限度額区分がある場合、通常の高額療養費上限額も
+  // あわせて表示する（例：ウ：約85,800円）
+  function withNormalLimit(labelPrefix, value){
+
+    if(
+      value
+      &&
+      value !== "不明"
+      &&
+      value !== "対象外"
+    ){
+
+      const normalData = highCostService.getInpatientData();
+
+      if(normalData){
+        return `${labelPrefix}：${value}（通常は約${formatYen(normalData.limit)}）`;
+      }
+
+    }
+
+    return `${labelPrefix}：${value}`;
+
+  }
+
+  if(u.mealStage === "第四段階（課税）"){
+    taxStatus = "課税";
+    basisLabel = withNormalLimit("食費区分", u.mealStage);
+  }else if(nonTaxedStages.includes(u.mealStage)){
+    taxStatus = "非課税";
+    basisLabel = withNormalLimit("食費区分", u.mealStage);
+  }else{
+
+    // mealStageが「対象外」等で判定できない場合、
+    // 限度額区分（limit）から判定する
+    const nonTaxedLimits = ["オ","低Ⅱ","低Ⅰ"];
+    const taxedLimits = ["ア","イ","ウ","エ","現役Ⅲ","現役Ⅱ","現役Ⅰ","一般"];
+
+    if(nonTaxedLimits.includes(u.limit)){
+      taxStatus = "非課税";
+      basisLabel = withNormalLimit("限度額区分", u.limit);
+    }else if(taxedLimits.includes(u.limit)){
+      taxStatus = "課税";
+      basisLabel = withNormalLimit("限度額区分", u.limit);
+    }
+
+  }
+
+  if(taxStatus === "非課税"){
+
+    body += `
+
+【あなたのプロフィール】
+住民税：非課税世帯
+（${basisLabel}）
+
+自己負担（月額上限）：
+・世帯の年収82万6,500円以下
+　→ 2,500円
+・世帯の年収82万6,500円超
+　→ 5,000円
+
+わからない場合は、市区町村から
+届く「非課税証明書」等で
+確認できます。`;
+
+  }else if(taxStatus === "課税"){
+
+    body += `
+
+【あなたのプロフィール】
+住民税：課税世帯
+（${basisLabel}）
+
+自己負担（月額上限）：
+5,000円 または 20,000円
+（所得により決まります）`;
+
+  }else{
+
+    body += `
+
+限度額区分・食費区分が
+未入力のため、課税・非課税の
+判定ができません。
+
+【医療費自己負担（月額上限）の目安】
+
+住民税非課税世帯
+　→ 2,500円 または 5,000円／月
+
+住民税課税世帯
+　→ 5,000円 または 20,000円／月`;
+
+  }
+
+  body += `
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。`;
+
+  addBotMessage(body);
+
+}
+
+// 更生医療：具体的な自己負担額を、特定疾病療養と同じ
+// before/after形式で示す
+function showKouseiIryouResult(amount, reasonLabel){
+
+  addBotMessage(`あなたの場合、
+
+（${reasonLabel}）
+
+【医療費自己負担（月額上限）】
+
+　　通常の自己負担（1割）
+　　　　↓
+自立支援医療（更生医療）を
+使うと…
+
+自己負担上限額：
+${formatYen(amount)}／月
+
+【申請先】
+お住まいの市区町村の
+障害福祉窓口へ
+申請します。`);
+
+  state.currentScreen = "medicalConcernMenu";
+
+  renderButtons();
+
+}
+
 function showTokuteishippeiDetail(){
 
   state.reduceCostTopic = "touseki_tokuteishippei";
@@ -7849,9 +8610,166 @@ ${formatYen(yourAmount)}／月
 
 }
 
+/* =========================================
+   指定難病 検索機能
+   （病名の一部、または告示番号で検索する）
+========================================= */
+
+function renderNanbyoSearch(){
+
+  const chat = document.getElementById("chat");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "nanbyo-search-box";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "nanbyo-search-input";
+  input.placeholder = "病名の一部、または告示番号";
+  input.id = "nanbyoSearchInput";
+
+  const btn = document.createElement("button");
+  btn.className = "nanbyo-search-btn";
+  btn.textContent = "検索する";
+  btn.onclick = () => runNanbyoSearch();
+
+  // Enterキーでも検索できるようにする
+  input.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      runNanbyoSearch();
+    }
+  });
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(btn);
+
+  chat.appendChild(wrapper);
+
+  if(!turnStartElement){
+    turnStartElement = wrapper;
+  }
+
+  scheduleScrollUpdate();
+
+}
+
+// 検索用に文字列を正規化する
+// （全角英数字→半角、大文字→小文字、
+// 　記号のゆらぎを統一）
+function normalizeForSearch(str){
+
+  return str
+    // 全角英数字・記号 → 半角
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch)=>
+      String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)
+    )
+    // 全角スペース → 半角スペース
+    .replace(/　/g, " ")
+    // 波ダッシュ・長音記号・ハイフン類の統一
+    .replace(/[－―ー]/g, "-")
+    // 中黒・スラッシュ類の統一
+    .replace(/[／]/g, "/")
+    .replace(/[・]/g, "・")
+    // 大文字を小文字に統一
+    .toLowerCase()
+    .trim();
+
+}
+
+function runNanbyoSearch(){
+
+  const inputEl = document.getElementById("nanbyoSearchInput");
+
+  if(!inputEl) return;
+
+  const rawQuery = inputEl.value.trim();
+
+  if(!rawQuery){
+
+    addBotMessage("病名の一部、または告示番号を入力してください。");
+    return;
+
+  }
+
+  const query = normalizeForSearch(rawQuery);
+
+  const isNumberQuery = /^[0-9]+$/.test(query);
+
+  let results;
+
+  if(isNumberQuery){
+
+    results = NANBYO_LIST.filter(d=>
+      String(d.no) === query
+    );
+
+  }else{
+
+    results = NANBYO_LIST.filter(d=>
+      normalizeForSearch(d.name).includes(query)
+    );
+
+  }
+
+  if(results.length === 0){
+
+    addBotMessage(`「${rawQuery}」に一致する指定難病は
+見つかりませんでした。
+
+・別の書き方（カタカナ／ひらがな／
+　部分的な単語）で試してみてください
+・見つからない場合でも、
+　医師の診断名と異なる場合が
+　ありますので、主治医や
+　難病相談支援センターへ
+　ご確認ください`);
+
+    return;
+
+  }
+
+  if(results.length > 20){
+
+    addBotMessage(`「${rawQuery}」に一致するものが
+${results.length}件見つかりました。
+多すぎるため、もう少し詳しい
+キーワードで絞り込んでください。`);
+
+    return;
+
+  }
+
+  let message = `「${rawQuery}」の検索結果
+（${results.length}件）：
+
+`;
+
+  results.forEach(d=>{
+    message += `・${d.name}（告示番号${d.no}）\n`;
+  });
+
+  message += `
+該当する病名がある場合は、
+指定難病医療費助成の対象に
+なる可能性があります。
+
+正式な対象・重症度の判定は、
+お住まいの都道府県・保健所へ
+ご確認ください。`;
+
+  addBotMessage(message);
+
+}
+
 function showReduceCostResult(topicKey){
 
   state.reduceCostTopic = topicKey;
+
+  // 個別制度の「戻る」先を判定するため、
+  // 大分類（一覧）を表示するときだけ親として記録する
+  if(topicKey === "touseki" || topicKey === "ketsuyuHiv"){
+    state.reduceCostParentTopic = topicKey;
+  }
 
   addBotMessage(REDUCE_COST_INFO[topicKey]);
 
@@ -8400,7 +9318,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -8596,6 +9514,7 @@ function goBack(){
   state.currentScreen = prev.currentScreen;
 
   state.reduceCostTopic = prev.reduceCostTopic || "";
+  state.reduceCostParentTopic = prev.reduceCostParentTopic || "";
 
   state.careServiceStep =
     (prev.careServiceStep === undefined)
@@ -8973,6 +9892,7 @@ function goToStart(){
   state.currentScreen = "start";
 
   state.reduceCostTopic = "";
+  state.reduceCostParentTopic = "";
   state.careServiceStep = -1;
   state.careServiceListStep = -1;
   state.careServiceViewedItems = [];
@@ -9045,6 +9965,7 @@ function resetApp(){
   state.currentScreen = "start";
 
   state.reduceCostTopic = "";
+  state.reduceCostParentTopic = "";
 
   state.careServiceStep = -1;
 
