@@ -170,6 +170,14 @@ body{
   margin:12px 0;
 }
 
+.highlight-box{
+  display:inline-block;
+  border:2px solid #facc15;
+  border-radius:6px;
+  padding:2px 8px;
+  margin:2px 0;
+}
+
 .question-card.latest strong{
   color:#facc15;
 }
@@ -651,6 +659,11 @@ text:`ありがとうございます。
     buttons:["あなたに合った制度を調べる","かんたん検索"]
   },
 
+quickSearchMenu:{
+  text:"どのことについて調べますか？",
+  buttons:["医療費","介護保険（施設入所）","転院","生活困窮","障害","退院後の生活・自宅退院","緩和ケア・看取り"]
+},
+
 purpose:{
   text:"こんにちは、みちです。\n\nまずは、今どんな状況か教えてください。",
   buttons:["入院しています","通院しています","通院している医療機関はありません"]
@@ -891,13 +904,18 @@ reduceCostQ4:{
   buttons:["はい","いいえ"]
 },
 
+reduceCostQ4b:{
+  text:"月の収入がほぼなく、\n預貯金も10万円以下\nぐらいですか？",
+  buttons:["はい","いいえ"]
+},
+
 reduceCostQ5:{
   text:"B型肝炎またはC型肝炎と\n言われていますか？",
   buttons:["はい","いいえ"]
 },
 
 reduceCostQ6:{
-  text:"身体障害者手帳1〜3級\n療育手帳A\n精神障害者保健福祉手帳1級\nをお持ちですか？",
+  text:"身体障害者手帳、療育手帳、\n精神障害者保健福祉手帳の\nいずれかをお持ちですか？",
   buttons:["はい","いいえ"]
 },
 
@@ -1706,45 +1724,87 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 行う場合、医療費の一部が助成される制度があります。
 
 治療内容や所得により
-自己負担額が異なります。
-
-詳しくは、お住まいの都道府県・保健所へご相談ください。`,
+自己負担額が異なります。`,
 
   judo:
 `【重度心身障害者医療費助成】
 
-・身体障害者手帳1〜3級
-・療育手帳A
-・精神障害者保健福祉手帳1級
+身体障害者手帳、療育手帳、
+精神障害者保健福祉手帳を
+お持ちの場合、重度心身障害者
+医療費助成制度（自治体によって
+呼び方が異なります）の対象と
+なる可能性があります。
 
-などをお持ちの場合、
-重度心身障害者医療費助成制度
-（自治体によって呼び方が異なります）の
-対象となる可能性があります。
+ただし、対象となる等級
+（1級のみ、1〜2級、1〜3級など）
+や、内部障害の場合の条件、
+自己負担額の仕組みは、
+お住まいの市区町村によって
+大きく異なります。
+そのため、ここでは対象の
+判定や金額の計算には
+含めていません。
 
-内容は自治体によって異なります。
+すでにお手帳をお持ちの場合は、
+お手帳を交付した窓口へ、
+「マル障(重度心身障害者医療費
+助成)の対象になるか」を
+確認してみてください。
 
-詳しくは、お住まいの市区町村へご相談ください。`,
+お持ちでない場合や、詳しい
+内容については、お住まいの
+市区町村へご相談ください。`,
 
   kodomo:
 `【子どもの医療費助成】
 
-18歳まで（自治体によって高校卒業までなど異なります）の
-お子さんは、子どもの医療費助成制度の
-対象となる可能性があります。
+18歳まで（自治体によって
+高校卒業までなど異なります）の
+お子さんは、子どもの医療費助成
+制度の対象となる可能性があります。
 
-所得制限や自己負担額は
-自治体によって異なります。
+お住まいの市区町村から交付される
+「子ども医療費受給証」
+（マル子医療証など、自治体により
+名称は異なります）を、健康保険証と
+一緒に医療機関の窓口へ提示する
+ことで、助成が受けられます。
 
-詳しくは、お住まいの市区町村へご相談ください。`,
+主に、以下が助成の対象になります。
+
+・外来
+・入院
+・薬代
+・入院時食事代
+
+ただし、対象になる年齢、
+所得制限の有無、自己負担額、
+（無料の自治体、定額の自治体、
+一部負担ありの自治体など）は、
+お住まいの市区町村によって
+大きく異なります。
+そのため、ここでは金額の
+計算に含めていません。
+
+すでに「子ども医療費受給証」を
+お持ちの場合は、その証に
+記載の内容をご確認ください。
+お持ちでない場合や、詳しい
+内容については、お住まいの
+市区町村へご相談ください。`,
 
   last:
 `ここまでで該当する制度が見つからなくても、
-
 病状や生活状況によって
 利用できる制度がある場合があります。
 
-詳しくは医療機関または市区町村へご相談ください。`,
+入院費は、保留や分割の
+支払い相談が可能な病院も
+あります。医療費が払えない為、
+治療ができないと思った時は、
+医療機関または市区町村へ
+ご相談ください。`,
 
   touseki_tokuteishippei:
 `【特定疾病療養受療証】
@@ -1902,12 +1962,7 @@ HIVにより免疫機能が
 
 const REDUCE_COST_LINKS = {
 
-  jiritsu:[
-    {
-      label:"厚生労働省で確認する",
-      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hukushi_kaigo/shougaishahukushi/jiritsu/index.html"
-    }
-  ],
+  jiritsu:[],
 
   touseki:[],
 
@@ -1929,12 +1984,7 @@ const REDUCE_COST_LINKS = {
     }
   ],
 
-  kanen:[
-    {
-      label:"肝炎情報センターで確認する",
-      url:"https://www.kanen.jihs.go.jp/cont/040/zyosei.html"
-    }
-  ],
+  kanen:[],
 
   judo:[
     {
@@ -2687,6 +2737,12 @@ ${formatYen(data.mealCost)}
 // 396円〜605円/日）ため、中間的な金額を採用。
 const CS_SET_DAILY_COST = 500;
 
+// おむつ定額プランの日額の目安。CSセットと同じ業者
+// （株式会社エラン、株式会社トーカイなど）が提供
+// していることが多い。使用頻度・ランクにより
+// 231円〜836円/日と幅があるため、中間的な金額を採用。
+const DIAPER_PLAN_DAILY_COST = 500;
+
 const highCostService = {
 
   getOutpatientData(){
@@ -2766,7 +2822,7 @@ const menuModules = {
   },
 
   "難病医療":()=>{
-    showReduceCostResult("nanbyo");
+    showNanbyoIntro();
     state.currentScreen = "reduceCostResult";
     renderButtons();
   },
@@ -3126,11 +3182,13 @@ addBotMessage(`【生活保護】
 医療費は原則自己負担なしで
 受診できます。
 
-申請は、お住まいの地域を管轄する
-福祉事務所で行います。
+申請は、お住まいの地域を
+管轄する市区町村
+（福祉事務所）で行います。
 
 くわしくは、MSWや
-福祉事務所へご相談ください。`);
+市区町村（福祉事務所）へ
+ご相談ください。`);
 
 },
 
@@ -4623,9 +4681,47 @@ const transitions = {
       return "age";
     }
 
-    return "purpose";
+    return "quickSearchMenu";
 
   }
+},
+
+quickSearchMenu:{
+
+  reducer:(text)=>{},
+
+  next:(text)=>{
+
+    if(text==="医療費"){
+      return "medicalConcernMenu";
+    }
+
+    if(text==="介護保険（施設入所）"){
+      return "facilityMenu";
+    }
+
+    if(text==="転院"){
+      return "transferReasonMenu";
+    }
+
+    if(text==="生活困窮"){
+      return "paymentProblemMenu";
+    }
+
+    if(text==="障害"){
+      return "disabilityMenu";
+    }
+
+    if(text==="退院後の生活・自宅退院"){
+      return "dischargeMenu";
+    }
+
+    if(text==="緩和ケア・看取り"){
+      return "palliativeCareMenu";
+    }
+
+  }
+
 },
 
 purpose:{
@@ -5599,16 +5695,16 @@ reduceCostMenu:{
       showReduceCostResult("jiritsu");
     }
     else if(text==="指定難病"){
-      showReduceCostResult("nanbyo");
+      showNanbyoIntro();
     }
     else if(text==="人工透析など（特定疾病）"){
       showReduceCostResult("tousekiTokutei");
     }
     else if(text==="肝炎医療費助成"){
-      showReduceCostResult("kanen");
+      showKanenIntro();
     }
     else if(text==="小児慢性特定疾病"){
-      showReduceCostResult("shoman");
+      showShomanIntro();
     }
     else if(text==="子どもの医療費助成"){
       showReduceCostResult("kodomo");
@@ -5693,7 +5789,7 @@ reduceCostQ3:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      showReduceCostResult("nanbyo");
+      showNanbyoIntro();
     }
 
   },
@@ -5702,6 +5798,14 @@ reduceCostQ3:{
 
     if(text==="はい"){
       return "reduceCostResult";
+    }
+
+    // 小児慢性特定疾病は0〜19歳のみ対象のため、
+    // それ以外の年齢の場合は質問自体をスキップする
+    // （生活保護の質問Q4bは全年齢共通のため、
+    // 　そちらまでは飛ばさない）
+    if(state.user.age !== "0〜19歳"){
+      return "reduceCostQ4b";
     }
 
     return "reduceCostQ4";
@@ -5715,7 +5819,30 @@ reduceCostQ4:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      showReduceCostResult("shoman");
+      showShomanIntro();
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(text==="はい"){
+      return "reduceCostResult";
+    }
+
+    return "reduceCostQ4b";
+
+  }
+
+},
+
+reduceCostQ4b:{
+
+  reducer:(text)=>{
+
+    if(text==="はい"){
+      state.reduceCostTopic = "seiho";
+      menuModules["生活保護"]();
     }
 
   },
@@ -5737,7 +5864,7 @@ reduceCostQ5:{
   reducer:(text)=>{
 
     if(text==="はい"){
-      showReduceCostResult("kanen");
+      showKanenIntro();
     }
 
   },
@@ -6860,20 +6987,30 @@ function showDetailedCostExplanation(){
 
     const isYou = (key === u.limit);
 
-    const marker = isYou ? "★" : "　";
+    if(isYou){
 
-    table += `${marker}${key}
-${marker}医療費上限：約${formatYen(data[key].limit)}
-${marker}食事代：${formatYen(data[key].mealCost)}/食
+      table += `[[${key}
+医療費上限：約${formatYen(data[key].limit)}
+食事代：${formatYen(data[key].mealCost)}/食]]
 
 `;
+
+    }else{
+
+      table += `${key}
+医療費上限：約${formatYen(data[key].limit)}
+食事代：${formatYen(data[key].mealCost)}/食
+
+`;
+
+    }
 
   });
 
   const yourData = data[u.limit];
 
   addBotMessage(intro + table +
-`あなたは「★${u.limit}」に
+`あなたは「[[${u.limit}]]」に
 該当するため、
 
 医療費の自己負担上限額は
@@ -6886,6 +7023,43 @@ ${formatYen(yourData.mealCost)}に
   state.currentScreen = "detailedCostExplanationResult";
 
   renderButtons();
+
+}
+
+// プロフィールから課税/非課税を判定する共通関数
+// （食費区分優先、なければ限度額区分で判定）
+function getTaxStatusFromProfile(){
+
+  const u = state.user;
+
+  if(u.insurance === "生活保護"){
+    return { status:"生活保護", basisLabel:"" };
+  }
+
+  const nonTaxedStages = [
+    "第一段階","第二段階","第三段階①","第三段階②"
+  ];
+
+  if(u.mealStage === "第四段階（課税）"){
+    return { status:"課税", basisLabel:`食費区分：${u.mealStage}` };
+  }
+
+  if(nonTaxedStages.includes(u.mealStage)){
+    return { status:"非課税", basisLabel:`食費区分：${u.mealStage}` };
+  }
+
+  const nonTaxedLimits = ["オ","低Ⅱ","低Ⅰ"];
+  const taxedLimits = ["ア","イ","ウ","エ","現役Ⅲ","現役Ⅱ","現役Ⅰ","一般"];
+
+  if(nonTaxedLimits.includes(u.limit)){
+    return { status:"非課税", basisLabel:`限度額区分：${u.limit}` };
+  }
+
+  if(taxedLimits.includes(u.limit)){
+    return { status:"課税", basisLabel:`限度額区分：${u.limit}` };
+  }
+
+  return { status:"", basisLabel:"" };
 
 }
 
@@ -6994,29 +7168,85 @@ ${tableText}
     subsidyNote = `
 
 ※重度心身障害者医療費助成
-（マル障）の対象の可能性があります。
-
 この制度は、対象になる方や
 自己負担額が、お住まいの
 市区町村によって大きく異なります
-（無料の地域、定額の地域、
-1割負担＋上限額の地域など）。
-
 そのため、ここでは金額の
-計算に含めていません。
+計算に含めていません。`;
 
-お住まいの市区町村の
-障害福祉窓口（または、お持ちの
-手帳を交付した窓口）で、
-「マル障の対象になるか、
-対象ならいくらになるか」を
-確認してみてください。`;
+  }
+
+  // 難病医療・自立支援医療（更生医療）を
+  // お持ちの場合、それぞれの制度を使うと
+  // 医療費がどうなるかを具体的に示す
+  const hasNanbyo =
+    state.user.supportSystems.includes("難病医療");
+
+  const hasJiritsu =
+    state.user.supportSystems.includes("自立支援医療");
+
+  if(hasNanbyo || hasJiritsu){
+
+    const taxInfo = getTaxStatusFromProfile();
+
+    if(hasNanbyo){
+
+      let nanbyoAmount = "";
+
+      if(taxInfo.status === "生活保護"){
+        nanbyoAmount = "0円";
+      }else if(taxInfo.status === "非課税"){
+        nanbyoAmount = "2,500円～5,000円";
+      }else if(taxInfo.status === "課税"){
+        nanbyoAmount = "10,000円～30,000円";
+      }
+
+      if(nanbyoAmount){
+
+        subsidyNote += `
+
+※指定難病医療費受給者証を
+お持ちのため、難病に関する
+受診のみ、自己負担上限額が
+月額${nanbyoAmount}に
+軽減される可能性があります。`;
+
+      }
+
+    }
+
+    if(hasJiritsu){
+
+      let jiritsuAmount = "";
+
+      if(taxInfo.status === "生活保護"){
+        jiritsuAmount = "0円";
+      }else if(taxInfo.status === "非課税"){
+        jiritsuAmount = "2,500円～5,000円";
+      }else if(taxInfo.status === "課税"){
+        jiritsuAmount = "5,000円～20,000円";
+      }
+
+      if(jiritsuAmount){
+
+        subsidyNote += `
+
+※自立支援医療の受給者証を
+お持ちのため、対象となる
+通院のみ、自己負担上限額が
+月額${jiritsuAmount}に
+軽減される可能性があります。`;
+
+      }
+
+    }
 
   }
 
   const monthlyMeal = data.mealCost * 3 * 30;
   const monthlyCsSet = CS_SET_DAILY_COST * 30;
-  const total = medicalCost + monthlyMeal + monthlyCsSet;
+  const monthlyDiaper = DIAPER_PLAN_DAILY_COST * 30;
+  const total = medicalCost + monthlyMeal + monthlyCsSet + monthlyDiaper;
 
   addBotMessage(`【1か月の入院費の目安】
 
@@ -7035,7 +7265,13 @@ ${tableText}
 （衣類・タオル・日用品のレンタル）
 約${formatYen(CS_SET_DAILY_COST)}/日 × 30日
 ＝約${formatYen(monthlyCsSet)}
-※病院により金額は異なります
+
+■オムツ定額プラン
+約${formatYen(DIAPER_PLAN_DAILY_COST)}/日 × 30日
+＝約${formatYen(monthlyDiaper)}
+
+※CSセット・オムツ定額プランは
+病院により金額が異なります
 
 ────────────
 合計　約${formatYen(total)}／月
@@ -8615,6 +8851,399 @@ ${formatYen(yourAmount)}／月
    （病名の一部、または告示番号で検索する）
 ========================================= */
 
+/* =========================================
+   指定難病医療費助成の説明
+   （プロフィールの課税/非課税から
+   　自己負担の目安を示す）
+========================================= */
+
+function showNanbyoIntro(){
+
+  state.reduceCostTopic = "nanbyo";
+
+  const u = state.user;
+
+  let body =
+`【指定難病医療費助成】
+
+厚生労働省が定める疾病について、
+医療費助成を受けられる制度です。
+病名や重症度によって
+対象となるかどうかが異なります。`;
+
+  // 生活保護
+  if(u.insurance === "生活保護"){
+
+    body += `
+
+【プロフィール情報】
+保険：生活保護
+
+【医療費助成】
+**難病に関する受診のみ**
+自己負担0円になります。`;
+
+  }else{
+
+    // mealStage優先、なければlimitで判定（自立支援医療と同じロジック）
+    const nonTaxedStages = [
+      "第一段階","第二段階","第三段階①","第三段階②"
+    ];
+
+    let taxStatus = "";
+    let basisLabel = "";
+
+    if(u.mealStage === "第四段階（課税）"){
+      taxStatus = "課税";
+      basisLabel = `食費区分：${u.mealStage}`;
+    }else if(nonTaxedStages.includes(u.mealStage)){
+      taxStatus = "非課税";
+      basisLabel = `食費区分：${u.mealStage}`;
+    }else{
+
+      const nonTaxedLimits = ["オ","低Ⅱ","低Ⅰ"];
+      const taxedLimits = ["ア","イ","ウ","エ","現役Ⅲ","現役Ⅱ","現役Ⅰ","一般"];
+
+      if(nonTaxedLimits.includes(u.limit)){
+        taxStatus = "非課税";
+        basisLabel = `限度額区分：${u.limit}`;
+      }else if(taxedLimits.includes(u.limit)){
+        taxStatus = "課税";
+        basisLabel = `限度額区分：${u.limit}`;
+      }
+
+    }
+
+    if(taxStatus === "非課税"){
+
+      body += `
+
+【プロフィール情報】
+住民税：非課税世帯
+（${basisLabel}）
+
+【医療費助成】
+**難病に関する受診のみ**、
+自己負担が2,500円～5,000円
+（月額上限）になります。
+（世帯の年収が82万6,500円以下
+の場合は2,500円、それを超える
+場合は5,000円）`;
+
+    }else if(taxStatus === "課税"){
+
+      body += `
+
+【プロフィール情報】
+住民税：課税世帯
+（${basisLabel}）
+
+【医療費助成】
+**難病に関する受診のみ**、
+3割負担が2割負担へ軽減され、
+自己負担は月額10,000円～30,000円
+（上限）になります。
+（世帯の所得に応じて決まります）`;
+
+    }else{
+
+      body += `
+
+限度額区分・食費区分が
+未入力のため、課税・非課税の
+判定ができません。
+
+【医療費助成】
+**難病に関する受診のみ**、
+3割負担が2割負担へ軽減され、
+月額の自己負担上限額が
+設定されます
+（生活保護0円～上位所得
+30,000円の範囲で、所得により
+決まります）。`;
+
+    }
+
+  }
+
+  body += `
+
+【適応日】
+申請窓口が全ての書類を
+受け付けた日から適用されます。
+※決定するまで90日程度
+かかります。決定後、還付と
+なります。
+
+詳しくは、お住まいの都道府県・
+保健所、市区町村やかかりつけ
+医療機関へお問い合わせください。
+
+対象疾病（348疾病）は、
+病名や告示番号でこの場で
+検索できます。`;
+
+  addBotMessage(body);
+
+}
+
+/* =========================================
+   小児慢性特定疾病医療費助成の説明
+   （プロフィールの課税/非課税から
+   　自己負担の目安を示す。
+   　指定難病のちょうど半額の水準）
+========================================= */
+
+function showShomanIntro(){
+
+  state.reduceCostTopic = "shoman";
+
+  const u = state.user;
+
+  let body =
+`【小児慢性特定疾病医療費助成】
+
+18歳未満（引き続き治療が
+必要と認められる場合は
+20歳未満まで）で、
+小児慢性特定疾病に該当する場合、
+医療費助成を受けられる
+可能性があります。`;
+
+  if(u.insurance === "生活保護"){
+
+    body += `
+
+【プロフィール情報】
+保険：生活保護
+
+【医療費助成】
+**小児慢性特定疾病に関する
+受診のみ**
+自己負担0円になります。
+（入院時食事療養費の
+自己負担もありません）`;
+
+  }else{
+
+    const nonTaxedStages = [
+      "第一段階","第二段階","第三段階①","第三段階②"
+    ];
+
+    let taxStatus = "";
+    let basisLabel = "";
+
+    if(u.mealStage === "第四段階（課税）"){
+      taxStatus = "課税";
+      basisLabel = `食費区分：${u.mealStage}`;
+    }else if(nonTaxedStages.includes(u.mealStage)){
+      taxStatus = "非課税";
+      basisLabel = `食費区分：${u.mealStage}`;
+    }else{
+
+      const nonTaxedLimits = ["オ","低Ⅱ","低Ⅰ"];
+      const taxedLimits = ["ア","イ","ウ","エ","現役Ⅲ","現役Ⅱ","現役Ⅰ","一般"];
+
+      if(nonTaxedLimits.includes(u.limit)){
+        taxStatus = "非課税";
+        basisLabel = `限度額区分：${u.limit}`;
+      }else if(taxedLimits.includes(u.limit)){
+        taxStatus = "課税";
+        basisLabel = `限度額区分：${u.limit}`;
+      }
+
+    }
+
+    if(taxStatus === "非課税"){
+
+      body += `
+
+【プロフィール情報】
+住民税：非課税世帯
+（${basisLabel}）
+
+【医療費助成】
+**小児慢性特定疾病に関する
+受診のみ**、自己負担が
+1,250円～2,500円
+（月額上限）になります。
+（世帯の年収が80.9万円以下
+の場合は1,250円、それを超える
+場合は2,500円）`;
+
+    }else if(taxStatus === "課税"){
+
+      body += `
+
+【プロフィール情報】
+住民税：課税世帯
+（${basisLabel}）
+
+【医療費助成】
+**小児慢性特定疾病に関する
+受診のみ**、自己負担が
+月額5,000円～15,000円
+（上限）になります。
+（世帯の所得に応じて決まります）`;
+
+    }else{
+
+      body += `
+
+限度額区分・食費区分が
+未入力のため、課税・非課税の
+判定ができません。
+
+【医療費助成】
+**小児慢性特定疾病に関する
+受診のみ**、月額の自己負担
+上限額が設定されます
+（生活保護0円～上位所得
+15,000円の範囲で、所得により
+決まります）。`;
+
+    }
+
+  }
+
+  body += `
+
+【適応日】
+申請窓口が全ての書類を
+受け付けた日から適用されます。
+※決定するまで数か月程度
+かかることがあります。
+決定後、還付となります。
+
+詳しくは、お住まいの都道府県・
+保健所、市区町村やかかりつけ
+医療機関へお問い合わせください。`;
+
+  addBotMessage(body);
+
+}
+
+/* =========================================
+   肝炎治療医療費助成の説明
+   （プロフィールの課税/非課税から
+   　自己負担の目安を示す。
+   　指定難病と同じ23万5,000円が
+   　境界となる、全国一律の制度）
+========================================= */
+
+function showKanenIntro(){
+
+  state.reduceCostTopic = "kanen";
+
+  const u = state.user;
+
+  let body =
+`【肝炎治療医療費助成】
+
+B型肝炎・C型肝炎の治療
+（インターフェロン治療など）を
+行う場合、医療費の一部が
+助成される制度があります。
+
+【対象者】
+医師からB型・C型ウイルス性
+肝炎に対する治療
+（インターフェロン治療、
+核酸アナログ製剤治療など）が
+必要と診断された方。`;
+
+  if(u.insurance === "生活保護"){
+
+    body += `
+
+【プロフィール情報】
+保険：生活保護
+
+【医療費助成】
+**肝炎治療に関する受診のみ**
+自己負担額が軽減される
+可能性があります。
+（金額はお住まいの保健所へ
+ご確認ください）`;
+
+  }else{
+
+    const taxInfo = getTaxStatusFromProfile();
+
+    if(taxInfo.status === "非課税"){
+
+      body += `
+
+【プロフィール情報】
+住民税：非課税世帯
+（${taxInfo.basisLabel}）
+
+【医療費助成】
+**肝炎治療に関する受診のみ**、
+自己負担が月額[[10,000円]]
+（上限）になります。`;
+
+    }else if(taxInfo.status === "課税" && u.limit){
+
+      // 特定疾病療養と同じロジックで判定
+      // （69歳未満の区分ア・イ＝上位所得）
+      const isOver70 = validators.isOver70();
+
+      const isHighIncome =
+        !isOver70
+        &&
+        (u.limit === "ア" || u.limit === "イ");
+
+      const yourAmount =
+        isHighIncome ? "20,000円" : "10,000円";
+
+      body += `
+
+【プロフィール情報】
+住民税：課税世帯
+（${taxInfo.basisLabel}）
+
+【医療費助成】
+**肝炎治療に関する受診のみ**、
+自己負担が月額
+[[${yourAmount}]]（上限）に
+なります。`;
+
+    }else{
+
+      body += `
+
+限度額区分・食費区分が
+未入力のため、課税・非課税の
+判定ができません。
+
+【医療費助成】
+**肝炎治療に関する受診のみ**、
+月額の自己負担上限額が
+10,000円～20,000円の範囲で
+設定されます。`;
+
+    }
+
+  }
+
+  body += `
+
+【適応日】
+保健所・センターへ申請書等を
+提出した月の初日から
+適用されます。
+※受給者証の発行には、
+申請から2〜3か月程度
+かかります。
+
+詳しくは、お住まいの都道府県・
+保健所へご相談ください。`;
+
+  addBotMessage(body);
+
+}
+
 function renderNanbyoSearch(){
 
   const chat = document.getElementById("chat");
@@ -9209,8 +9838,15 @@ function formatRichText(text){
       "<strong>$1</strong>"
     );
 
+  // [[...]]で囲むと、その行を四角枠で囲む
+  const withBox =
+    withBold.replace(
+      /\[\[([\s\S]+?)\]\]/g,
+      '<span class="highlight-box">$1</span>'
+    );
+
   // URLをタップできるリンクに変換する
-  return withBold.replace(
+  return withBox.replace(
     /(https?:\/\/[^\s<]+)/g,
     '<a href="$1" target="_blank" rel="noopener" class="message-link">$1</a>'
   );
@@ -9224,6 +9860,26 @@ function addQuestionCard(text){
     .forEach(card=>{
       card.classList.remove("latest");
     });
+
+  // 新しい質問が表示される時点で、
+  // それより前のボタン群（画面名が違う場合も含む）は
+  // 必ず取り除く。古いボタンが残ったまま
+  // 新しい画面が下に追加されるのを防ぐ。
+  if(
+    currentInlineButtonsInfo.element
+    &&
+    currentInlineButtonsInfo.element.parentNode ===
+      document.getElementById("chat")
+  ){
+    document
+      .getElementById("chat")
+      .removeChild(currentInlineButtonsInfo.element);
+
+    currentInlineButtonsInfo = {
+      screen:null,
+      element:null
+    };
+  }
 
   state.messages.push({
     role:"question",
