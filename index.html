@@ -19,8 +19,8 @@ html{
 
 body{
   margin:0;
-  background:#f3f4f6;
-  font-family:sans-serif;
+  background:#F7F3EC;
+  font-family:"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
 
   height:100%;
   overflow:hidden;
@@ -43,9 +43,9 @@ body{
 }
 
 .header{
-  background:#2563eb;
+  background:#2B6777;
   color:white;
-  padding:6px 10px;
+  padding:4px 14px;
   font-size:15px;
   font-weight:bold;
 
@@ -67,11 +67,11 @@ body{
 }
 
 .restart-btn{
-  background:transparent;
-  border:1px solid white;
+  background:rgba(255,255,255,0.16);
+  border:1.5px solid rgba(255,255,255,0.5);
   color:white;
-  border-radius:6px;
-  padding:2px 8px;
+  border-radius:20px;
+  padding:3px 10px;
   font-size:12px;
   font-weight:bold;
   white-space:nowrap;
@@ -99,16 +99,17 @@ body{
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
 
-  padding:12px;
+  padding:14px 12px;
   padding-bottom:80px;
 
-  background:#fafafa;
+  background:#F7F3EC;
 }
 
 .info-box{
-  background:#eff6ff;
-  border-radius:10px;
-  padding:10px;
+  background:#FFFFFF;
+  border:1px solid #CFE4E7;
+  border-radius:14px;
+  padding:12px;
   margin-bottom:12px;
   line-height:1.7;
   font-size:12px;
@@ -116,76 +117,88 @@ body{
 
 .message{
   max-width:80%;
-  padding:10px 12px;
-  border-radius:12px;
-  margin-bottom:10px;
-  line-height:1.7;
+  padding:12px 15px;
+  border-radius:18px;
+  margin-bottom:12px;
+  line-height:1.6;
+  font-size:15px;
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   word-break:break-word;
 }
 
 .message-link{
-  color:#1d4ed8;
+  color:#1D4ED8;
   text-decoration:underline;
   font-weight:bold;
 }
 
 .bot{
-  background:#eff6ff;
-  border-left:5px solid #2563eb;
+  background:#FFFFFF;
+  border:2px solid #CFE4E7;
+  border-bottom-left-radius:6px;
+  color:#000000;
 }
 
 .user{
-  background:#dcfce7;
-  border-right:5px solid #16a34a;
+  background:#7CC576;
+  color:#1C3A17;
+  border-bottom-right-radius:6px;
   margin-left:auto;
 }
 
 .question-card{
-  background:#dbeafe;
-  border-left:5px solid #2563eb;
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:10px;
+  background:#FFFFFF;
+  border:2px solid #C5DEE1;
+  border-radius:16px;
+  padding:14px 16px;
+  margin-bottom:12px;
   max-width:90%;
   margin-right:auto;
-  color:#374151;
+  color:#000000;
   overflow-wrap:anywhere;
   word-break:break-word;
   white-space:pre-wrap;
-  line-height:1.6;
+  line-height:1.55;
+  font-size:15px;
   min-height:calc(4.8em + 20px);
   box-sizing:border-box;
 }
 
 .question-card strong{
-  font-size:1.08em;
-  color:#1e3a8a;
+  font-size:1em;
+  color:#000000;
 }
 
 .question-card hr.dotted-divider{
   border:none;
-  border-top:2px dotted #60a5fa;
+  border-top:2px dotted #CFE0D2;
   margin:12px 0;
 }
 
 .highlight-box{
   display:inline-block;
-  border:2px solid #facc15;
+  border:2px solid #F4A63A;
   border-radius:6px;
   padding:2px 8px;
   margin:2px 0;
 }
 
 .question-card.latest strong{
-  color:#facc15;
+  color:#000000;
 }
 
 .question-card.latest{
-  background:#1e3a8a;
-  color:white;
-  border:3px solid #facc15;
+  background:#FFFFFF;
+  color:#000000;
+  border:3px solid #2B6777;
+  font-size:15px;
+  padding:20px 18px;
+  box-shadow:0 4px 14px rgba(43,103,119,0.15);
+}
+
+.question-card.latest hr.dotted-divider{
+  border-top:2px dotted #A9C9CD;
 }
 
 #scrollHint{
@@ -193,15 +206,15 @@ body{
   left:50%;
   transform:translateX(-50%);
 
-  background:#1e3a8a;
-  color:#facc15;
+  background:#2B6777;
+  color:white;
   font-weight:bold;
-  font-size:14px;
+  font-size:13px;
 
   padding:8px 18px;
   border-radius:999px;
 
-  box-shadow:0 3px 10px rgba(0,0,0,.3);
+  box-shadow:0 3px 10px rgba(0,0,0,.2);
 
   cursor:pointer;
   z-index:30;
@@ -218,14 +231,14 @@ body{
 
   padding:10px;
 
-  background:#f8fafc;   /* ←ほんの少しグレー */
-box-shadow:0 -2px 8px rgba(0,0,0,.05);
-  border-top:1px solid #d1d5db;
+  background:#F7F3EC;
+  box-shadow:0 -2px 8px rgba(0,0,0,.05);
+  border-top:1px solid #CFE4E7;
 
   height:192px;
   align-content:start;
   overflow-y:auto;
-  
+
 }
 
 .inline-buttons{
@@ -233,7 +246,7 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   flex-wrap:wrap;
   gap:10px;
 
-  margin:18px 0 26px;
+  margin:14px 0 22px;
 
   justify-content:flex-end;
 }
@@ -242,20 +255,31 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   width:calc(50% - 5px);
   min-width:120px;
 
-  min-height:52px;
+  min-height:56px;
 
   display:flex;
   align-items:center;
   justify-content:center;
+  position:relative;
 
-  background:white;
-  border:2px solid #2563eb;
-  color:#2563eb;
+  background:linear-gradient(180deg, #367C8D 0%, #2B6777 100%);
+  border:2.5px solid #1D4A54;
+  color:#FFFFFF;
 
-  border-radius:10px;
-  padding:8px 16px;
+  border-radius:14px;
+  padding:8px 26px 8px 12px;
+
+  box-shadow:0 5px 0 #1D4A54, 0 6px 8px rgba(0,0,0,0.12);
 
   cursor:pointer;
+}
+
+.inline-button::after{
+  content:"▶";
+  position:absolute;
+  right:10px;
+  font-size:11px;
+  opacity:0.75;
 }
 
 .nanbyo-search-box{
@@ -271,20 +295,22 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   min-height:48px;
   padding:10px 14px;
   font-size:16px;
-  border:2px solid #2563eb;
-  border-radius:10px;
-  color:#1e293b;
+  border:2px solid #2B6777;
+  border-radius:12px;
+  color:#3A3530;
+  background:white;
 }
 
 .nanbyo-search-btn{
   width:100%;
   min-height:48px;
-  background:#2563eb;
+  background:linear-gradient(180deg, #367C8D 0%, #2B6777 100%);
   color:white;
   font-weight:bold;
   font-size:15px;
-  border:none;
-  border-radius:10px;
+  border:2.5px solid #1D4A54;
+  border-radius:12px;
+  box-shadow:0 5px 0 #1D4A54;
   cursor:pointer;
 }
 
@@ -292,16 +318,17 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   width:100%;
   max-height:260px;
   overflow-y:auto;
-  border:1px solid #dbeafe;
-  border-radius:10px;
+  border:1px solid #CFE4E7;
+  border-radius:12px;
   margin-top:4px;
+  background:white;
 }
 
 .nanbyo-result-item{
   padding:10px 14px;
   font-size:14px;
-  border-bottom:1px solid #eff6ff;
-  color:#1e293b;
+  border-bottom:1px solid #E3EFF0;
+  color:#3A3530;
 }
 
 .nanbyo-result-item:last-child{
@@ -311,7 +338,7 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 .inline-button-label{
   font-size:14px;
   font-weight:bold;
-  line-height:1.3;
+  line-height:1.35;
   text-align:center;
 
   display:-webkit-box;
@@ -323,30 +350,44 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 }
 
 .inline-button.secondary{
-  background:#6b7280;
-  border-color:#6b7280;
-  color:white;
+  background:linear-gradient(180deg, #FFFFFF 0%, #E3EFF0 100%);
+  border-color:#A9C9CD;
+  color:#2B6777;
+  box-shadow:0 5px 0 #A9C9CD, 0 6px 8px rgba(0,0,0,0.08);
+}
+
+.inline-button.secondary::after{
+  display:none;
 }
 
 .inline-button.highlight{
-  background:#15803d;
-  border-color:#15803d;
-  color:white;
+  background:linear-gradient(180deg, #8FD188 0%, #7CC576 100%);
+  border-color:#5A9A50;
+  color:#1C3A17;
+  box-shadow:0 5px 0 #5A9A50, 0 6px 8px rgba(0,0,0,0.1);
 }
 
 .inline-button.disabled{
-  background:#e5e7eb;
-  border-color:#d1d5db;
-  color:#9ca3af;
+  background:#CFE4E7;
+  border-color:#BFDDE0;
+  color:#7FA6AC;
+  box-shadow:none;
+}
+
+.inline-button.disabled::after{
+  display:none;
 }
 
 .inline-button.active{
-  background:#2563eb;
+  background:linear-gradient(180deg, #367C8D 0%, #2B6777 100%);
   color:white;
 }
 
 .inline-button.active::after{
   content:" ✓";
+  position:static;
+  opacity:1;
+  font-size:14px;
 }
 
 .choice-button{
@@ -354,11 +395,11 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   width:100%;
   height:36px;
 
-  border:2px solid #2563eb;
+  border:2px solid #2B6777;
   border-radius:10px;
 
   background:white;
-  color:#2563eb;
+  color:#2B6777;
 
   font-size:13px;
   font-weight:bold;
@@ -381,29 +422,29 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 .control-area{
   display:flex;
   flex-wrap:wrap;
-  gap:6px;
+  gap:8px;
 
-  padding:4px 8px;
-  padding-bottom:4px;
+  padding:12px 12px;
+  padding-bottom:12px;
 
-  border-top:1px solid #ddd;
-  background:#f6f8fb;
+  border-top:2px solid #1D4A54;
+  background:#2B6777;
 }
 
 .control-btn{
-  border:none;
-  border-radius:8px;
+  border:2px solid transparent;
+  border-radius:12px;
   color:white;
 
-  height:36px;          /* ←今よりかなり低く */
-  padding:0 10px;       /* ←上下の余白をなくす */
+  height:48px;
+  padding:0 6px;
 
-  font-size:13px;
+  font-size:12px;
   font-weight:bold;
 
   cursor:pointer;
 
-  flex:1 1 46%;
+  flex:1 1 30%;
   min-width:0;
   white-space:nowrap;
   overflow:hidden;
@@ -411,11 +452,24 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
 }
 
 .back-btn{
-  background:#6b7280;
+  background:linear-gradient(180deg, #FFFFFF 0%, #E3EFF0 100%);
+  border-color:#A9C9CD;
+  color:#2B6777;
+  box-shadow:0 3px 0 #A9C9CD;
+}
+
+.restart-btn-footer{
+  background:linear-gradient(180deg, #FFFFFF 0%, #F0ECE2 100%);
+  border-color:#C8BEA8;
+  color:#6B6355;
+  box-shadow:0 3px 0 #C8BEA8;
 }
 
 .complete-btn{
-  background:#15803d;
+  background:linear-gradient(180deg, #8FD188 0%, #7CC576 100%);
+  border-color:#5A9A50;
+  color:#1C3A17;
+  box-shadow:0 3px 0 #5A9A50;
 }
 
 </style>
@@ -428,12 +482,6 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   <div class="header">
     <span class="header-title">みちしるべ</span>
     <div class="header-right">
-      <button
-        id="restartBtn"
-        class="restart-btn"
-        onclick="handleRestartClick()">
-        ↻ 最初から
-      </button>
       <div id="versionInfo" class="version-info"></div>
     </div>
   </div>
@@ -447,6 +495,13 @@ box-shadow:0 -2px 8px rgba(0,0,0,.05);
   <div id="choiceButtons"></div>
 
   <div class="control-area">
+
+    <button
+      id="restartBtn"
+      class="control-btn restart-btn-footer"
+      onclick="handleRestartClick()">
+      ↻ 最初から
+    </button>
 
     <button
       id="backBtn"
@@ -765,7 +820,7 @@ facilityMatchQ3:{
 },
 
 facilityMatchQ4:{
-  text:"医療的な処置が必要で、\n看取りまで一つの病院で\n完結してほしいですか？",
+  text:"医療的な処置が必要で、看取りまで\n一つの**病院**で完結してほしいですか？",
   buttons:["はい","いいえ"]
 },
 
@@ -775,7 +830,7 @@ facilityMatchQ5:{
 },
 
 facilityMatchQ6:{
-  text:"医療行為が必要で、\n看取りまで施設で\n完結してほしいですか？",
+  text:"医療行為が必要で、看取りまで\n**施設**で完結してほしいですか？",
   buttons:["はい","いいえ"]
 },
 
@@ -955,7 +1010,7 @@ careServiceContentMenu:{
 
   insuranceHolderCheck:{
     text:"その健康保険は、\n本人の保険証ですか？\nそれとも家族の扶養ですか？",
-    buttons:["本人","家族の扶養"]
+    buttons:["本人","家族の扶養","わからない"]
   },
 
   burdenRate:{
@@ -4458,6 +4513,8 @@ const transitions = {
 
 が合っている可能性があります。`);
 
+        state.showBeppyo7Button = true;
+
         menuModules["医療特化型有料老人ホーム"]();
 
       }
@@ -4899,14 +4956,14 @@ intakeStep2Unclear:{
 
     next:()=>{
 
-      if(validators.skipBurdenRate()){
-        return getAfterLimitScreen();
-      }
-
-      const eligibleInsurance = ["協会けんぽ","共済・組合等"];
+      const eligibleInsurance = ["協会けんぽ","共済・組合等","わからない"];
 
       if(eligibleInsurance.includes(state.user.insurance)){
         return "insuranceHolderCheck";
+      }
+
+      if(validators.skipBurdenRate()){
+        return getAfterLimitScreen();
       }
 
       return "burdenRate";
@@ -4922,6 +4979,11 @@ intakeStep2Unclear:{
     },
 
     next:()=>{
+
+      if(validators.skipBurdenRate()){
+        return getAfterLimitScreen();
+      }
+
       return "burdenRate";
     }
 
@@ -4983,19 +5045,6 @@ intakeStep2Unclear:{
         state.user.mealStage = "なし";
       }
 
-      if(text === "わからない"){
-
-        addBotMessage(`要介護度がわからない場合は、
-
-「介護保険被保険者証」に記載されています。
-
-お手元にない場合は、
-担当のケアマネジャーや
-お住まいの市区町村へ
-ご確認ください。`);
-
-      }
-
     },
 
     next:()=>{
@@ -5033,22 +5082,6 @@ intakeStep2Unclear:{
     reducer:(text)=>{
 
       state.user.mealStage = text;
-
-      if(text === "わからない"){
-
-        addBotMessage(`食事・居住費の負担段階がわからない場合は、
-
-「負担限度額認定証」に記載されています。
-
-認定証をお持ちでない場合は、
-段階の適用がない（通常の負担額の）
-可能性があります。
-
-くわしくは、施設や
-お住まいの市区町村へ
-ご確認ください。`);
-
-      }
 
     },
 
@@ -6186,16 +6219,70 @@ const PROFILE_UNCLEAR_INFO = {
 お住まいの市区町村の窓口へ
 お尋ねください。`,
 
+  insuranceHolderType:
+`【本人か扶養かの確認の仕方】
+
+保険証（健康保険証）に、
+記号・番号とあわせて
+名前が記載されています。
+
+保険証の名義（記号番号の
+持ち主）がご自身であれば
+「本人」、家族（配偶者や
+親など）であれば「扶養」に
+なります。
+
+マイナ保険証をお使いの場合は、
+マイナポータルアプリでも
+確認できます。
+
+わからない場合は、
+勤務先の担当窓口や、
+加入している保険者へ
+ご確認ください。`,
+
   burdenRate:
 `【負担割合の確認の仕方】
 
-保険証（健康保険証）や、
-後期高齢者の方は
-「後期高齢者医療被保険者証」に
+保険証（健康保険証）に、
+自己負担の割合
+（1割・2割・3割など）が
 記載されています。
 
-高齢受給者証をお持ちの場合は、
-そちらにも記載があります。
+70歳以上の方は、
+「高齢受給者証」や
+「後期高齢者医療被保険者証」
+にも記載があります。
+
+マイナ保険証をお使いの場合は、
+マイナポータルアプリでも
+確認できます。
+
+わからない場合は、
+加入している保険者へ
+ご確認ください。`,
+
+  limit:
+`【限度額区分の確認の仕方】
+
+限度額区分（高額療養費制度の
+自己負担上限額を決める区分）は、
+以下の方法で確認できます。
+
+【マイナ保険証をお持ちの方】
+医療機関の窓口で
+限度額情報の確認手続きを
+行うことで分かります。
+
+【マイナ保険証をお持ちでない方】
+加入している健康保険（保険者）へ
+「限度額適用認定証」の
+発行を申請することで
+確認できます。
+
+69歳以下の方は「ア〜オ」、
+70歳以上の方は「現役Ⅲ〜低Ⅰ」
+などの区分で表されます。
 
 わからない場合は、
 加入している保険者へ
@@ -6234,7 +6321,9 @@ const PROFILE_UNCLEAR_INFO = {
 
 const PROFILE_UNCLEAR_BUTTONS = [
   { key:"insurance",   label:"医療保険について確認する" },
+  { key:"insuranceHolderType", label:"本人か扶養かについて確認する" },
   { key:"burdenRate",  label:"負担割合について確認する" },
+  { key:"limit",       label:"限度額区分について確認する" },
   { key:"careLevel",   label:"介護度について確認する" },
   { key:"mealStage",   label:"食事・居住費区分について確認する" }
 ];
@@ -6247,12 +6336,16 @@ function isProfileItemUnclear(key){
     return u.insurance === "わからない";
   }
 
+  if(key === "insuranceHolderType"){
+    return u.insuranceHolderType === "わからない";
+  }
+
   if(key === "burdenRate"){
-    return (
-      u.burdenRate === "不明"
-      ||
-      u.limit === "不明"
-    );
+    return u.burdenRate === "不明";
+  }
+
+  if(key === "limit"){
+    return u.limit === "不明";
   }
 
   if(key === "careLevel"){
@@ -7463,20 +7556,59 @@ function renderButtons(){
 
   }
 
-  if(state.currentScreen === "facilityMatchResult"){
+  if(state.currentScreen === "beppyo7Info"){
 
     area.style.display = "none";
 
     addInlineButtons([
       {
-        label:"施設一覧に戻る",
+        label:"戻る",
         secondary:true,
         onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          renderScreen();
+          state.currentScreen = "facilityMatchResult";
+          state.showBeppyo7Button = true;
+          renderButtons();
         }
       }
     ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilityMatchResult"){
+
+    area.style.display = "none";
+
+    const resultButtons = [];
+
+    if(state.showBeppyo7Button){
+
+      resultButtons.push({
+        label:"別表7とは",
+        onclick:()=>{
+          showBeppyo7Info();
+          renderButtons();
+        }
+      });
+
+      // 使い切りフラグのため、表示後はリセットする
+      state.showBeppyo7Button = false;
+
+    }
+
+    resultButtons.push({
+      label:"施設一覧に戻る",
+      secondary:true,
+      onclick:()=>{
+        state.currentScreen = "facilityMenu";
+        renderScreen();
+      }
+    });
+
+    addInlineButtons(resultButtons);
 
     ensureScrollRoom();
 
@@ -8222,7 +8354,7 @@ function renderButtons(){
         "2割"
       ){
 
-        buttons = ["一般"];
+        buttons = ["一般","不明"];
 
       }
 
@@ -8241,7 +8373,7 @@ function renderButtons(){
       validators.isOver70()
     ){
 
-      buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","一般","低Ⅱ","低Ⅰ"];
+      buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","一般","低Ⅱ","低Ⅰ","不明"];
 
     }
 
@@ -9129,6 +9261,50 @@ function showShomanIntro(){
    　指定難病と同じ23万5,000円が
    　境界となる、全国一律の制度）
 ========================================= */
+
+/* =========================================
+   別表7（厚生労働大臣が定める疾病等）の説明
+========================================= */
+
+function showBeppyo7Info(){
+
+  state.currentScreen = "beppyo7Info";
+
+  addBotMessage(`【別表7とは】
+
+正式には「厚生労働大臣が
+定める疾病等」といいます。
+
+以下に該当する人は、介護保険では
+無く、健康保険で訪問看護利用となり、
+医療特化型有料老人ホームの
+入所対象となる可能性があります。
+
+・末期の悪性腫瘍
+・多発性硬化症
+・重症筋無力症
+・スモン
+・筋萎縮性側索硬化症
+・脊髄小脳変性症
+・ハンチントン病
+・進行性筋ジストロフィー症
+・パーキンソン病関連疾患
+・多系統萎縮症
+・プリオン病
+・亜急性硬化性全脳炎
+・ライソゾーム病
+・副腎白質ジストロフィー
+・脊髄性筋萎縮症
+・球脊髄性筋萎縮症
+・慢性炎症性脱髄性多発神経炎
+・後天性免疫不全症候群
+・頸髄損傷
+・人工呼吸器を使用している状態
+
+最終的な該当の判断は、
+主治医が行います。`);
+
+}
 
 function showKanenIntro(){
 
