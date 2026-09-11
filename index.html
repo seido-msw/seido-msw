@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>みちしるべ</title>
+<title>相談員　みちさん</title>
 
 <style>
 
@@ -45,7 +45,7 @@ body{
 .header{
   background:#2B6777;
   color:white;
-  padding:4px 14px;
+  padding:2px 14px;
   font-size:15px;
   font-weight:bold;
 
@@ -473,6 +473,8 @@ body{
 }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -480,7 +482,7 @@ body{
 <div class="container">
 
   <div class="header">
-    <span class="header-title">みちしるべ</span>
+    <span class="header-title">相談員　みちさん</span>
     <div class="header-right">
       <div id="versionInfo" class="version-info"></div>
     </div>
@@ -497,17 +499,17 @@ body{
   <div class="control-area">
 
     <button
-      id="restartBtn"
-      class="control-btn restart-btn-footer"
-      onclick="handleRestartClick()">
-      ↻ 最初から
-    </button>
-
-    <button
       id="backBtn"
       class="control-btn back-btn"
       onclick="goBack()">
       ← 前の質問
+    </button>
+
+    <button
+      id="restartBtn"
+      class="control-btn restart-btn-footer"
+      onclick="handleRestartClick()">
+      ↻ 最初から
     </button>
 
     <button
@@ -519,6 +521,9 @@ body{
   </div>
 
 </div>
+
+<!-- PDF出力用（画面には表示しない） -->
+<div id="pdfExportRoot" style="position:absolute; left:-9999px; top:0; width:794px; background:#ffffff;"></div>
 
 <script>
 
@@ -586,7 +591,20 @@ user:{
   pensionIncome:"",
   familyLivelihoodNoWorry:"",
   supportSystems:[],
-  purpose:""
+  purpose:"",
+  preAdmissionPlace:"",
+  conditionChange:"",
+  currentMedicalProcedures:[],
+  rehabIntention:"",
+  currentAdlSeverity:"",
+  walkingBefore:"",
+  walkingNow:"",
+  toiletPlaceBefore:"",
+  toiletAssistBefore:"",
+  toiletPlaceNow:"",
+  toiletAssistNow:"",
+  bathBefore:"",
+  bathNow:""
 },
 
   history:[],
@@ -761,7 +779,7 @@ inpatientMenu:{
 
 dischargeMenu:{
   text:"退院後のことで、\n気になっていることを教えてください。",
-  buttons:["自宅退院したい","施設を探したい","転院したい","介護サービスを知りたい"]
+  buttons:["入院前の生活に戻れるか心配","施設を探したい","転院と言われた","介護サービスを知りたい"]
 },
 
 homeDischargeMenu:{
@@ -774,14 +792,162 @@ homeDischargeResult:{
   buttons:[]
 },
 
+preAdmissionPlaceCheck:{
+  text:"入院前は、どちらで\n過ごされていましたか？",
+  buttons:["自宅","ショートステイ","特別養護老人ホーム（特養）","介護老人保健施設（老健）","有料老人ホーム","ケアハウス（軽費老人ホーム）","グループホーム（認知症対応型）"]
+},
+
+summaryOfferCheck:{
+  text:"今までの内容を\nまとめましょうか？",
+  buttons:["はい","いいえ"]
+},
+
+conditionChangeCheck:{
+  text:"現在の本人の様子は、\n入院前と比べて\nどこか異なりますか？",
+  buttons:["医療行為","体の動き","医療行為・体の動きどちらも","特に変化はない"]
+},
+
+currentMedicalProceduresCheck:{
+  text:"現在の医療行為を\n教えてください。\n入院前にはなかった項目を\n選択してください。\n（複数選択できます）",
+  buttons:[]
+},
+
+rehabIntentionCheck:{
+  text:"リハビリテーションを行い、\n生活動作の改善を\n目指したいですか？",
+  buttons:["はい","いいえ"]
+},
+
+walkingBeforeCheck:{
+  text:"歩行について、\n入院前はいかがでしたか？",
+  buttons:["何も捕まらずに歩けた","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","一人では歩けない","わからない"]
+},
+
+walkingNowCheck:{
+  text:"歩行について、\n現在はいかがですか？",
+  buttons:["何も捕まらず歩ける","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","歩行器使いながら介助が必要","歩けない","わからない"]
+},
+
+toiletPlaceBeforeCheck:{
+  text:"排泄について、\n入院前はどちらでしたか？",
+  buttons:["トイレ","ポータブルトイレ","わからない"]
+},
+
+toiletAssistBeforeCheck:{
+  text:"排泄の動作について、\n入院前はいかがでしたか？",
+  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+},
+
+toiletPlaceNowCheck:{
+  text:"排泄について、\n現在はどちらですか？",
+  buttons:["病棟トイレ","ポータブルトイレ","わからない"]
+},
+
+toiletAssistNowCheck:{
+  text:"排泄の動作について、\n現在はいかがですか？",
+  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+},
+
+bathBeforeCheck:{
+  text:"入浴について、\n入院前はいかがでしたか？",
+  buttons:["自宅風呂　自立","自宅風呂　介助","デイサービス等で介助","わからない"]
+},
+
+bathNowCheck:{
+  text:"入浴について、\n現在はいかがですか？",
+  buttons:["シャワー自立","シャワー介助","寝たまま入る","体拭き","わからない"]
+},
+
+preAdmissionResult:{
+  text:"",
+  buttons:[]
+},
+
+preAdmissionPlaceNoteRest:{
+  text:"",
+  buttons:[]
+},
+
 adlSeverityCheck:{
   text:"どのくらいの介助が\n必要な状態ですか？",
   buttons:["見守り程度で大丈夫","一部介助が必要","ほぼ全介助が必要（寝たきりに近い）"]
 },
 
 transferReasonMenu:{
-  text:"転院について知りたい内容を選択してください。",
-  buttons:["なぜ転院が必要なの？","リハビリが必要と言われた","療養型の病院へと言われた","緩和ケアを勧められた"]
+  text:`【なぜ転院が必要なの？】
+
+病院にはそれぞれ役割があります。
+
+急性期病院では、
+病気やけがの治療を中心に行います。
+
+病状が安定すると、
+
+・リハビリを集中的に行う病院
+・医療処置を継続する病院
+・緩和ケアを行う病院
+
+など、
+
+その時の状態に合った病院へ
+転院をお願いすることがあります。
+
+「まだ治っていないから退院」
+という意味ではありません。
+
+完全に治ってから転院する
+わけではなく、急性期治療が
+終了し、病状が安定した段階で、
+今後必要な医療やリハビリに
+合った病院へ移ります。
+
+転院後も必要な治療は
+継続されます。
+
+次の病院は、
+
+・病状や必要な医療
+・ご本人・ご家族の希望
+・通院しやすさ
+
+などを考慮して調整します。
+
+病院の空き状況などにより、
+希望どおりにならない場合も
+あります。
+
+担当MSWが転院先探しを
+お手伝いします。
+
+不安なことがあれば、
+主治医や担当MSWへ
+ご相談ください。
+
+---
+
+ここから、転院と言われた理由に
+近いものを、順番に
+確認していきます。`,
+  buttons:[]
+},
+
+transferReasonQ1:{
+  text:"治療の継続や退院調整に\n時間がかかるため、\n転院と言われましたか？",
+  buttons:["はい","いいえ"]
+},
+
+transferReasonQ2:{
+  text:"リハビリのための転院と\n言われましたか？",
+  buttons:["はい","いいえ"]
+},
+
+transferReasonQ3:{
+  text:"がんなどで、残された時間が\n少ないと言われましたか？",
+  buttons:["はい","いいえ"]
+},
+
+transferReasonQ4:{
+  text:"ベッド上の生活に加えて、\n医療処置が必要と言われましたか？",
+  buttons:["はい","いいえ"]
 },
 
 transferRehabMenu:{
@@ -936,7 +1102,7 @@ paymentInstallmentResult:{
 
 reduceCostMenu:{
   text:"医療費を軽くする制度について、\n知りたい内容を選んでください。",
-  buttons:["自分に使える制度を知りたい","自立支援医療","指定難病","人工透析など（特定疾病）","肝炎医療費助成","小児慢性特定疾病","子どもの医療費助成","障害のある方の医療費助成"]
+  buttons:[]
 },
 
 reduceCostQ1:{
@@ -2041,12 +2207,7 @@ const REDUCE_COST_LINKS = {
 
   kanen:[],
 
-  judo:[
-    {
-      label:"厚生労働省 障害福祉施策で確認する",
-      url:"https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/hukushi_kaigo/shougaishahukushi/index.html"
-    }
-  ],
+  judo:[],
 
   kodomo:[
     {
@@ -2846,6 +3007,571 @@ const highCostService = {
    MENU MODULES
 ========================================= */
 
+// 入院前の場所ごとに、対応が難しいことが多い医療行為
+// （施設によって差があるため、あくまで目安）
+const PLACE_UNSUPPORTED_PROCEDURES = {
+  "自宅":[],
+  "ショートステイ":["点滴","たん吸引","酸素","毎日3回血糖測定やインスリン注射","体に管が入っている（ドレナージ）","人工呼吸器"],
+  "特別養護老人ホーム（特養）":["点滴","たん吸引","酸素","体に管が入っている（ドレナージ）","人工呼吸器","医療用麻薬"],
+  "介護老人保健施設（老健）":["永久的な点滴","人工呼吸器","酸素","体に管が入っている（ドレナージ）","医療用麻薬","専門的な注射や薬","毎日3回血糖測定やインスリン注射","頻回な吸引（1日5回以上ぐらい）"],
+  "有料老人ホーム":["人工呼吸器","体に管が入っている（ドレナージ）"],
+  "ケアハウス（軽費老人ホーム）":[],
+  "グループホーム（認知症対応型）":["点滴","たん吸引","酸素","体に管が入っている（ドレナージ）","人工呼吸器","医療用麻薬"]
+};
+
+// 入院前の場所ごとに、医療体制が手薄になりやすい理由の一言
+const PLACE_CAPABILITY_NOTE = {
+  "自宅":"",
+  "ショートステイ":"夜間は看護師が常駐していない施設が多く",
+  "特別養護老人ホーム（特養）":"看護師が日中のみの配置であることが多く",
+  "介護老人保健施設（老健）":"看護師が24時間常駐している施設が多いものの",
+  "有料老人ホーム":"施設によって医療体制に差がありますが",
+  "ケアハウス（軽費老人ホーム）":"そもそも医療的なケア体制がほとんどないため",
+  "グループホーム（認知症対応型）":"看護師がいる所といない所があります。\n配置されていても、日中のみとなり、"
+};
+
+// 入院前の場所ごとに、「体の動き」についての一言
+// （表示用。実際にADLの低下を「対応が難しい理由」から
+// 　除外するかどうかはPLACE_ADL_TOLERANTで別途管理する）
+const PLACE_ADL_NOTE = {
+  "特別養護老人ホーム（特養）":"すでに入所中の方であれば、体の動きが悪くなったという理由で戻れなくなる可能性は少ないと思います。",
+  "介護老人保健施設（老健）":"動きが悪くなっても入所していた方であれば、ある程度は受け入れてくれる印象ですが、毎食、食堂（デイルーム）で車椅子等に乗ってご飯を食べるところが多いので、3食車椅子乗車して召し上がれるかがポイントになることが多いです。",
+  "グループホーム（認知症対応型）":"動きが悪くなっても入所している方であれば、ある程度は受け入れてくれる所が多い印象です。\n\nただ、施設によっては家庭用の浴槽しかない場合もある為、要相談です。"
+};
+
+// すでに入所中であれば、ADLの低下だけを理由に「戻れない」
+// とは判定しない施設。特養は比較的一律の傾向があるためここに含めるが、
+// 老健・グループホームは施設差が大きいため、判定には含めず
+// （PLACE_ADL_NOTEの表示のみ行い）、あくまで目安の一言にとどめる。
+const PLACE_ADL_TOLERANT = ["特別養護老人ホーム（特養）"];
+
+// 医療行為の一覧では表現しきれない施設（体制や受け入れ基準が
+// 「対応できる医療行為の種類」ではなく別の考え方で決まる場合）は、
+// ここに直接文章を書く。存在する場合は箇条書き生成より優先される。
+const PLACE_CUSTOM_NOTE = {
+  "ケアハウス（軽費老人ホーム）":`**ケアハウス（軽費老人ホーム）**は、
+
+【医療行為】
+看護師が常駐していないところが多いため、訪問看護で対応できる範囲となります。
+
+
+【体の動き】
+自分で身の回りのことができる方までの受け入れとなるため、日常生活動作（食事・排泄・入浴等）に介助が必要となった場合、戻れない可能性があります。
+
+（施設によって差があるため、あくまで目安です）`
+};
+
+// 体制の目安コメントの中だけで使う、補足つきの表示名
+const PROCEDURE_NOTE_LABEL = {
+  "たん吸引":"夜間のたん吸引",
+  "酸素":"酸素（病院みたいな設備なし）"
+};
+
+// 入院前の場所選択後に見せる、短い体制の目安コメント
+function getPlaceCapabilityText(place){
+
+  if(PLACE_CUSTOM_NOTE[place]){
+    return PLACE_CUSTOM_NOTE[place];
+  }
+
+  const list = PLACE_UNSUPPORTED_PROCEDURES[place] || [];
+
+  const adlNote = PLACE_ADL_NOTE[place];
+
+  if(!list.length && !adlNote){
+    return null;
+  }
+
+  let medicalSection = "";
+
+  if(list.length){
+
+    const note = PLACE_CAPABILITY_NOTE[place] || "";
+
+    const bulletLines = list.map(p=>{
+
+      const label = PROCEDURE_NOTE_LABEL[p] || p;
+
+      return `・${label}`;
+
+    }).join("\n");
+
+    medicalSection = `【医療行為】
+${note}
+
+${bulletLines}
+などは対応が難しいことがあります。`;
+
+  }
+
+  let adlSection = "";
+
+  if(adlNote){
+    adlSection = `【体の動き】
+
+${adlNote}`;
+  }
+
+  return `**${place}**は、
+
+${medicalSection}${medicalSection && adlSection ? "\n\n\n" : ""}${adlSection}
+
+（施設によって差があるため、あくまで目安です）`;
+
+}
+
+// 歩行レベルを数値化（大きいほど介助が必要）
+const WALKING_LEVEL_BEFORE = {
+  "何も捕まらずに歩けた":0,
+  "伝え歩き・手引き歩行":1,
+  "歩行器使えば一人で歩ける":2,
+  "一人では歩けない":4
+};
+
+const WALKING_LEVEL_NOW = {
+  "何も捕まらず歩ける":0,
+  "伝え歩き・手引き歩行":1,
+  "歩行器使えば一人で歩ける":2,
+  "歩行器使いながら介助が必要":3,
+  "歩けない":4
+};
+
+// 入院前と現在の歩行を比べて、低下したと言えるかどうか
+function isWalkingDeclined(before, now){
+
+  const levelBefore = WALKING_LEVEL_BEFORE[before];
+  const levelNow = WALKING_LEVEL_NOW[now];
+
+  if(levelBefore === undefined || levelNow === undefined){
+    // どちらかが「わからない」の場合は、低下したとは断定しない
+    return false;
+  }
+
+  return levelNow > levelBefore;
+
+}
+
+// 排泄動作のレベルを数値化（大きいほど介助が必要）
+const TOILET_ASSIST_LEVEL = {
+  "排泄動作　自立":0,
+  "拭き取りや上げ下げ　介助":1,
+  "失禁":2
+};
+
+// 入院前と現在の排泄動作を比べて、低下したと言えるかどうか
+function isToiletDeclined(before, now){
+
+  const levelBefore = TOILET_ASSIST_LEVEL[before];
+  const levelNow = TOILET_ASSIST_LEVEL[now];
+
+  if(levelBefore === undefined || levelNow === undefined){
+    // どちらかが「わからない」の場合は、低下したとは断定しない
+    return false;
+  }
+
+  return levelNow > levelBefore;
+
+}
+
+// 入浴のレベルを数値化（大きいほど介助が必要）
+const BATH_LEVEL_BEFORE = {
+  "自宅風呂　自立":0,
+  "自宅風呂　介助":1,
+  "デイサービス等で介助":2
+};
+
+const BATH_LEVEL_NOW = {
+  "シャワー自立":0,
+  "シャワー介助":1,
+  "寝たまま入る":2,
+  "体拭き":3
+};
+
+// 入院前と現在の入浴を比べて、低下したと言えるかどうか
+function isBathDeclined(before, now){
+
+  const levelBefore = BATH_LEVEL_BEFORE[before];
+  const levelNow = BATH_LEVEL_NOW[now];
+
+  if(levelBefore === undefined || levelNow === undefined){
+    // どちらかが「わからない」の場合は、低下したとは断定しない
+    return false;
+  }
+
+  return levelNow > levelBefore;
+
+}
+
+// 入院前と現在の「体の動き」を、見やすい比較ブロックにまとめる
+function buildAdlComparisonText(){
+
+  const u = state.user;
+
+  const blocks = [];
+
+  if(u.walkingBefore || u.walkingNow){
+    blocks.push(`■歩行
+入院前：${u.walkingBefore || "（未回答）"}
+現在　：${u.walkingNow || "（未回答）"}`);
+  }
+
+  if(u.toiletAssistBefore || u.toiletAssistNow){
+    blocks.push(`■排泄
+入院前：${u.toiletAssistBefore || "（未回答）"}
+現在　：${u.toiletAssistNow || "（未回答）"}`);
+  }
+
+  if(u.bathBefore || u.bathNow){
+    blocks.push(`■入浴
+入院前：${u.bathBefore || "（未回答）"}
+現在　：${u.bathNow || "（未回答）"}`);
+  }
+
+  if(!blocks.length){
+    return "";
+  }
+
+  return `【入院前と現在の比較】
+
+${blocks.join("\n\n")}
+
+`;
+
+}
+
+function showPreAdmissionMatchResult(){
+
+  const u = state.user;
+
+  const place = u.preAdmissionPlace || "（未回答）";
+
+  const unsupportedList =
+    PLACE_UNSUPPORTED_PROCEDURES[u.preAdmissionPlace] || [];
+
+  const unmatchedProcedures =
+    u.currentMedicalProcedures.filter(
+      p => unsupportedList.includes(p)
+    );
+
+  const medicalOK = unmatchedProcedures.length === 0;
+
+  const hasAdlChange =
+    u.conditionChange === "体の動き"
+    ||
+    u.conditionChange === "医療行為・体の動きどちらも";
+
+  const capabilityNote =
+    PLACE_CAPABILITY_NOTE[u.preAdmissionPlace] || "";
+
+  // リハビリでの改善を希望している場合
+  if(hasAdlChange && u.rehabIntention === "はい"){
+
+    addBotMessage(`${buildAdlComparisonText()}リハビリテーションでの改善を
+希望されているのですね。
+
+回復期リハビリテーション病院や
+介護老人保健施設（老健）など、
+リハビリに特化した場所への
+転院が選択肢になります。
+
+「転院と言われた」の中の
+「リハビリ転院と言われた」からも、
+くわしい内容を確認できます。
+${
+  unmatchedProcedures.length
+    ? `\nなお、現在の医療行為（${unmatchedProcedures.join("、")}）は、\n転院先によって対応できるかが\n変わってきます。\n`
+    : ""
+}
+主治医や看護師さんに
+「リハビリでどこまで改善が
+見込めそうか」を聞いておくと、
+担当のMSWとの相談も
+スムーズに進みます。`);
+
+    state.currentScreen = "preAdmissionResult";
+
+    return;
+
+  }
+
+  const walkingDeclined =
+    isWalkingDeclined(u.walkingBefore, u.walkingNow);
+
+  const toiletDeclined =
+    isToiletDeclined(u.toiletAssistBefore, u.toiletAssistNow);
+
+  const bathDeclined =
+    isBathDeclined(u.bathBefore, u.bathNow);
+
+  const adlDeclined =
+    walkingDeclined || toiletDeclined || bathDeclined;
+
+  const isAdlTolerantPlace =
+    PLACE_ADL_TOLERANT.includes(u.preAdmissionPlace);
+
+  // すでに入所中の施設として扱う場所は、ADLの低下だけを
+  // 理由に「戻れない」とはしない
+  const adlBlocking =
+    adlDeclined && !isAdlTolerantPlace;
+
+  const adlOK =
+    !hasAdlChange
+    ||
+    !adlBlocking;
+
+  // 医療行為・生活動作ともに、今のところ対応できそうな場合
+  if(medicalOK && adlOK){
+
+    addBotMessage(`${hasAdlChange ? buildAdlComparisonText() : ""}**${place}**は、今回教えていただいた
+医療行為・生活動作の状態で
+あれば、対応できることが
+多い場所です。
+
+ただ、実際に戻れるかどうかは、
+今の状態が今後も続くのか、
+一時的なものなのかによっても
+変わってきます。
+
+退院までに主治医や看護師さんへ
+「この状態は今後も続きそうか」
+を聞いておくと、担当のMSWとの
+相談もスムーズに進みます。`);
+
+    state.currentScreen = "preAdmissionResult";
+
+    return;
+
+  }
+
+  // 医療行為・生活動作のいずれかが、対応が難しいことが多い場合
+  let reasonLines = "";
+
+  if(!medicalOK){
+
+    const capabilityNoteInline =
+      capabilityNote.replace(/\n/g, "");
+
+    const needsComma =
+      capabilityNoteInline
+      &&
+      !capabilityNoteInline.endsWith("、");
+
+    reasonLines += `\n・${capabilityNoteInline}${needsComma ? "、" : ""}${unmatchedProcedures.join("、")}が必要な状態だと、対応が難しいことが多いです`;
+
+  }
+
+  if(adlBlocking && walkingDeclined){
+    reasonLines += `\n・歩行の状態が、入院前（${u.walkingBefore}）より今（${u.walkingNow}）の方が難しくなっているため、今の体制では対応が難しいことがあります`;
+  }
+
+  if(adlBlocking && toiletDeclined){
+    reasonLines += `\n・排泄の動作が、入院前（${u.toiletAssistBefore}）より今（${u.toiletAssistNow}）の方が難しくなっているため、今の体制では対応が難しいことがあります`;
+  }
+
+  if(adlBlocking && bathDeclined){
+    reasonLines += `\n・入浴の状態が、入院前（${u.bathBefore}）より今（${u.bathNow}）の方が難しくなっているため、今の体制では対応が難しいことがあります`;
+  }
+
+  addBotMessage(`${hasAdlChange ? buildAdlComparisonText() : ""}**${place}**は、一般的に
+以下のような理由で、
+今回の状態への対応が
+難しいことが多い場所です。
+${reasonLines}
+
+ただし、これが一時的な状態か、
+今後も続くものかによって、
+戻れるかどうかは変わってきます。
+
+退院までに主治医や看護師さんへ
+「この状態は今後も続きそうか」
+を確認しておくと、担当のMSWとの
+相談もスムーズに進みます。
+
+もし今の場所への退院が
+難しそうであれば、次の療養先を
+一緒に探していきましょう。
+
+「施設を探したい」からも、
+状態に合いそうな施設を
+確認できます。`);
+
+  state.currentScreen = "preAdmissionResult";
+
+}
+
+function addNextReasonButton(nextScreen){
+
+  addStandaloneInlineButton(
+    "次の質問へ",
+    ()=>{
+      saveHistory();
+      state.currentScreen = nextScreen;
+      renderScreen();
+    }
+  );
+
+}
+
+function addNextFacilityButton(nextScreen){
+
+  addStandaloneInlineButton(
+    "次の施設へ",
+    ()=>{
+      saveHistory();
+      state.currentScreen = nextScreen;
+      renderScreen();
+    }
+  );
+
+}
+
+function showIryouRyouyouAndButtons(){
+
+  state.currentScreen = "facilityMenu";
+  menuModules["医療療養病棟"]();
+
+  addStandaloneInlineButton(
+    "介護医療院について見る",
+    ()=>{
+      saveHistory();
+      showKaigoIryouinAndButtons();
+    }
+  );
+
+  addNextFacilityButton("facilityMatchQ5");
+
+}
+
+function showKaigoIryouinAndButtons(){
+
+  state.currentScreen = "facilityMenu";
+  menuModules["介護医療院"]();
+
+  addStandaloneInlineButton(
+    "医療療養病棟について見る",
+    ()=>{
+      saveHistory();
+      showIryouRyouyouAndButtons();
+    }
+  );
+
+  addNextFacilityButton("facilityMatchQ5");
+
+}
+
+function showRoukenExplanation(leadText){
+
+const body = `【介護老人保健施設（老健）】
+
+**役割**
+
+数か月程度入所して、
+体調を整えたり、
+リハビリテーションを受けたりしながら、
+基本的には自宅へ戻ることを
+目指す施設です。
+
+**対象者**
+
+要介護1以上の方から
+申込みが可能です。
+
+**施設体制**
+
+■医療
+医師（嘱託医）が配置され、
+入所中の健康管理や診察を
+行います。
+
+入所中の医療は基本的に
+老健で対応するため、入所すると、
+それまで通っていた医療機関への
+受診は基本的になくなります。
+
+そのため、がん治療など
+継続的な専門治療が必要な方や、
+高額な薬を継続して使用している方は、
+入所が難しい場合があります。
+
+■看護
+看護師が24時間配置されているため、
+夜間も看護職員による対応が
+可能です。
+
+ただし、対応できる医療処置は
+施設によって異なります。
+
+■リハビリ
+リハビリ専門職による
+リハビリテーションを受けながら、
+自宅で生活するために必要な動作や
+体力の回復を目指します。
+
+■介護
+介護職員が、食事・排泄・入浴などの
+日常生活を支援します。
+
+**申込み**
+
+まずはケアマネやMSW等に
+相談しましょう。`;
+
+addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
+
+}
+
+function showTokuyouExplanation(leadText){
+
+const body = `【特別養護老人ホーム（特養）】
+
+**役割**
+
+生活の場（終の住処）として
+過ごす施設となります。
+
+**対象者**
+
+原則、要介護3以上の方から
+申込みが可能です。
+
+**施設体制**
+
+■医療
+嘱託医が施設に往診に来て、
+診察や処方を行う為、
+基本的に通院が無くなります。
+
+看取りに対応している施設も
+ありますが、どこまで対応できるかは
+施設の医療体制によって異なります。
+
+■看護
+看護師は基本的に日中の
+勤務のみとなる為、
+夜間に医療処置は
+対応ができません。
+（夜間の吸引や点滴等）
+
+胃瘻や経鼻栄養等に
+対応している施設もありますが、
+継続的に点滴や酸素が必要などの
+医療的な管理が多い方は
+受け入れが難しい場合があります。
+
+■介護
+介護職員が24時間いて、
+食事・排泄・入浴などの
+日常生活を支援します。
+
+**申込み方法**
+
+まずはケアマネもしくはMSW等に
+相談しましょう。`;
+
+addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
+
+}
+
 const menuModules = {
 
   /* 入院中 */
@@ -2867,6 +3593,11 @@ const menuModules = {
 
   "自宅退院したい":()=>{
     state.currentScreen = "homeDischargeMenu";
+    renderScreen();
+  },
+
+  "入院前の生活に戻れるか心配":()=>{
+    state.currentScreen = "preAdmissionPlaceCheck";
     renderScreen();
   },
 
@@ -3517,8 +4248,9 @@ addBotMessage(`【緩和ケアとは？】
 主治医へご相談ください。`);
 },
 
-"緩和ケア病棟とは？":()=>{
-addBotMessage(`【緩和ケア病棟】
+"緩和ケア病棟とは？":(leadText)=>{
+
+const body = `【緩和ケア病棟】
 
 緩和ケア病棟は、
 主にがんなどによる
@@ -3557,7 +4289,10 @@ addBotMessage(`【緩和ケア病棟】
 他の病院と同じ金額です。
 
 個室料等で料金が
-高くなる場合があります。`);
+高くなる場合があります。`;
+
+addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
+
 },
 
 "緩和ケア病棟以外の選択肢は？":()=>{
@@ -3587,51 +4322,7 @@ addBotMessage(`【緩和ケア病棟以外の選択肢】
 
 "特別養護老人ホーム（特養）":()=>{
 
-addBotMessage(`【特別養護老人ホーム（特養）】
-
-**役割**
-
-生活の場（終の住処）として
-過ごす施設となります。
-
-**対象者**
-
-原則、要介護3以上の方から
-申込みが可能です。
-
-**施設体制**
-
-■医療
-嘱託医が施設に往診に来て、
-診察や処方を行う為、
-基本的に通院が無くなります。
-
-看取りに対応している施設も
-ありますが、どこまで対応できるかは
-施設の医療体制によって異なります。
-
-■看護
-看護師は基本的に日中の
-勤務のみとなる為、
-夜間に医療処置は
-対応ができません。
-（夜間の吸引や点滴等）
-
-胃瘻や経鼻栄養等に
-対応している施設もありますが、
-継続的に点滴や酸素が必要などの
-医療的な管理が多い方は
-受け入れが難しい場合があります。
-
-■介護
-介護職員が24時間いて、
-食事・排泄・入浴などの
-日常生活を支援します。
-
-**申込み方法**
-
-まずはケアマネもしくはMSW等に
-相談しましょう。`);
+showTokuyouExplanation();
 
 addStandaloneInlineButton(
   "費用の目安を見る",
@@ -3642,60 +4333,7 @@ addStandaloneInlineButton(
 
 "介護老人保健施設（老健）":()=>{
 
-addBotMessage(`【介護老人保健施設（老健）】
-
-**役割**
-
-数か月程度入所して、
-体調を整えたり、
-リハビリテーションを受けたりしながら、
-基本的には自宅へ戻ることを
-目指す施設です。
-
-**対象者**
-
-要介護1以上の方から
-申込みが可能です。
-
-**施設体制**
-
-■医療
-医師（嘱託医）が配置され、
-入所中の健康管理や診察を
-行います。
-
-入所中の医療は基本的に
-老健で対応するため、入所すると、
-それまで通っていた医療機関への
-受診は基本的になくなります。
-
-そのため、がん治療など
-継続的な専門治療が必要な方や、
-高額な薬を継続して使用している方は、
-入所が難しい場合があります。
-
-■看護
-看護師が24時間配置されているため、
-夜間も看護職員による対応が
-可能です。
-
-ただし、対応できる医療処置は
-施設によって異なります。
-
-■リハビリ
-リハビリ専門職による
-リハビリテーションを受けながら、
-自宅で生活するために必要な動作や
-体力の回復を目指します。
-
-■介護
-介護職員が、食事・排泄・入浴などの
-日常生活を支援します。
-
-**申込み**
-
-まずはケアマネやMSW等に
-相談しましょう。`);
+showRoukenExplanation();
 
 addStandaloneInlineButton(
   "費用の目安を見る",
@@ -3862,9 +4500,9 @@ addBotMessage(`【医療療養病棟】
 
 },
 
-"医療特化型有料老人ホーム":()=>{
+"医療特化型有料老人ホーム":(leadText)=>{
 
-addBotMessage(`【医療特化型有料老人ホーム】
+const body = `【医療特化型有料老人ホーム】
 
 **役割**
 
@@ -3915,7 +4553,9 @@ addBotMessage(`【医療特化型有料老人ホーム】
 **申込み方法**
 
 まずは主治医や担当MSWに
-相談しましょう。`);
+相談しましょう。`;
+
+addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
 },
 
@@ -3990,9 +4630,9 @@ addBotMessage(`【ショートステイ（短期入所）】
 
 },
 
-"グループホーム":()=>{
+"グループホーム":(leadText)=>{
 
-addBotMessage(`【認知症対応型共同生活介護（グループホーム）】
+const body = `【認知症対応型共同生活介護（グループホーム）】
 
 **役割**
 
@@ -4029,7 +4669,9 @@ addBotMessage(`【認知症対応型共同生活介護（グループホーム�
 
 できることは自分で行いながら、
 生活そのものを支える介護を
-受けます。`);
+受けます。`;
+
+addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
 addStandaloneInlineButton(
   "費用の目安を見る",
@@ -4377,7 +5019,7 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`一時的に入所して、
+        showRoukenExplanation(`一時的に入所して、
 リハビリテーションを行いながら
 自宅への復帰を目指す場合は、
 
@@ -4385,7 +5027,7 @@ const transitions = {
 
 が合っている可能性があります。`);
 
-        menuModules["介護老人保健施設（老健）"]();
+        addNextFacilityButton("facilityMatchQ3");
 
       }
 
@@ -4409,13 +5051,13 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`今の状態から、
+        showTokuyouExplanation(`今の状態から、
 
 **特別養護老人ホーム（特養）**
 
 が合っている可能性があります。`);
 
-        menuModules["特別養護老人ホーム（特養）"]();
+        addNextFacilityButton("facilityMatchQ4");
 
       }
 
@@ -4473,14 +5115,14 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`身体的・精神的なケアを
+        menuModules["緩和ケア病棟とは？"](`身体的・精神的なケアを
 受けながら過ごせる場所として、
 
 **緩和ケア病棟**
 
 が合っている可能性があります。`);
 
-        menuModules["緩和ケア病棟とは？"]();
+        addNextFacilityButton("facilityMatchQ6");
 
       }
 
@@ -4504,7 +5146,9 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`医療行為が必要で、
+        state.showBeppyo7Button = true;
+
+        menuModules["医療特化型有料老人ホーム"](`医療行為が必要で、
 看取りまで施設で完結したい場合は、
 
 **医療特化型有料老人ホーム**
@@ -4513,9 +5157,7 @@ const transitions = {
 
 が合っている可能性があります。`);
 
-        state.showBeppyo7Button = true;
-
-        menuModules["医療特化型有料老人ホーム"]();
+        addNextFacilityButton("facilityMatchQ7");
 
       }
 
@@ -4539,7 +5181,7 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`身の回りのことは
+        menuModules["グループホーム"](`身の回りのことは
 少しの手助けでできても、
 認知症の対応のために
 自宅で過ごせない場合は、
@@ -4548,7 +5190,14 @@ const transitions = {
 
 が合っている可能性があります。`);
 
-        menuModules["グループホーム"]();
+        addStandaloneInlineButton(
+          "次の施設へ",
+          ()=>{
+            saveHistory();
+            state.currentScreen = "facilityMatchResult";
+            renderButtons();
+          }
+        );
 
       }else{
 
@@ -4572,6 +5221,117 @@ const transitions = {
 
     next:()=>{
       return "facilityMatchResult";
+    }
+
+  },
+
+  transferReasonQ1:{
+
+    reducer:(text)=>{
+
+      if(text === "はい"){
+
+        menuModules["地域包括ケア病棟とは？"]();
+
+        addNextReasonButton("transferReasonQ2");
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferReasonResult";
+      }
+
+      return "transferReasonQ2";
+
+    }
+
+  },
+
+  transferReasonQ2:{
+
+    reducer:(text)=>{
+
+      if(text === "はい"){
+
+        menuModules["回復期リハビリテーション病院とは？"]();
+
+        addNextReasonButton("transferReasonQ3");
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferReasonResult";
+      }
+
+      return "transferReasonQ3";
+
+    }
+
+  },
+
+  transferReasonQ3:{
+
+    reducer:(text)=>{
+
+      if(text === "はい"){
+
+        menuModules["緩和ケア病棟とは？"]();
+
+        addNextReasonButton("transferReasonQ4");
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferReasonResult";
+      }
+
+      return "transferReasonQ4";
+
+    }
+
+  },
+
+  transferReasonQ4:{
+
+    reducer:(text)=>{
+
+      if(text === "はい"){
+
+        menuModules["療養型の病院とは"]();
+
+      }else{
+
+        addBotMessage(`ここまでの内容だけでは、
+まだ絞り込みが難しいようです。
+
+・病状や治療の見通し
+・ご本人、ご家族の希望
+
+など、他にも考慮する点があります。
+
+担当の医療ソーシャルワーカー（MSW）や
+主治医と相談しながら、
+必要な転院先を一緒に
+確認しましょう。`);
+
+      }
+
+    },
+
+    next:()=>{
+      return "transferReasonResult";
     }
 
   },
@@ -6124,6 +6884,280 @@ homeDischargeResult:{
     return "homeDischargeMenu";
   }
 
+},
+
+preAdmissionPlaceCheck:{
+
+  reducer:(text)=>{
+
+    state.user.preAdmissionPlace = text;
+
+    const note = getPlaceCapabilityText(text);
+
+    if(note){
+
+      addBotMessage(note);
+
+      addBotMessage(`今の状態と乖離があったり
+少しでも心配がある場合は、
+入院している病院の
+退院支援担当者に相談することを
+おすすめします。`);
+
+      addNextReasonButton("summaryOfferCheck");
+
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(getPlaceCapabilityText(text)){
+      return "preAdmissionPlaceNoteRest";
+    }
+
+    return "conditionChangeCheck";
+
+  }
+
+},
+
+conditionChangeCheck:{
+
+  reducer:(text)=>{
+
+    state.user.conditionChange = text;
+
+    if(text === "特に変化はない"){
+      showPreAdmissionMatchResult();
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text === "医療行為"
+      ||
+      text === "医療行為・体の動きどちらも"
+    ){
+      return "currentMedicalProceduresCheck";
+    }
+
+    if(text === "体の動き"){
+      return "walkingBeforeCheck";
+    }
+
+    return "preAdmissionResult";
+
+  }
+
+},
+
+currentMedicalProceduresCheck:{
+
+  reducer:(text)=>{
+
+    if(
+      text === "決定"
+      &&
+      state.user.conditionChange === "医療行為"
+    ){
+      showPreAdmissionMatchResult();
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(state.user.conditionChange === "医療行為・体の動きどちらも"){
+      return "walkingBeforeCheck";
+    }
+
+    return "preAdmissionResult";
+
+  }
+
+},
+
+walkingBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.walkingBefore = text;
+  },
+
+  next:(text)=>{
+    return "walkingNowCheck";
+  }
+
+},
+
+walkingNowCheck:{
+
+  reducer:(text)=>{
+    state.user.walkingNow = text;
+  },
+
+  next:(text)=>{
+    return "toiletPlaceBeforeCheck";
+  }
+
+},
+
+toiletPlaceBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletPlaceBefore = text;
+  },
+
+  next:(text)=>{
+    return "toiletAssistBeforeCheck";
+  }
+
+},
+
+toiletAssistBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletAssistBefore = text;
+  },
+
+  next:(text)=>{
+    return "toiletPlaceNowCheck";
+  }
+
+},
+
+toiletPlaceNowCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletPlaceNow = text;
+  },
+
+  next:(text)=>{
+    return "toiletAssistNowCheck";
+  }
+
+},
+
+toiletAssistNowCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletAssistNow = text;
+  },
+
+  next:(text)=>{
+    return "bathBeforeCheck";
+  }
+
+},
+
+bathBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.bathBefore = text;
+  },
+
+  next:(text)=>{
+    return "bathNowCheck";
+  }
+
+},
+
+bathNowCheck:{
+
+  reducer:(text)=>{
+
+    state.user.bathNow = text;
+
+    const declined =
+      isWalkingDeclined(state.user.walkingBefore, state.user.walkingNow)
+      ||
+      isToiletDeclined(state.user.toiletAssistBefore, state.user.toiletAssistNow)
+      ||
+      isBathDeclined(state.user.bathBefore, text);
+
+    if(!declined){
+      showPreAdmissionMatchResult();
+    }
+
+  },
+
+  next:(text)=>{
+
+    const declined =
+      isWalkingDeclined(state.user.walkingBefore, state.user.walkingNow)
+      ||
+      isToiletDeclined(state.user.toiletAssistBefore, state.user.toiletAssistNow)
+      ||
+      isBathDeclined(state.user.bathBefore, text);
+
+    if(declined){
+      return "rehabIntentionCheck";
+    }
+
+    return "preAdmissionResult";
+
+  }
+
+},
+
+rehabIntentionCheck:{
+
+  reducer:(text)=>{
+    state.user.rehabIntention = text;
+    showPreAdmissionMatchResult();
+  },
+
+  next:(text)=>{
+    return "preAdmissionResult";
+  }
+
+},
+
+preAdmissionResult:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "preAdmissionResult";
+  }
+
+},
+
+summaryOfferCheck:{
+
+  reducer:(text)=>{
+
+    if(text === "はい"){
+
+      generatePreAdmissionSummaryPdf();
+
+    }else{
+
+      addBotMessage(`承知しました。
+気になることがあれば、
+いつでも担当のMSWへ
+ご相談ください。`);
+
+    }
+
+  },
+
+  next:()=>{
+    return "preAdmissionResult";
+  }
+
+},
+
+preAdmissionPlaceNoteRest:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "preAdmissionPlaceNoteRest";
+  }
+
 }
 
 };
@@ -6744,6 +7778,153 @@ function buildProfileSummaryText(){
 
 }
 
+// buildProfileSummaryText()の末尾にある「ブラウザに一時保存されます」
+// という注記（チャット画面向け）を取り除き、PDF用に整える
+function buildProfileTextForPdf(){
+
+  const full = buildProfileSummaryText();
+
+  const cutIndex = full.indexOf("\nこの内容は");
+
+  const trimmed =
+    cutIndex === -1 ? full : full.slice(0, cutIndex);
+
+  return trimmed.replace(/\*\*/g, "").trim();
+
+}
+
+function buildPreAdmissionSummaryHtml(){
+
+  const u = state.user;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const place = u.preAdmissionPlace || "（未回答）";
+
+  const breadcrumb =
+    `退院後のことで気になっていること → 入院前の生活に戻れるか心配 → 入院前に過ごされていた場所：${place}`;
+
+  const concern =
+    `入院前に過ごされていた「${place}」に、今の状態のまま戻れるかどうか`;
+
+  const profileText = buildProfileTextForPdf();
+
+  const capabilityRaw =
+    getPlaceCapabilityText(place)
+    ||
+    "特に体制上の注意点はありません。";
+
+  const capabilityText =
+    capabilityRaw.replace(/\*\*/g, "");
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.9; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　相談まとめ
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:24px;">作成日：${dateStr}</div>
+
+      <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-top:20px; margin-bottom:6px;">■相談経路</div>
+      <div>${esc(breadcrumb)}</div>
+
+      <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-top:20px; margin-bottom:6px;">■心配な事</div>
+      <div>${esc(concern)}</div>
+
+      <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-top:20px; margin-bottom:6px;">■プロフィール</div>
+      <div style="white-space:pre-wrap;">${esc(profileText)}</div>
+
+      <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-top:20px; margin-bottom:6px;">■${esc(place)}の一般的な対応（目安）</div>
+      <div style="white-space:pre-wrap;">${esc(capabilityText)}</div>
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※この内容はあくまで一般的な目安です。実際の状況については、入院している病院の退院支援担当者・医療ソーシャルワーカー（MSW）へご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generatePreAdmissionSummaryPdf(){
+
+  const root = document.getElementById("pdfExportRoot");
+
+  if(!root || typeof html2canvas === "undefined" || typeof window.jspdf === "undefined"){
+
+    addBotMessage(`申し訳ありません、
+PDFの作成機能を読み込めませんでした。
+通信状況をご確認の上、
+もう一度お試しください。`);
+
+    return;
+
+  }
+
+  root.innerHTML = buildPreAdmissionSummaryHtml();
+
+  addBotMessage(`まとめを作成しています。
+少々お待ちください。`);
+
+  // レイアウトが確定してからキャプチャする
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+
+      html2canvas(root, {scale:2, backgroundColor:"#ffffff"}).then(canvas=>{
+
+        const imgData = canvas.toDataURL("image/png");
+
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF("p","mm","a4");
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgWidth = pageWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while(heightLeft > 0){
+
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+
+        }
+
+        pdf.save("相談まとめ.pdf");
+
+        addBotMessage(`PDFをダウンロードしました。
+ダウンロードフォルダをご確認ください。`);
+
+      }).catch(()=>{
+
+        addBotMessage(`申し訳ありません、
+PDFの作成に失敗しました。
+もう一度お試しください。`);
+
+      });
+
+    });
+  });
+
+}
+
 function resetProfileOnly(){
 
   state.user = {
@@ -6945,6 +8126,8 @@ function buildApplicableSystemsMessage(){
 
 function showSickLeaveAllowanceNotEligible(){
 
+  saveHistory();
+
   addBotMessage(`【傷病手当金の対象外の場合】
 
 国民健康保険や、家族の扶養に
@@ -6998,6 +8181,7 @@ function showDetailedCostExplanation(){
 
   if(u.insurance === "生活保護"){
 
+    saveHistory();
     addBotMessage(intro + `生活保護を受給されている場合、
 医療費の自己負担は
 発生しません。`);
@@ -7010,6 +8194,7 @@ function showDetailedCostExplanation(){
 
   if(u.insurance === "わからない" || !u.insurance){
 
+    saveHistory();
     addBotMessage(intro + `健康保険証の種類が
 分からないため、
 正確な金額をお伝え
@@ -7036,6 +8221,7 @@ function showDetailedCostExplanation(){
 
   if(!u.limit || u.limit === "不明"){
 
+    saveHistory();
     addBotMessage(intro + `限度額区分が分からないため、
 一般的な年収別の目安表を
 ご案内します。
@@ -7100,6 +8286,8 @@ function showDetailedCostExplanation(){
   });
 
   const yourData = data[u.limit];
+
+  saveHistory();
 
   addBotMessage(intro + table +
 `あなたは「[[${u.limit}]]」に
@@ -7428,14 +8616,6 @@ function renderButtons(){
         label:"自分の場合の費用を詳しく見る",
         highlight:true,
         onclick:()=>showFacilityCostPersonal()
-      },
-      {
-        label:"施設一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          renderScreen();
-        }
       }
     ]);
 
@@ -7454,15 +8634,8 @@ function renderButtons(){
         label:"あなたに合った制度を調べる",
         highlight:true,
         onclick:()=>{
+          saveHistory();
           state.currentScreen = "age";
-          renderScreen();
-        }
-      },
-      {
-        label:"施設一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMenu";
           renderScreen();
         }
       }
@@ -7478,16 +8651,7 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addInlineButtons([
-      {
-        label:"施設一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          renderScreen();
-        }
-      }
-    ]);
+    addInlineButtons([]);
 
     ensureScrollRoom();
 
@@ -7504,14 +8668,6 @@ function renderButtons(){
         label:"自分の場合の費用を詳しく見る",
         highlight:true,
         onclick:()=>showGroupHomeCostPersonal()
-      },
-      {
-        label:"施設一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          renderScreen();
-        }
       }
     ]);
 
@@ -7529,23 +8685,15 @@ function renderButtons(){
       {
         label:"医療療養病棟について見る",
         onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          menuModules["医療療養病棟"]();
+          saveHistory();
+          showIryouRyouyouAndButtons();
         }
       },
       {
         label:"介護医療院について見る",
         onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          menuModules["介護医療院"]();
-        }
-      },
-      {
-        label:"施設一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMenu";
-          renderScreen();
+          saveHistory();
+          showKaigoIryouinAndButtons();
         }
       }
     ]);
@@ -7560,17 +8708,7 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addInlineButtons([
-      {
-        label:"戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "facilityMatchResult";
-          state.showBeppyo7Button = true;
-          renderButtons();
-        }
-      }
-    ]);
+    addInlineButtons([]);
 
     ensureScrollRoom();
 
@@ -7589,6 +8727,7 @@ function renderButtons(){
       resultButtons.push({
         label:"別表7とは",
         onclick:()=>{
+          saveHistory();
           showBeppyo7Info();
           renderButtons();
         }
@@ -7599,16 +8738,40 @@ function renderButtons(){
 
     }
 
-    resultButtons.push({
-      label:"施設一覧に戻る",
-      secondary:true,
-      onclick:()=>{
-        state.currentScreen = "facilityMenu";
-        renderScreen();
-      }
-    });
-
     addInlineButtons(resultButtons);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "transferReasonResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "transferReasonMenu"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"次へ",
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "transferReasonQ1";
+          renderScreen();
+        }
+      }
+    ]);
 
     ensureScrollRoom();
 
@@ -7646,6 +8809,7 @@ function renderButtons(){
       {
         label:"該当する制度があるか確認します",
         onclick:()=>{
+          saveHistory();
           state.currentScreen = "reduceCostQ1";
           renderScreen();
         }
@@ -7670,6 +8834,7 @@ function renderButtons(){
       {
         label:"該当する制度があるか確認します",
         onclick:()=>{
+          saveHistory();
           state.currentScreen = "reduceCostQ1";
           renderScreen();
         }
@@ -7703,16 +8868,9 @@ function renderButtons(){
         label:"やっぱり在宅サービスも見る",
         secondary:true,
         onclick:()=>{
+          saveHistory();
           state.homeDischargeTopic = "adl";
           addBotMessage(HOME_DISCHARGE_INFO.adl);
-        }
-      },
-      {
-        label:"相談の一覧に戻る",
-        secondary:true,
-        onclick:()=>{
-          state.currentScreen = "homeDischargeMenu";
-          renderScreen();
         }
       }
     ]);
@@ -7731,13 +8889,7 @@ function renderButtons(){
 
       renderNanbyoSearch();
 
-      addInlineButtons([
-        {
-          label:"戻る",
-          secondary:true,
-          onclick:()=>handleSelect("戻る")
-        }
-      ]);
+      addInlineButtons([]);
 
       ensureScrollRoom();
 
@@ -7758,6 +8910,7 @@ function renderButtons(){
         {
           label:"特定疾病療養受療証",
           onclick:()=>{
+            saveHistory();
             showTokuteishippeiDetail();
             renderButtons();
           }
@@ -7765,6 +8918,7 @@ function renderButtons(){
         {
           label:"身体障害者手帳（腎機能障害）",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("touseki_techou");
             renderButtons();
           }
@@ -7772,6 +8926,7 @@ function renderButtons(){
         {
           label:"重度心身障害者医療費助成",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -7779,6 +8934,7 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
+            saveHistory();
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -7793,6 +8949,7 @@ function renderButtons(){
         {
           label:"重度心身障害者医療費助成制度",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -7800,6 +8957,7 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
+            saveHistory();
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -7814,6 +8972,7 @@ function renderButtons(){
         {
           label:"特定疾病療養受療証",
           onclick:()=>{
+            saveHistory();
             showTokuteishippeiDetail();
             renderButtons();
           }
@@ -7821,6 +8980,7 @@ function renderButtons(){
         {
           label:"身体障害者手帳",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("ketsuyu_techou");
             renderButtons();
           }
@@ -7828,6 +8988,7 @@ function renderButtons(){
         {
           label:"重度心身障害者医療費助成",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -7835,6 +8996,7 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
+            saveHistory();
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -7849,6 +9011,7 @@ function renderButtons(){
         {
           label:"重度心身障害者医療費助成制度",
           onclick:()=>{
+            saveHistory();
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -7856,6 +9019,7 @@ function renderButtons(){
         {
           label:"自立支援医療（更生医療）",
           onclick:()=>{
+            saveHistory();
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -7869,34 +9033,6 @@ function renderButtons(){
         label:"詳しく見る（" + link.label + "）",
         onclick:()=>window.open(link.url,"_blank")
       });
-    });
-
-    const subTopics = [
-      "touseki_tokuteishippei",
-      "touseki_kousei",
-      "touseki_techou",
-      "touseki_juudo",
-      "ketsuyu_techou"
-    ];
-
-    inlineButtons.push({
-      label:"戻る",
-      secondary:true,
-      onclick:()=>{
-
-        if(subTopics.includes(state.reduceCostTopic)){
-
-          const parent =
-            state.reduceCostParentTopic || "touseki";
-
-          showReduceCostResult(parent);
-          renderButtons();
-          return;
-        }
-
-        handleSelect("戻る");
-
-      }
     });
 
     addInlineButtons(inlineButtons);
@@ -7942,12 +9078,6 @@ function renderButtons(){
       });
     }
 
-    inlineButtons.push({
-      label:"一覧に戻る",
-      secondary:true,
-      onclick:()=>handleSelect("戻る")
-    });
-
     addInlineButtons(inlineButtons);
 
     ensureScrollRoom();
@@ -7971,17 +9101,12 @@ function renderButtons(){
       inlineButtons.push({
         label:"関連する制度を詳しく見る",
         onclick:()=>{
+          saveHistory();
           state.currentScreen = "careServiceMenu";
           renderScreen();
         }
       });
     }
-
-    inlineButtons.push({
-      label:"戻る",
-      secondary:true,
-      onclick:()=>handleSelect("戻る")
-    });
 
     addInlineButtons(inlineButtons);
 
@@ -8003,11 +9128,6 @@ function renderButtons(){
       {
         label:"プロフィールをリセット",
         onclick:()=>handleSelect("プロフィールをリセット")
-      },
-      {
-        label:"戻る",
-        secondary:true,
-        onclick:()=>handleSelect("戻る")
       }
     ]);
 
@@ -8184,6 +9304,46 @@ function renderButtons(){
     );
 
     requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "currentMedicalProceduresCheck"){
+
+    renderToggleMultiSelect(
+      ["点滴","永久的な点滴","たん吸引","頻回な吸引（1日5回以上ぐらい）","酸素","毎日3回血糖測定やインスリン注射","体に管が入っている（ドレナージ）","褥瘡","医療用麻薬","専門的な注射や薬","胃瘻・経鼻栄養","人工呼吸器","オシッコの管（フォーレ）"],
+      "currentMedicalProcedures",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "preAdmissionResult"){
+
+    area.style.display = "none";
+
+    addInlineButtons([]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "preAdmissionPlaceNoteRest"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
 
     return;
 
@@ -8639,6 +9799,63 @@ let scrollUpdatePending = false;
 // （スクロールは常にここを優先して表示する）
 let turnStartElement = null;
 
+function scheduleScrollToLastQuestion(){
+
+  // 「前の質問」で戻ったときは、直前の「質問カード」
+  // （role:"question"のメッセージ）を一番上に表示する。
+  // 質問カードが無い画面の場合のみ、メッセージ本文→
+  // 最後の要素の順にフォールバックする。
+  // （#chatの最後の要素がボタン塊(.inline-buttons)や
+  // 　自分の回答(.message.user)のこともあるため、
+  // 　それらを一番上に表示してしまわないようにする）
+
+  if(scrollUpdatePending){
+    return;
+  }
+
+  scrollUpdatePending = true;
+
+  requestAnimationFrame(() => {
+
+    scrollUpdatePending = false;
+
+    const chat = document.getElementById("chat");
+
+    if(!chat) return;
+
+    const questionCards = chat.querySelectorAll(".question-card");
+
+    const lastQuestionCard =
+      questionCards.length
+        ? questionCards[questionCards.length - 1]
+        : null;
+
+    if(lastQuestionCard){
+
+      chat.scrollTop = lastQuestionCard.offsetTop - 10;
+
+    }else{
+
+      const messages = chat.querySelectorAll(".message");
+
+      const lastMessage =
+        messages.length ? messages[messages.length - 1] : null;
+
+      if(lastMessage){
+        chat.scrollTop = lastMessage.offsetTop - 10;
+      }else if(chat.lastElementChild){
+        chat.scrollTop =
+          chat.lastElementChild.offsetTop - 10;
+      }
+
+    }
+
+    updateScrollHint();
+
+  });
+
+}
+
 function scheduleScrollUpdate(){
 
   if(scrollUpdatePending){
@@ -8877,6 +10094,8 @@ function showKouseiIryouDetail(){
 // 更生医療：具体的な自己負担額を、特定疾病療養と同じ
 // before/after形式で示す
 function showKouseiIryouResult(amount, reasonLabel){
+
+  saveHistory();
 
   addBotMessage(`あなたの場合、
 
@@ -9657,6 +10876,7 @@ ${name}に入所すると、介護サービス費のほかに、
 あなたの場合の費用を
 詳しく確認できます。`);
 
+  saveHistory();
   state.currentScreen = "facilityCostResult";
 
   renderButtons();
@@ -9682,6 +10902,8 @@ function showFacilityCostPersonal(){
   const chat = document.getElementById("chat");
 
   if(!hasFacilityCostProfile()){
+
+    saveHistory();
 
     addBotMessage(`あなたの場合の費用を計算するには、
 いくつかプロフィール情報が必要です。
@@ -9725,6 +10947,8 @@ function showFacilityCostPersonal(){
   const actualBurden = totalPay - refund;
 
   const yen = (n)=>n.toLocaleString("ja-JP");
+
+  saveHistory();
 
   addBotMessage(`【あなたの場合の費用（目安）】
 
@@ -9776,6 +11000,8 @@ function showFacilityCostPersonal(){
 ========================================= */
 
 function showGroupHomeCostOverview(){
+
+saveHistory();
 
 addBotMessage(`【グループホームの費用について】
 
@@ -9836,6 +11062,8 @@ function showGroupHomeCostPersonal(){
 
   if(!hasGroupHomeCostProfile()){
 
+    saveHistory();
+
     addBotMessage(`あなたの場合の費用を計算するには、
 いくつかプロフィール情報が必要です。
 
@@ -9862,6 +11090,8 @@ function showGroupHomeCostPersonal(){
   const careCost = baseCost1Wari * burdenMultiplier;
 
   const yen = (n)=>n.toLocaleString("ja-JP");
+
+  saveHistory();
 
   addBotMessage(`【あなたの場合の介護サービス費（目安）】
 
@@ -9897,6 +11127,8 @@ function showGroupHomeCostPersonal(){
 ========================================= */
 
 function showPaidHomeCostOverview(){
+
+saveHistory();
 
 addBotMessage(`【有料老人ホーム・サ高住の費用について】
 
@@ -10109,7 +11341,6 @@ const menuScreens = [
  
 
   "dischargeMenu",
-  "transferReasonMenu",
   "transferRehabMenu",
   "medicalProcedureMenu",
   "palliativeCareMenu",   // ←追加
@@ -10149,7 +11380,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -10373,7 +11604,7 @@ function goBack(){
 
   renderButtons();
 
-  scheduleScrollUpdate();
+  scheduleScrollToLastQuestion();
 
 }
 /* =========================================
@@ -10639,6 +11870,7 @@ function completeConsultation(){
 
   saveHistory();
 
+  saveHistory();
   state.currentScreen = "surveyIntro";
 
   renderScreen();
@@ -10720,6 +11952,7 @@ function clearProfileSession(){
 
 function goToStart(){
 
+  saveHistory();
   state.currentScreen = "start";
 
   state.reduceCostTopic = "";
@@ -10793,6 +12026,7 @@ function handleRestartClick(){
 
 function resetApp(){
 
+  saveHistory();
   state.currentScreen = "start";
 
   state.reduceCostTopic = "";
@@ -10841,7 +12075,20 @@ function resetApp(){
   pensionIncome:"",
   familyLivelihoodNoWorry:"",
   supportSystems:[],
-  purpose:""
+  purpose:"",
+  preAdmissionPlace:"",
+  conditionChange:"",
+  currentMedicalProcedures:[],
+  rehabIntention:"",
+  currentAdlSeverity:"",
+  walkingBefore:"",
+  walkingNow:"",
+  toiletPlaceBefore:"",
+  toiletAssistBefore:"",
+  toiletPlaceNow:"",
+  toiletAssistNow:"",
+  bathBefore:"",
+  bathNow:""
 };
 
   clearProfileSession();
