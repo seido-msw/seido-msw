@@ -7907,10 +7907,47 @@ PDFの作成機能を読み込めませんでした。
 
         }
 
-        pdf.save("相談まとめ.pdf");
+        const pdfBlob = pdf.output("blob");
 
-        addBotMessage(`PDFをダウンロードしました。
-ダウンロードフォルダをご確認ください。`);
+        addBotMessage(`まとめができました。
+下のボタンから、保存や
+LINEなどでの共有ができます。`);
+
+        addStandaloneInlineButton(
+          "PDFをダウンロード",
+          ()=>{
+            pdf.save("相談まとめ.pdf");
+          }
+        );
+
+        const shareFile = new File(
+          [pdfBlob],
+          "相談まとめ.pdf",
+          {type:"application/pdf"}
+        );
+
+        const canShareFile =
+          navigator.canShare
+          &&
+          navigator.canShare({files:[shareFile]});
+
+        if(canShareFile){
+
+          addStandaloneInlineButton(
+            "LINEなどで共有",
+            ()=>{
+
+              navigator.share({
+                files:[shareFile],
+                title:"相談まとめ"
+              }).catch(()=>{
+                // 共有がキャンセルされた場合等は何もしない
+              });
+
+            }
+          );
+
+        }
 
       }).catch(()=>{
 
