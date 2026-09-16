@@ -604,7 +604,8 @@ user:{
   toiletPlaceNow:"",
   toiletAssistNow:"",
   bathBefore:"",
-  bathNow:""
+  bathNow:"",
+  transferCompareItems:[]
 },
 
   history:[],
@@ -862,8 +863,6 @@ transferReasonMenu:{
 病院には、それぞれ役割があります。
 地域の病院がそれぞれの役割を担い、つながりながら、一人ひとりの医療を支えています。
 
-急性期の治療が必要なときは急性期の病院へ。病状が安定した後は、リハビリや医療処置、緩和ケアなど、その時の状態や目的に合った病院へ移ることがあります。
-
 転院は、必要な医療を次の病院へつないでいくことです。治療やケアも、次の病院へ引き継がれていきます。
 
 次の病院は、退院支援担当者が一緒に探します。
@@ -895,6 +894,21 @@ transferReasonQ3:{
 transferReasonQ4:{
   text:"ベッド上の生活に加えて、\n医療処置が必要と言われましたか？",
   buttons:["はい","いいえ"]
+},
+
+transferReasonQ5:{
+  text:"医療療養病棟ほどではないものの、\n介護施設等では対応できない\n医療行為があったり、\n看取りまで一つの場所で\n過ごしたい希望はありますか？",
+  buttons:["はい","いいえ"]
+},
+
+transferCompareOfferCheck:{
+  text:"気になる転院先をまとめて\n比較しますか？",
+  buttons:["はい","いいえ"]
+},
+
+transferCompareSelect:{
+  text:"比較したい転院先を\n選んでください。\n（複数選択できます）",
+  buttons:[]
 },
 
 transferRehabMenu:{
@@ -979,7 +993,7 @@ homeCare:{
   
   medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
-  buttons:["入院費がいくらかかるか知りたい"]
+  buttons:["入院費がいくらかかるか知りたい","医療費を軽くする制度を知りたい"]
 },
 
 medicalCostMenu:{
@@ -1049,7 +1063,12 @@ paymentInstallmentResult:{
 
 reduceCostMenu:{
   text:"医療費を軽くする制度について、\n知りたい内容を選んでください。",
-  buttons:[]
+  buttons:["高額療養費","マル障（重度心身障害者医療費助成）","自立支援医療（更生医療）","特定疾病療養受療証","肝炎医療費助成","指定難病","小児慢性特定疾病"]
+},
+
+highCostOutInSelect:{
+  text:"高額療養費について、\n外来と入院どちらを\n知りたいですか？",
+  buttons:["外来","入院"]
 },
 
 reduceCostQ1:{
@@ -3359,6 +3378,19 @@ function addNextReasonButton(nextScreen){
 
 }
 
+function addCompareButton(){
+
+  addStandaloneInlineButton(
+    "まとめて比較する",
+    ()=>{
+      saveHistory();
+      state.currentScreen = "transferCompareSelect";
+      renderScreen();
+    }
+  );
+
+}
+
 function addNextFacilityButton(nextScreen){
 
   addStandaloneInlineButton(
@@ -3677,6 +3709,11 @@ addBotMessage(`【精神障害者保健福祉手帳】
 },
 
 "医療費助成制度を知りたい":()=>{
+    state.currentScreen="reduceCostMenu";
+    renderScreen();
+},
+
+"医療費を軽くする制度を知りたい":()=>{
     state.currentScreen="reduceCostMenu";
     renderScreen();
 },
@@ -5181,6 +5218,7 @@ const transitions = {
         menuModules["地域包括ケア病棟とは？"]();
 
         addNextReasonButton("transferReasonQ2");
+        addCompareButton();
 
       }
 
@@ -5207,6 +5245,7 @@ const transitions = {
         menuModules["回復期リハビリテーション病院とは？"]();
 
         addNextReasonButton("transferReasonQ3");
+        addCompareButton();
 
       }
 
@@ -5233,6 +5272,7 @@ const transitions = {
         menuModules["緩和ケア病棟とは？"]();
 
         addNextReasonButton("transferReasonQ4");
+        addCompareButton();
 
       }
 
@@ -5258,6 +5298,35 @@ const transitions = {
 
         menuModules["療養型の病院とは"]();
 
+        addNextReasonButton("transferReasonQ5");
+        addCompareButton();
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferReasonResult";
+      }
+
+      return "transferReasonQ5";
+
+    }
+
+  },
+
+  transferReasonQ5:{
+
+    reducer:(text)=>{
+
+      if(text === "はい"){
+
+        menuModules["介護医療院"]();
+
+        addCompareButton();
+
       }else{
 
         addBotMessage(`ここまでの内容だけでは、
@@ -5277,8 +5346,74 @@ const transitions = {
 
     },
 
-    next:()=>{
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferReasonResult";
+      }
+
+      return "transferCompareOfferCheck";
+
+    }
+
+  },
+
+  transferCompareOfferCheck:{
+
+    reducer:(text)=>{
+
+      if(text === "いいえ"){
+
+        addBotMessage(`承知しました。
+気になることがあれば、
+いつでも担当のMSWへ
+ご相談ください。`);
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(text === "はい"){
+        return "transferCompareSelect";
+      }
+
       return "transferReasonResult";
+
+    }
+
+  },
+
+  transferCompareSelect:{
+
+    reducer:(text)=>{
+
+      if(text === "決定"){
+
+        if(state.user.transferCompareItems.length){
+          generateTransferComparePdf();
+        }else{
+          addBotMessage(`比較したい転院先を、
+1つ以上選んでください。`);
+        }
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(
+        text === "決定"
+        &&
+        state.user.transferCompareItems.length
+      ){
+        return "transferReasonResult";
+      }
+
+      return "transferCompareSelect";
+
     }
 
   },
@@ -6430,13 +6565,13 @@ reduceCostMenu:{
 
   reducer:(text)=>{
 
-    if(text==="自立支援医療"){
+    if(text==="自立支援医療（更生医療）"){
       showReduceCostResult("jiritsu");
     }
     else if(text==="指定難病"){
       showNanbyoIntro();
     }
-    else if(text==="人工透析など（特定疾病）"){
+    else if(text==="特定疾病療養受療証"){
       showReduceCostResult("tousekiTokutei");
     }
     else if(text==="肝炎医療費助成"){
@@ -6448,7 +6583,7 @@ reduceCostMenu:{
     else if(text==="子どもの医療費助成"){
       showReduceCostResult("kodomo");
     }
-    else if(text==="障害のある方の医療費助成"){
+    else if(text==="マル障（重度心身障害者医療費助成）"){
       showReduceCostResult("judo");
     }
 
@@ -6460,7 +6595,11 @@ reduceCostMenu:{
       return "reduceCostQ1";
     }
 
-    const directLinkButtons = ["自立支援医療","指定難病","人工透析など（特定疾病）","肝炎医療費助成","小児慢性特定疾病","子どもの医療費助成","障害のある方の医療費助成"];
+    if(text==="高額療養費"){
+      return "highCostOutInSelect";
+    }
+
+    const directLinkButtons = ["自立支援医療（更生医療）","指定難病","特定疾病療養受療証","肝炎医療費助成","小児慢性特定疾病","子どもの医療費助成","マル障（重度心身障害者医療費助成）"];
 
     if(directLinkButtons.includes(text)){
       return "reduceCostResult";
@@ -6468,6 +6607,46 @@ reduceCostMenu:{
 
     return "reduceCostMenu";
 
+  }
+
+},
+
+highCostOutInSelect:{
+
+  reducer:(text)=>{
+
+    if(text==="外来"){
+
+      addBotMessage(`【高額療養費制度（外来）】
+
+外来（通院）でかかった医療費も、1か月の自己負担額には上限があります。
+
+複数の医療機関を受診した場合は、自己負担額を合算できる場合があります（世帯合算）。
+
+マイナ保険証を利用すれば、窓口での支払いが自動的に自己負担限度額までになります。
+
+マイナ保険証を使わない場合は、加入している保険者へ「限度額適用認定証」の申請が必要です。
+
+限度額を超えて支払った分は、後から申請すれば払い戻しを受けられる場合もあります。`);
+
+    }else if(text==="入院"){
+
+      addBotMessage(`【高額療養費制度（入院）】
+
+入院でかかった医療費も、1か月の自己負担額には上限があります。
+
+マイナ保険証を利用すれば、窓口での支払いが自動的に自己負担限度額までになります。
+
+マイナ保険証を使わない場合は、事前に「限度額適用認定証」を保険者へ申請しておくと、入院時の窓口負担を自己負担限度額までに抑えられます。
+
+食事代や差額ベッド代などは、高額療養費の対象外となり、別途自己負担が必要です。`);
+
+    }
+
+  },
+
+  next:(text)=>{
+    return "reduceCostResult";
   }
 
 },
@@ -7801,7 +7980,8 @@ function buildPreAdmissionSummaryHtml(){
 
 }
 
-function generatePreAdmissionSummaryPdf(){
+// HTML文字列からPDFを作成し、ダウンロード/共有ボタンを表示する共通処理
+function generateHtmlSummaryPdf(htmlContent, fileName, shareTitle){
 
   const root = document.getElementById("pdfExportRoot");
 
@@ -7816,7 +7996,7 @@ PDFの作成機能を読み込めませんでした。
 
   }
 
-  root.innerHTML = buildPreAdmissionSummaryHtml();
+  root.innerHTML = htmlContent;
 
   addBotMessage(`まとめを作成しています。
 少々お待ちください。`);
@@ -7863,13 +8043,13 @@ LINEなどでの共有ができます。`);
         addStandaloneInlineButton(
           "PDFをダウンロード",
           ()=>{
-            pdf.save("相談まとめ.pdf");
+            pdf.save(fileName);
           }
         );
 
         const shareFile = new File(
           [pdfBlob],
-          "相談まとめ.pdf",
+          fileName,
           {type:"application/pdf"}
         );
 
@@ -7886,7 +8066,7 @@ LINEなどでの共有ができます。`);
 
               navigator.share({
                 files:[shareFile],
-                title:"相談まとめ"
+                title:shareTitle
               }).catch(()=>{
                 // 共有がキャンセルされた場合等は何もしない
               });
@@ -7906,6 +8086,132 @@ PDFの作成に失敗しました。
 
     });
   });
+
+}
+
+// 転院先比較のもとになるデータ
+// （実際の相談援助の場面で、MSWが説明する観点をもとに作成。
+// 　施設によって差があるため、あくまで目安）
+const TRANSFER_COMPARE_INFO = {
+  "地域包括ケア病棟":{
+    target:"急性期治療が終わった後、退院に向けた準備が必要な方",
+    medical:"急性期治療後の医療管理に対応（専門的な治療の継続は想定外）",
+    duration:"最長60日（退院調整のための一時的な入院）",
+    endOfLife:"想定していません",
+    cost:"通常の医療費と同じ（高額療養費制度の対象）"
+  },
+  "回復期リハビリテーション病院":{
+    target:"脳血管疾患・骨折の術後など、対象疾患に該当する方",
+    medical:"リハビリが中心で、医療処置への対応には限りがあります",
+    duration:"疾患ごとに入院できる上限日数が決まっている（一時的）",
+    endOfLife:"想定していません",
+    cost:"通常の医療費と同じ（高額療養費制度の対象）"
+  },
+  "緩和ケア病棟（ホスピス）":{
+    target:"がんなどの終末期で、予後が半年以内程度とされる方",
+    medical:"抗がん剤等の治療は基本的に継続できず、症状緩和が中心",
+    duration:"看取りまで過ごせる（長期になることもあります）",
+    endOfLife:"対応しています",
+    cost:"通常の医療費と同じ（個室料等で高くなる場合あり）"
+  },
+  "医療療養病棟":{
+    target:"継続的な医療管理・処置が必要な方",
+    medical:"医師が常駐し、継続的な医療管理・処置に対応",
+    duration:"長期の療養が可能（終の住処になることもあります）",
+    endOfLife:"対応しています",
+    cost:"通常の医療費と同じ（高額療養費制度の対象）"
+  },
+  "介護医療院":{
+    target:"要介護1以上で、長期的な医療と介護がともに必要な方",
+    medical:"喀痰吸引・経管栄養など、医療的なケアにも対応",
+    duration:"長期の入所が可能（終の住処になることもあります）",
+    endOfLife:"対応しています",
+    cost:"介護保険サービス費＋食費・居住費等（介護保険の対象）"
+  }
+};
+
+function buildTransferCompareHtml(){
+
+  const items = state.user.transferCompareItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+
+  const rows = [
+    {key:"target", label:"対象となる方"},
+    {key:"medical", label:"医療処置への対応"},
+    {key:"duration", label:"過ごせる期間"},
+    {key:"endOfLife", label:"看取りへの対応"},
+    {key:"cost", label:"費用感の違い"}
+  ];
+
+  const cards = items.map(name=>{
+
+    const info = TRANSFER_COMPARE_INFO[name];
+
+    if(!info){
+      return "";
+    }
+
+    const rowsHtml = rows.map(r=>`
+      <div style="margin-top:8px;">
+        <span style="font-weight:bold; color:#2B6777;">${esc(r.label)}：</span>
+        <span>${esc(info[r.key])}</span>
+      </div>
+    `).join("");
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold;">${esc(name)}</div>
+        ${rowsHtml}
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　転院先の比較
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${cards}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※この内容はあくまで一般的な目安です。実際にどの選択肢が合っているかは、入院している病院の退院支援担当者・医療ソーシャルワーカー（MSW）へご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateTransferComparePdf(){
+
+  generateHtmlSummaryPdf(
+    buildTransferCompareHtml(),
+    "転院先の比較.pdf",
+    "転院先の比較"
+  );
+
+}
+
+function generatePreAdmissionSummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildPreAdmissionSummaryHtml(),
+    "相談まとめ.pdf",
+    "相談まとめ"
+  );
 
 }
 
@@ -9298,6 +9604,24 @@ function renderButtons(){
     renderToggleMultiSelect(
       ["点滴","永久的な点滴","たん吸引","頻回な吸引（1日5回以上ぐらい）","酸素","毎日3回血糖測定やインスリン注射","体に管が入っている（ドレナージ）","褥瘡","医療用麻薬","専門的な注射や薬","胃瘻・経鼻栄養","人工呼吸器","オシッコの管（フォーレ）"],
       "currentMedicalProcedures",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "transferCompareSelect"){
+
+    renderToggleMultiSelect(
+      ["地域包括ケア病棟","回復期リハビリテーション病院","緩和ケア病棟（ホスピス）","医療療養病棟","介護医療院"],
+      "transferCompareItems",
       [{
         label:"決定",
         highlight:true,
@@ -12072,7 +12396,8 @@ function resetApp(){
   toiletPlaceNow:"",
   toiletAssistNow:"",
   bathBefore:"",
-  bathNow:""
+  bathNow:"",
+  transferCompareItems:[]
 };
 
   clearProfileSession();
