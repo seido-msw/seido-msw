@@ -390,6 +390,13 @@ body{
   font-size:14px;
 }
 
+.inline-button.selected{
+  background:linear-gradient(180deg, #F5A623 0%, #D98C0F 100%);
+  border-color:#B36F00;
+  color:#3A2400;
+  box-shadow:0 5px 0 #B36F00, 0 6px 8px rgba(0,0,0,0.1);
+}
+
 .choice-button{
 
   width:100%;
@@ -544,6 +551,9 @@ const state = {
 
   careServiceViewedItems:[],
 
+  careServiceActiveItem:null,
+  careServiceContentIndex:null,
+
   disease40to64Shown:false,
   pendingCostBreakdown:false,
 
@@ -631,9 +641,7 @@ text:`**相談員 みちです。**
   },
 
   aboutMichi:{
-text:`「どうしたらいいんだろう？」と思ったら、いつでも声をかけてください。
-
-医療・介護・福祉のことは、
+text:`医療・介護・福祉のことは、
 「誰に相談したらいいんだろう？」
 「こんなこと、相談していいのかな？」
 と迷うことがあります。
@@ -645,11 +653,8 @@ text:`「どうしたらいいんだろう？」と思ったら、いつでも�
 
 夜でも、休日でも。
 気になったときに、いつでも相談してくださいね。
-
 「何を相談したらいいか分からない」
-そんなところからでも大丈夫です。
-
-みちさんは、いつでもここにいます。`,
+そんなところからでも大丈夫です。`,
     buttons:["みちさんに相談する","トップへ戻る"]
   },
 
@@ -764,7 +769,7 @@ inpatientMenu:{
 
 dischargeMenu:{
   text:"退院後のことで、\n気になっていることを教えてください。",
-  buttons:["入院前の生活に戻れるか心配","施設を探したい","転院と言われた","介護サービスを知りたい"]
+  buttons:["入院前の生活に戻れるか心配","施設を探したい","転院と言われた","介護保険について"]
 },
 
 homeDischargeMenu:{
@@ -857,6 +862,11 @@ adlSeverityCheck:{
   buttons:["見守り程度で大丈夫","一部介助が必要","ほぼ全介助が必要（寝たきりに近い）"]
 },
 
+transferFacilityMenu:{
+  text:"転院先について、\n知りたい病棟・施設を\n選んでください。",
+  buttons:["地域包括ケア病棟","回復期リハビリテーション病院","緩和ケア病棟（ホスピス）","医療療養病棟","介護医療院"]
+},
+
 transferReasonMenu:{
   text:`【なぜ転院が必要なの？】
 
@@ -867,11 +877,7 @@ transferReasonMenu:{
 
 次の病院は、退院支援担当者が一緒に探します。
 （空き状況などにより、希望通りにならないこともあります）
-
-不安なことがあれば、主治医や担当MSWへご相談ください。
-
 ---
-
 ここから、転院と言われた理由に近いものを、順番に確認していきます。`,
   buttons:[]
 },
@@ -3565,9 +3571,10 @@ const menuModules = {
     renderScreen();
   },
 
-  "介護サービスを知りたい":()=>{
-    state.currentScreen = "careServiceMenu";
-    renderScreen();
+  "介護保険について":()=>{
+    careServiceReducer("介護保険サービスとは");
+    state.currentScreen = careServiceNext("介護保険サービスとは");
+    renderButtons();
   },
 
   "自宅退院したい":()=>{
@@ -5209,6 +5216,34 @@ const transitions = {
 
   },
 
+  transferFacilityMenu:{
+
+    reducer:(text)=>{
+
+      if(text === "地域包括ケア病棟"){
+        menuModules["地域包括ケア病棟とは？"]();
+      }
+      else if(text === "回復期リハビリテーション病院"){
+        menuModules["回復期リハビリテーション病院とは？"]();
+      }
+      else if(text === "緩和ケア病棟（ホスピス）"){
+        menuModules["緩和ケア病棟とは？"]();
+      }
+      else if(text === "医療療養病棟"){
+        menuModules["療養型の病院とは"]();
+      }
+      else if(text === "介護医療院"){
+        menuModules["介護医療院"]();
+      }
+
+    },
+
+    next:()=>{
+      return "transferReasonResult";
+    }
+
+  },
+
   transferReasonQ1:{
 
     reducer:(text)=>{
@@ -5599,7 +5634,7 @@ quickSearchMenu:{
     }
 
     if(text==="転院"){
-      return "transferReasonMenu";
+      return "transferFacilityMenu";
     }
 
     if(text==="生活困窮"){
@@ -9435,22 +9470,57 @@ function renderButtons(){
       (screens.careServiceContentMenu.buttons || [])
         .map(label=>{
 
-          const isViewed =
-            label !== "費用についてへ"
-            &&
-            state.careServiceViewedItems.includes(label);
+          if(label === "費用についてへ"){
+
+            return {
+              label:label,
+              secondary:true,
+              onclick:()=>handleSelect(label)
+            };
+
+          }
+
+          const isActive = state.careServiceActiveItem === label;
 
           return {
             label:label,
-            secondary:(label==="費用についてへ"),
-            disabled:isViewed,
+            selected:isActive,
             onclick:()=>{
 
-              handleSelect(label);
+              if(
+                state.careServiceContentIndex === null
+                ||
+                state.careServiceContentIndex === undefined
+                ||
+                !state.messages[state.careServiceContentIndex]
+              ){
+                return;
+              }
 
-              if(label !== "費用についてへ"){
-                state.careServiceViewedItems.push(label);
+              if(isActive){
+
+                // もう一度押したら、説明文（何も選んでいない状態）に戻す
+                state.careServiceActiveItem = null;
+                state.messages[state.careServiceContentIndex].text =
+                  CARE_SERVICE_INFO.serviceIntro;
+                rebuildChat();
                 renderButtons();
+                scrollCareServiceContentIntoView();
+
+                return;
+
+              }
+
+              const info = CARE_SERVICE_LIST[label];
+
+              if(info){
+
+                state.careServiceActiveItem = label;
+                state.messages[state.careServiceContentIndex].text = info;
+                rebuildChat();
+                renderButtons();
+                scrollCareServiceContentIntoView();
+
               }
 
             }
@@ -10066,6 +10136,8 @@ function addInlineButtons(buttons){
       "inline-button" +
       (b.secondary ? " secondary" : "") +
       (b.highlight ? " highlight" : "") +
+      (b.active ? " active" : "") +
+      (b.selected ? " selected" : "") +
       (b.disabled ? " disabled" : "");
 
     const labelSpan = document.createElement("span");
@@ -10106,6 +10178,35 @@ let scrollUpdatePending = false;
 // このタップ操作で最初に追加された要素
 // （スクロールは常にここを優先して表示する）
 let turnStartElement = null;
+
+// サービス内容の各ボタンを押した後、内容を一番上に表示する
+function scrollCareServiceContentIntoView(){
+
+  if(
+    state.careServiceContentIndex === null
+    ||
+    state.careServiceContentIndex === undefined
+  ){
+    return;
+  }
+
+  requestAnimationFrame(() => {
+
+    const chat = document.getElementById("chat");
+
+    if(!chat) return;
+
+    const el = chat.children[state.careServiceContentIndex];
+
+    if(el){
+      chat.scrollTop = el.offsetTop - 10;
+    }
+
+    updateScrollHint();
+
+  });
+
+}
 
 function scheduleScrollToLastQuestion(){
 
@@ -11500,9 +11601,11 @@ function careServiceReducer(text){
   else if(text==="サービス内容"){
     state.careServiceListStep = -1;
     state.careServiceViewedItems = [];
+    state.careServiceActiveItem = null;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
     addBotMessage(CARE_SERVICE_INFO.serviceIntro);
+    state.careServiceContentIndex = state.messages.length - 1;
   }
   else if(text==="費用について"){
     addBotMessage(CARE_SERVICE_INFO.cost);
@@ -11855,6 +11958,14 @@ function saveHistory(){
         state.careServiceViewedItems || []
       ),
 
+    careServiceActiveItem:
+      state.careServiceActiveItem || null,
+
+    careServiceContentIndex:
+      (state.careServiceContentIndex === undefined)
+        ? null
+        : state.careServiceContentIndex,
+
     disease40to64Shown:
       state.disease40to64Shown || false,
 
@@ -11898,6 +12009,14 @@ function goBack(){
 
   state.careServiceViewedItems =
     prev.careServiceViewedItems || [];
+
+  state.careServiceActiveItem =
+    prev.careServiceActiveItem || null;
+
+  state.careServiceContentIndex =
+    (prev.careServiceContentIndex === undefined)
+      ? null
+      : prev.careServiceContentIndex;
 
   state.disease40to64Shown =
     prev.disease40to64Shown || false;
@@ -12268,6 +12387,8 @@ function goToStart(){
   state.careServiceStep = -1;
   state.careServiceListStep = -1;
   state.careServiceViewedItems = [];
+  state.careServiceActiveItem = null;
+  state.careServiceContentIndex = null;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
   state.homeDischargeTopic = "";
@@ -12345,6 +12466,8 @@ function resetApp(){
   state.careServiceListStep = -1;
 
   state.careServiceViewedItems = [];
+  state.careServiceActiveItem = null;
+  state.careServiceContentIndex = null;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
 
