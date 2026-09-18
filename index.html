@@ -615,7 +615,8 @@ user:{
   toiletAssistNow:"",
   bathBefore:"",
   bathNow:"",
-  transferCompareItems:[]
+  transferCompareItems:[],
+  careServiceSummaryItems:[]
 },
 
   history:[],
@@ -1130,6 +1131,11 @@ careServiceMenu:{
 careServiceResult:{
   text:"",
   buttons:["戻る"]
+},
+
+careServiceSummarySelect:{
+  text:"ご家族に共有したい内容を\n選んでください。\n（複数選択できます）",
+  buttons:[]
 },
 
 careServiceContentMenu:{
@@ -5453,6 +5459,39 @@ const transitions = {
 
   },
 
+  careServiceSummarySelect:{
+
+    reducer:(text)=>{
+
+      if(text === "決定"){
+
+        if(state.user.careServiceSummaryItems.length){
+          generateCareServiceSummaryPdf();
+        }else{
+          addBotMessage(`共有したい内容を、
+1つ以上選んでください。`);
+        }
+
+      }
+
+    },
+
+    next:(text)=>{
+
+      if(
+        text === "決定"
+        &&
+        state.user.careServiceSummaryItems.length
+      ){
+        return "careServiceResult";
+      }
+
+      return "careServiceSummarySelect";
+
+    }
+
+  },
+
   start:{
   reducer:(text)=>{},
   next:(text)=>{
@@ -8240,6 +8279,79 @@ function generateTransferComparePdf(){
 
 }
 
+// 「介護保険について」の各トピックの本文（PDF共有用）
+const CARE_SERVICE_SUMMARY_TEXT = {
+  "介護保険サービスとは": CARE_SERVICE_INFO.overview,
+  "申請の仕方": CARE_SERVICE_INFO.apply,
+  "利用までの流れ": CARE_SERVICE_INFO.flow,
+  "サービス内容": CARE_SERVICE_INFO.serviceIntro,
+  "費用について": CARE_SERVICE_INFO.cost,
+  "退院までに間に合う？": CARE_SERVICE_INFO.inTime,
+  "すでに要介護認定をお持ちの方へ": CARE_SERVICE_INFO.alreadyCertified,
+  "ケアマネジャーとは": CARE_SERVICE_INFO.careManager
+};
+
+function buildCareServiceSummaryHtml(){
+
+  const items = state.user.careServiceSummaryItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\*\*/g,"");
+
+  const sections = items.map(label=>{
+
+    const text = CARE_SERVICE_SUMMARY_TEXT[label];
+
+    if(!text){
+      return "";
+    }
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-bottom:6px;">${esc(label)}</div>
+        <div style="white-space:pre-wrap;">${esc(text)}</div>
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　介護保険について
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${sections}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※くわしい内容や、実際に利用できるかどうかは、担当のケアマネジャーや地域包括支援センターへご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateCareServiceSummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildCareServiceSummaryHtml(),
+    "介護保険について.pdf",
+    "介護保険について"
+  );
+
+}
+
 function generatePreAdmissionSummaryPdf(){
 
   generateHtmlSummaryPdf(
@@ -9397,10 +9509,33 @@ function renderButtons(){
     }
 
     if(nextLabel){
+
       inlineButtons.push({
         label:nextLabel.endsWith("へ") ? nextLabel : nextLabel + "へ",
         onclick:()=>handleSelect(nextLabel)
       });
+
+    }else if(idx === CARE_SERVICE_ORDER.length - 1){
+
+      inlineButtons.push({
+        label:"介護保険についてに戻る",
+        onclick:()=>{
+          careServiceReducer("介護保険サービスとは");
+          state.currentScreen = careServiceNext("介護保険サービスとは");
+          renderButtons();
+        }
+      });
+
+      inlineButtons.push({
+        label:"相談内容を受け取る",
+        highlight:true,
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "careServiceSummarySelect";
+          renderScreen();
+        }
+      });
+
     }
 
     addInlineButtons(inlineButtons);
@@ -9692,6 +9827,24 @@ function renderButtons(){
     renderToggleMultiSelect(
       ["地域包括ケア病棟","回復期リハビリテーション病院","緩和ケア病棟（ホスピス）","医療療養病棟","介護医療院"],
       "transferCompareItems",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "careServiceSummarySelect"){
+
+    renderToggleMultiSelect(
+      CARE_SERVICE_ORDER,
+      "careServiceSummaryItems",
       [{
         label:"決定",
         highlight:true,
@@ -12520,7 +12673,8 @@ function resetApp(){
   toiletAssistNow:"",
   bathBefore:"",
   bathNow:"",
-  transferCompareItems:[]
+  transferCompareItems:[],
+  careServiceSummaryItems:[]
 };
 
   clearProfileSession();
