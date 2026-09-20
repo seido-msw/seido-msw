@@ -251,6 +251,16 @@ body{
   justify-content:flex-end;
 }
 
+.toggle-group-heading{
+  width:100%;
+  font-size:15px;
+  font-weight:bold;
+  color:#2B6777;
+  border-top:2px dashed #C9BBA2;
+  padding-top:14px;
+  margin-top:4px;
+}
+
 .inline-button{
   width:calc(50% - 5px);
   min-width:120px;
@@ -553,6 +563,8 @@ const state = {
   careServiceActiveItem:null,
   careServiceContentIndex:null,
 
+  adlSummaryShown:false,
+
   disease40to64Shown:false,
   pendingCostBreakdown:false,
 
@@ -615,7 +627,9 @@ user:{
   bathBefore:"",
   bathNow:"",
   transferCompareItems:[],
-  careServiceSummaryItems:[]
+  careServiceSummaryItems:[],
+  medicalProcedureContinuity:{},
+  medicalProcedureQueueIndex:0
 },
 
   history:[],
@@ -793,58 +807,28 @@ summaryOfferCheck:{
 },
 
 conditionChangeCheck:{
-  text:"現在の本人の様子は、\n入院前と比べて\nどこか異なりますか？",
-  buttons:["医療行為","体の動き","医療行為・体の動きどちらも","特に変化はない"]
+  text:"入院前と今との違いを\n教えて下さい。",
+  buttons:["次へ"]
 },
 
 currentMedicalProceduresCheck:{
-  text:"現在の医療行為を\n教えてください。\n入院前にはなかった項目を\n選択してください。\n（複数選択できます）",
+  text:"現在の医療行為を教えてください。\n入院前にはなかった項目を選択してください。\n（複数選択できます）",
   buttons:[]
 },
 
-rehabIntentionCheck:{
-  text:"リハビリテーションを行い、\n生活動作の改善を\n目指したいですか？",
-  buttons:["はい","いいえ"]
+medicalProcedureContinuityCheck:{
+  text:"",
+  buttons:[]
 },
 
-walkingBeforeCheck:{
-  text:"歩行について、\n入院前はいかがでしたか？",
-  buttons:["何も捕まらずに歩けた","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","一人では歩けない","わからない"]
+adlBeforeCheck:{
+  text:"入院前の状態について、\nそれぞれ当てはまるものを\n選んでください。",
+  buttons:[]
 },
 
-walkingNowCheck:{
-  text:"歩行について、\n現在はいかがですか？",
-  buttons:["何も捕まらず歩ける","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","歩行器使いながら介助が必要","歩けない","わからない"]
-},
-
-toiletPlaceBeforeCheck:{
-  text:"排泄について、\n入院前はどちらでしたか？",
-  buttons:["トイレ","ポータブルトイレ","わからない"]
-},
-
-toiletAssistBeforeCheck:{
-  text:"排泄の動作について、\n入院前はいかがでしたか？",
-  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
-},
-
-toiletPlaceNowCheck:{
-  text:"排泄について、\n現在はどちらですか？",
-  buttons:["病棟トイレ","ポータブルトイレ","わからない"]
-},
-
-toiletAssistNowCheck:{
-  text:"排泄の動作について、\n現在はいかがですか？",
-  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
-},
-
-bathBeforeCheck:{
-  text:"入浴について、\n入院前はいかがでしたか？",
-  buttons:["自宅風呂　自立","自宅風呂　介助","デイサービス等で介助","わからない"]
-},
-
-bathNowCheck:{
-  text:"入浴について、\n現在はいかがですか？",
-  buttons:["シャワー自立","シャワー介助","寝たまま入る","体拭き","わからない"]
+adlNowCheck:{
+  text:"現在の状態について、\nそれぞれ当てはまるものを\n選んでください。",
+  buttons:[]
 },
 
 preAdmissionResult:{
@@ -2988,9 +2972,9 @@ const highCostService = {
 // （施設によって差があるため、あくまで目安）
 const PLACE_UNSUPPORTED_PROCEDURES = {
   "自宅":[],
-  "ショートステイ":["点滴","たん吸引","酸素","毎日3回血糖測定やインスリン注射","体に管が入っている（ドレナージ）","人工呼吸器"],
+  "ショートステイ":["点滴","たん吸引","酸素","血糖測定、インスリン注射","体に管が入っている（ドレナージ）","人工呼吸器"],
   "特別養護老人ホーム（特養）":["点滴","たん吸引","酸素","体に管が入っている（ドレナージ）","人工呼吸器","医療用麻薬"],
-  "介護老人保健施設（老健）":["永久的な点滴","人工呼吸器","酸素","体に管が入っている（ドレナージ）","医療用麻薬","専門的な注射や薬","毎日3回血糖測定やインスリン注射","頻回な吸引（1日5回以上ぐらい）"],
+  "介護老人保健施設（老健）":["人工呼吸器","酸素","体に管が入っている（ドレナージ）","医療用麻薬","専門的な注射や薬","血糖測定、インスリン注射"],
   "有料老人ホーム":["人工呼吸器","体に管が入っている（ドレナージ）"],
   "ケアハウス（軽費老人ホーム）":[],
   "グループホーム（認知症対応型）":["点滴","たん吸引","酸素","体に管が入っている（ドレナージ）","人工呼吸器","医療用麻薬"]
@@ -3216,6 +3200,48 @@ ${blocks.join("\n\n")}
 
 }
 
+// ADLの質問がすべて終わった後、まとめを1つ表示してから判定へ進む
+function showAdlSummary(){
+
+  state.adlSummaryShown = true;
+
+  const u = state.user;
+
+  const walkingDeclined = isWalkingDeclined(u.walkingBefore, u.walkingNow);
+  const toiletDeclined = isToiletDeclined(u.toiletAssistBefore, u.toiletAssistNow);
+  const bathDeclined = isBathDeclined(u.bathBefore, u.bathNow);
+
+  let text = buildAdlComparisonText().trim();
+
+  if(walkingDeclined || toiletDeclined || bathDeclined){
+
+    text += `
+
+入院前と比べて、難しくなっている
+項目があるようです。`;
+
+  }else{
+
+    text += `
+
+入院前と比べて、
+大きな変化は無さそうです。`;
+
+  }
+
+  addBotMessage(text);
+
+  addStandaloneInlineButton(
+    "次へ",
+    ()=>{
+      saveHistory();
+      showPreAdmissionMatchResult();
+      renderButtons();
+    }
+  );
+
+}
+
 function showPreAdmissionMatchResult(){
 
   const u = state.user;
@@ -3232,44 +3258,12 @@ function showPreAdmissionMatchResult(){
 
   const medicalOK = unmatchedProcedures.length === 0;
 
-  const hasAdlChange =
-    u.conditionChange === "体の動き"
-    ||
-    u.conditionChange === "医療行為・体の動きどちらも";
+  // 体の動き（歩行・排泄・入浴）は常に確認する流れになったため、
+  // 常にtrue（実際に対応が難しいかはwalkingDeclined等の低下判定で見る）
+  const hasAdlChange = true;
 
   const capabilityNote =
     PLACE_CAPABILITY_NOTE[u.preAdmissionPlace] || "";
-
-  // リハビリでの改善を希望している場合
-  if(hasAdlChange && u.rehabIntention === "はい"){
-
-    addBotMessage(`${buildAdlComparisonText()}リハビリテーションでの改善を
-希望されているのですね。
-
-回復期リハビリテーション病院や
-介護老人保健施設（老健）など、
-リハビリに特化した場所への
-転院が選択肢になります。
-
-「転院と言われた」の中の
-「リハビリ転院と言われた」からも、
-くわしい内容を確認できます。
-${
-  unmatchedProcedures.length
-    ? `\nなお、現在の医療行為（${unmatchedProcedures.join("、")}）は、\n転院先によって対応できるかが\n変わってきます。\n`
-    : ""
-}
-主治医や看護師さんに
-「リハビリでどこまで改善が
-見込めそうか」を聞いておくと、
-担当のMSWとの相談も
-スムーズに進みます。`);
-
-    state.currentScreen = "preAdmissionResult";
-
-    return;
-
-  }
 
   const walkingDeclined =
     isWalkingDeclined(u.walkingBefore, u.walkingNow);
@@ -3299,7 +3293,7 @@ ${
   // 医療行為・生活動作ともに、今のところ対応できそうな場合
   if(medicalOK && adlOK){
 
-    addBotMessage(`${hasAdlChange ? buildAdlComparisonText() : ""}**${place}**は、今回教えていただいた
+    addBotMessage(`**${place}**は、今回教えていただいた
 医療行為・生活動作の状態で
 あれば、対応できることが
 多い場所です。
@@ -3349,7 +3343,7 @@ ${
     reasonLines += `\n・入浴の状態が、入院前（${u.bathBefore}）より今（${u.bathNow}）の方が難しくなっているため、今の体制では対応が難しいことがあります`;
   }
 
-  addBotMessage(`${hasAdlChange ? buildAdlComparisonText() : ""}**${place}**は、一般的に
+  addBotMessage(`**${place}**は、一般的に
 以下のような理由で、
 今回の状態への対応が
 難しいことが多い場所です。
@@ -3399,6 +3393,180 @@ function addCompareButton(){
       renderScreen();
     }
   );
+
+}
+
+// 現在の医療行為を選び終えた後、1つずつ「退院後も続きそうか」を確認する
+function getCurrentMedicalProcedureItem(){
+
+  const items = state.user.currentMedicalProcedures;
+  const idx = state.user.medicalProcedureQueueIndex;
+
+  if(idx >= items.length){
+    return null;
+  }
+
+  return items[idx];
+
+}
+
+function renderMedicalProcedureContinuityButtons(item){
+
+  addInlineButtons([
+    {
+      label:"退院後も必要",
+      onclick:()=>answerMedicalProcedureContinuity(item,"退院後も必要")
+    },
+    {
+      label:"入院中のみ",
+      onclick:()=>answerMedicalProcedureContinuity(item,"入院中のみ")
+    },
+    {
+      label:"わからない",
+      onclick:()=>answerMedicalProcedureContinuity(item,"わからない")
+    }
+  ]);
+
+}
+
+function showMedicalProcedureContinuityQuestion(){
+
+  const item = getCurrentMedicalProcedureItem();
+
+  if(!item){
+    showMedicalProcedureSummary();
+    return;
+  }
+
+  addBotMessage(`【${item}】について、
+
+退院後も続くと、
+医師や看護師、
+退院支援担当者から
+言われていますか？`);
+
+  // ボタンはここでは追加しない。
+  // （state.currentScreenの切り替え前に追加すると、
+  // 　重複防止の仕組みが働かず二重表示になるため、
+  // 　呼び出し元でstate.currentScreen確定後に表示する）
+
+}
+
+// 医療行為の質問がすべて終わった後、まとめを1つ表示してからADLの質問へ進む
+// 「退院後も必要」と答えた場合に見せる、その医療行為をしたままの
+// 退院の一般例（データがある項目のみ。無い項目には出さない）
+const MEDICAL_PROCEDURE_HOME_EXAMPLE = {
+  "オシッコの管（フォーレ）":"少しの工夫で自宅で生活をしている方が多い印象です。",
+  "酸素":"少しの工夫で自宅で生活をしている方が多い印象です。",
+  "点滴":"ご本人・ご家族に自宅で生活したいという意向があれば可能です。\nただ、多くの方が、ずっといられる病院で療養することを希望されている印象です。",
+  "たん吸引":"ご本人・ご家族に自宅で生活したいという意向があれば可能です。\nただ、多くの方が、ずっといられる病院で療養することを希望されている印象です。"
+};
+
+function showMedicalProcedureSummary(){
+
+  const items = state.user.currentMedicalProcedures;
+
+  if(!items.length){
+    state.currentScreen = "adlBeforeCheck";
+    renderScreen();
+    return;
+  }
+
+  const continuity = state.user.medicalProcedureContinuity;
+
+  let text = `【医療行為のまとめ】
+
+${items.map(i => `・${i}（${continuity[i] || "未回答"}）`).join("\n")}`;
+
+  // 退院後も必要：一般例があるものだけ、項目ごとに載せる
+  const continuingItemsWithExample =
+    items.filter(i =>
+      continuity[i] === "退院後も必要"
+      &&
+      MEDICAL_PROCEDURE_HOME_EXAMPLE[i]
+    );
+
+  if(continuingItemsWithExample.length){
+
+    text += `
+
+【退院後も必要な医療行為について】`;
+
+    continuingItemsWithExample.forEach(i=>{
+
+      text += `
+
+・${i}
+${MEDICAL_PROCEDURE_HOME_EXAMPLE[i]}`;
+
+    });
+
+  }
+
+  // 入院中のみ：早めの相談をすすめる
+  const hasInpatientOnly = items.some(i =>
+    continuity[i] === "入院中のみ"
+  );
+
+  if(hasInpatientOnly){
+
+    text += `
+
+心配なことがあったら、
+早めに病院へ相談しましょう。`;
+
+  }
+
+  // わからない：今後の見通しの確認をすすめる
+  const hasUnknown = items.some(i =>
+    continuity[i] === "わからない"
+  );
+
+  if(hasUnknown){
+
+    text += `
+
+今後の見通しについて、
+医師、看護師、
+退院支援担当者へ
+確認をしてはいかがでしょうか。`;
+
+  }
+
+  addBotMessage(text);
+
+  addStandaloneInlineButton(
+    "次へ",
+    ()=>{
+      saveHistory();
+      state.currentScreen = "adlBeforeCheck";
+      renderScreen();
+    }
+  );
+
+}
+
+function answerMedicalProcedureContinuity(item, answer){
+
+  saveHistory();
+
+  addUserMessage(answer);
+
+  state.user.medicalProcedureContinuity[item] = answer;
+
+  state.user.medicalProcedureQueueIndex += 1;
+
+  showMedicalProcedureContinuityQuestion();
+
+  if(state.currentScreen === "medicalProcedureContinuityCheck"){
+
+    const nextItem = getCurrentMedicalProcedureItem();
+
+    if(nextItem){
+      renderMedicalProcedureContinuityButtons(nextItem);
+    }
+
+  }
 
 }
 
@@ -7123,32 +7291,10 @@ preAdmissionPlaceCheck:{
 
 conditionChangeCheck:{
 
-  reducer:(text)=>{
-
-    state.user.conditionChange = text;
-
-    if(text === "特に変化はない"){
-      showPreAdmissionMatchResult();
-    }
-
-  },
+  reducer:(text)=>{},
 
   next:(text)=>{
-
-    if(
-      text === "医療行為"
-      ||
-      text === "医療行為・体の動きどちらも"
-    ){
-      return "currentMedicalProceduresCheck";
-    }
-
-    if(text === "体の動き"){
-      return "walkingBeforeCheck";
-    }
-
-    return "preAdmissionResult";
-
+    return "currentMedicalProceduresCheck";
   }
 
 },
@@ -7157,159 +7303,52 @@ currentMedicalProceduresCheck:{
 
   reducer:(text)=>{
 
-    if(
-      text === "決定"
-      &&
-      state.user.conditionChange === "医療行為"
-    ){
-      showPreAdmissionMatchResult();
+    if(text === "決定"){
+
+      state.user.medicalProcedureQueueIndex = 0;
+
+      if(state.user.currentMedicalProcedures.length){
+        showMedicalProcedureContinuityQuestion();
+      }
+
     }
 
   },
 
   next:(text)=>{
 
-    if(state.user.conditionChange === "医療行為・体の動きどちらも"){
-      return "walkingBeforeCheck";
+    if(text === "決定"){
+
+      if(state.user.currentMedicalProcedures.length){
+        return "medicalProcedureContinuityCheck";
+      }
+
+      return "adlBeforeCheck";
+
     }
 
-    return "preAdmissionResult";
+    return "currentMedicalProceduresCheck";
 
   }
 
 },
 
-walkingBeforeCheck:{
+adlBeforeCheck:{
 
-  reducer:(text)=>{
-    state.user.walkingBefore = text;
-  },
+  reducer:(text)=>{},
 
   next:(text)=>{
-    return "walkingNowCheck";
+    return "adlBeforeCheck";
   }
 
 },
 
-walkingNowCheck:{
+adlNowCheck:{
 
-  reducer:(text)=>{
-    state.user.walkingNow = text;
-  },
+  reducer:(text)=>{},
 
   next:(text)=>{
-    return "toiletPlaceBeforeCheck";
-  }
-
-},
-
-toiletPlaceBeforeCheck:{
-
-  reducer:(text)=>{
-    state.user.toiletPlaceBefore = text;
-  },
-
-  next:(text)=>{
-    return "toiletAssistBeforeCheck";
-  }
-
-},
-
-toiletAssistBeforeCheck:{
-
-  reducer:(text)=>{
-    state.user.toiletAssistBefore = text;
-  },
-
-  next:(text)=>{
-    return "toiletPlaceNowCheck";
-  }
-
-},
-
-toiletPlaceNowCheck:{
-
-  reducer:(text)=>{
-    state.user.toiletPlaceNow = text;
-  },
-
-  next:(text)=>{
-    return "toiletAssistNowCheck";
-  }
-
-},
-
-toiletAssistNowCheck:{
-
-  reducer:(text)=>{
-    state.user.toiletAssistNow = text;
-  },
-
-  next:(text)=>{
-    return "bathBeforeCheck";
-  }
-
-},
-
-bathBeforeCheck:{
-
-  reducer:(text)=>{
-    state.user.bathBefore = text;
-  },
-
-  next:(text)=>{
-    return "bathNowCheck";
-  }
-
-},
-
-bathNowCheck:{
-
-  reducer:(text)=>{
-
-    state.user.bathNow = text;
-
-    const declined =
-      isWalkingDeclined(state.user.walkingBefore, state.user.walkingNow)
-      ||
-      isToiletDeclined(state.user.toiletAssistBefore, state.user.toiletAssistNow)
-      ||
-      isBathDeclined(state.user.bathBefore, text);
-
-    if(!declined){
-      showPreAdmissionMatchResult();
-    }
-
-  },
-
-  next:(text)=>{
-
-    const declined =
-      isWalkingDeclined(state.user.walkingBefore, state.user.walkingNow)
-      ||
-      isToiletDeclined(state.user.toiletAssistBefore, state.user.toiletAssistNow)
-      ||
-      isBathDeclined(state.user.bathBefore, text);
-
-    if(declined){
-      return "rehabIntentionCheck";
-    }
-
-    return "preAdmissionResult";
-
-  }
-
-},
-
-rehabIntentionCheck:{
-
-  reducer:(text)=>{
-    state.user.rehabIntention = text;
-    showPreAdmissionMatchResult();
-  },
-
-  next:(text)=>{
-    return "preAdmissionResult";
+    return "adlNowCheck";
   }
 
 },
@@ -7675,7 +7714,55 @@ const FAMILY_MEMBER_OPTIONS = ["父","母","兄","姉","弟","妹","配偶者","
 // 複数選択トグル画面を共通で描画する
 // （supportSystemsと同じ考え方。同じ画面のまま
 // 　トグルし、間に発言が挟まっても正しく置き換える）
-function renderToggleMultiSelect(options, arrayField, extraButtons){
+// ADL（歩行・排泄・入浴）を、項目ごとにグループ分けして
+// 1画面でまとめて選べるようにする（グループ内は単一選択）
+const ADL_BEFORE_GROUPS = [
+  {
+    heading:"歩行",
+    field:"walkingBefore",
+    options:["何も捕まらずに歩けた","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","一人では歩けない","わからない"]
+  },
+  {
+    heading:"排泄（場所）",
+    field:"toiletPlaceBefore",
+    options:["トイレ","ポータブルトイレ","わからない"]
+  },
+  {
+    heading:"排泄（動作）",
+    field:"toiletAssistBefore",
+    options:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+  },
+  {
+    heading:"入浴",
+    field:"bathBefore",
+    options:["自宅風呂　自立","自宅風呂　介助","デイサービス等で介助","わからない"]
+  }
+];
+
+const ADL_NOW_GROUPS = [
+  {
+    heading:"歩行",
+    field:"walkingNow",
+    options:["何も捕まらず歩ける","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","歩行器使いながら介助が必要","歩けない","わからない"]
+  },
+  {
+    heading:"排泄（場所）",
+    field:"toiletPlaceNow",
+    options:["病棟トイレ","ポータブルトイレ","わからない"]
+  },
+  {
+    heading:"排泄（動作）",
+    field:"toiletAssistNow",
+    options:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+  },
+  {
+    heading:"入浴",
+    field:"bathNow",
+    options:["シャワー自立","シャワー介助","寝たまま入る","体拭き","わからない"]
+  }
+];
+
+function renderAdlGroupedSelect(groups, nextLabel, onNext){
 
   const area = document.getElementById("choiceButtons");
 
@@ -7697,7 +7784,113 @@ function renderToggleMultiSelect(options, arrayField, extraButtons){
 
   wrapper.className = "inline-buttons";
 
-  options.forEach(text=>{
+  groups.forEach(group=>{
+
+    const heading = document.createElement("div");
+
+    heading.className = "toggle-group-heading";
+
+    heading.innerText = group.heading;
+
+    wrapper.appendChild(heading);
+
+    group.options.forEach(opt=>{
+
+      const btn = document.createElement("button");
+
+      const isSelected = state.user[group.field] === opt;
+
+      btn.className =
+        "inline-button" + (isSelected ? " selected" : "");
+
+      const labelSpan = document.createElement("span");
+
+      labelSpan.className = "inline-button-label";
+
+      labelSpan.innerText = opt;
+
+      btn.appendChild(labelSpan);
+
+      btn.onclick = ()=>{
+        state.user[group.field] = opt;
+        renderAdlGroupedSelect(groups, nextLabel, onNext);
+      };
+
+      wrapper.appendChild(btn);
+
+    });
+
+  });
+
+  const nextBtn = document.createElement("button");
+
+  nextBtn.className = "inline-button highlight";
+
+  const nextLabelSpan = document.createElement("span");
+
+  nextLabelSpan.className = "inline-button-label";
+
+  nextLabelSpan.innerText = nextLabel;
+
+  nextBtn.appendChild(nextLabelSpan);
+
+  nextBtn.onclick = ()=>{
+    saveHistory();
+    onNext();
+  };
+
+  wrapper.appendChild(nextBtn);
+
+  chatEl.appendChild(wrapper);
+
+  currentInlineButtonsInfo = {
+    screen:state.currentScreen,
+    element:wrapper
+  };
+
+  requestAnimationFrame(updateScrollHint);
+
+}
+
+function renderToggleMultiSelect(options, arrayField, extraButtons, groupBreaks){
+
+  groupBreaks = groupBreaks || [];
+
+  const area = document.getElementById("choiceButtons");
+
+  area.style.display = "none";
+
+  const chatEl = document.getElementById("chat");
+
+  if(
+    currentInlineButtonsInfo.screen === state.currentScreen
+    &&
+    currentInlineButtonsInfo.element
+    &&
+    currentInlineButtonsInfo.element.parentNode === chatEl
+  ){
+    chatEl.removeChild(currentInlineButtonsInfo.element);
+  }
+
+  const wrapper = document.createElement("div");
+
+  wrapper.className = "inline-buttons";
+
+  options.forEach((text,i)=>{
+
+    const brk = groupBreaks.find(g=>g.index===i);
+
+    if(brk){
+
+      const heading = document.createElement("div");
+
+      heading.className = "toggle-group-heading";
+
+      heading.innerText = brk.heading;
+
+      wrapper.appendChild(heading);
+
+    }
 
     const btn = document.createElement("button");
 
@@ -8287,7 +8480,8 @@ const CARE_SERVICE_SUMMARY_TEXT = {
   "費用について": CARE_SERVICE_INFO.cost,
   "退院までに間に合う？": CARE_SERVICE_INFO.inTime,
   "すでに要介護認定をお持ちの方へ": CARE_SERVICE_INFO.alreadyCertified,
-  "ケアマネジャーとは": CARE_SERVICE_INFO.careManager
+  "ケアマネジャーとは": CARE_SERVICE_INFO.careManager,
+  ...CARE_SERVICE_LIST
 };
 
 function buildCareServiceSummaryHtml(){
@@ -9806,7 +10000,7 @@ function renderButtons(){
   if(state.currentScreen === "currentMedicalProceduresCheck"){
 
     renderToggleMultiSelect(
-      ["点滴","永久的な点滴","たん吸引","頻回な吸引（1日5回以上ぐらい）","酸素","毎日3回血糖測定やインスリン注射","体に管が入っている（ドレナージ）","褥瘡","医療用麻薬","専門的な注射や薬","胃瘻・経鼻栄養","人工呼吸器","オシッコの管（フォーレ）"],
+      ["点滴","たん吸引","酸素","血糖測定、インスリン注射","体に管が入っている（ドレナージ）","褥瘡処置","医療用麻薬","専門的な注射や薬","胃瘻・経鼻栄養","人工呼吸器","オシッコの管（フォーレ）"],
       "currentMedicalProcedures",
       [{
         label:"決定",
@@ -9814,6 +10008,57 @@ function renderButtons(){
         onclick:()=>handleSelect("決定")
       }]
     );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "adlBeforeCheck"){
+
+    renderAdlGroupedSelect(
+      ADL_BEFORE_GROUPS,
+      "次へ",
+      ()=>{
+        state.adlSummaryShown = false;
+        state.currentScreen = "adlNowCheck";
+        renderScreen();
+      }
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "adlNowCheck"){
+
+    area.style.display = "none";
+
+    if(state.adlSummaryShown){
+
+      addStandaloneInlineButton(
+        "次へ",
+        ()=>{
+          saveHistory();
+          showPreAdmissionMatchResult();
+          renderButtons();
+        }
+      );
+
+    }else{
+
+      renderAdlGroupedSelect(
+        ADL_NOW_GROUPS,
+        "決定",
+        ()=>{
+          showAdlSummary();
+        }
+      );
+
+    }
 
     requestAnimationFrame(updateScrollHint);
 
@@ -9842,12 +10087,16 @@ function renderButtons(){
   if(state.currentScreen === "careServiceSummarySelect"){
 
     renderToggleMultiSelect(
-      CARE_SERVICE_ORDER,
+      [...CARE_SERVICE_ORDER, ...Object.keys(CARE_SERVICE_LIST)],
       "careServiceSummaryItems",
       [{
         label:"決定",
         highlight:true,
         onclick:()=>handleSelect("決定")
+      }],
+      [{
+        index:CARE_SERVICE_ORDER.length,
+        heading:"サービス内容の個別項目"
       }]
     );
 
@@ -9872,6 +10121,35 @@ function renderButtons(){
   if(state.currentScreen === "preAdmissionPlaceNoteRest"){
 
     area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "medicalProcedureContinuityCheck"){
+
+    area.style.display = "none";
+
+    const item = getCurrentMedicalProcedureItem();
+
+    if(item){
+
+      renderMedicalProcedureContinuityButtons(item);
+
+    }else if(state.user.currentMedicalProcedures.length){
+
+      addStandaloneInlineButton(
+        "次へ",
+        ()=>{
+          saveHistory();
+          state.currentScreen = "adlBeforeCheck";
+          renderScreen();
+        }
+      );
+
+    }
 
     ensureScrollRoom();
 
@@ -11943,7 +12221,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -12118,6 +12396,9 @@ function saveHistory(){
         ? null
         : state.careServiceContentIndex,
 
+    adlSummaryShown:
+      state.adlSummaryShown || false,
+
     disease40to64Shown:
       state.disease40to64Shown || false,
 
@@ -12169,6 +12450,9 @@ function goBack(){
     (prev.careServiceContentIndex === undefined)
       ? null
       : prev.careServiceContentIndex;
+
+  state.adlSummaryShown =
+    prev.adlSummaryShown || false;
 
   state.disease40to64Shown =
     prev.disease40to64Shown || false;
@@ -12541,6 +12825,7 @@ function goToStart(){
   state.careServiceViewedItems = [];
   state.careServiceActiveItem = null;
   state.careServiceContentIndex = null;
+  state.adlSummaryShown = false;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
   state.homeDischargeTopic = "";
@@ -12620,6 +12905,7 @@ function resetApp(){
   state.careServiceViewedItems = [];
   state.careServiceActiveItem = null;
   state.careServiceContentIndex = null;
+  state.adlSummaryShown = false;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
 
@@ -12673,7 +12959,9 @@ function resetApp(){
   bathBefore:"",
   bathNow:"",
   transferCompareItems:[],
-  careServiceSummaryItems:[]
+  careServiceSummaryItems:[],
+  medicalProcedureContinuity:{},
+  medicalProcedureQueueIndex:0
 };
 
   clearProfileSession();
