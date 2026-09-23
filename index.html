@@ -753,7 +753,12 @@ intakeStep2Inpatient:{
 
 intakeStep2Outpatient:{
   text:"今、一番気になっていることは\n何ですか？",
-  buttons:["医療費","介護保険サービス"]
+  buttons:["医療費","介護保険について","何を相談したらいいか分からない"]
+},
+
+outpatientMedicalCostIntro:{
+  text:"",
+  buttons:[]
 },
 
 intakeStep2Unclear:{
@@ -821,13 +826,48 @@ medicalProcedureContinuityCheck:{
   buttons:[]
 },
 
-adlBeforeCheck:{
-  text:"入院前の状態について、\nそれぞれ当てはまるものを\n選んでください。",
-  buttons:[]
+walkingBeforeCheck:{
+  text:"歩行について、\n入院前はいかがでしたか？",
+  buttons:["何も捕まらずに歩けた","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","一人では歩けない","わからない"]
 },
 
-adlNowCheck:{
-  text:"現在の状態について、\nそれぞれ当てはまるものを\n選んでください。",
+walkingNowCheck:{
+  text:"歩行について、\n現在はいかがですか？",
+  buttons:["何も捕まらず歩ける","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","歩行器使いながら介助が必要","歩けない","わからない"]
+},
+
+toiletPlaceBeforeCheck:{
+  text:"排泄について、\n入院前はどちらでしたか？",
+  buttons:["トイレ","ポータブルトイレ","わからない"]
+},
+
+toiletAssistBeforeCheck:{
+  text:"排泄の動作について、\n入院前はいかがでしたか？",
+  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+},
+
+toiletPlaceNowCheck:{
+  text:"排泄について、\n現在はどちらですか？",
+  buttons:["病棟トイレ","ポータブルトイレ","わからない"]
+},
+
+toiletAssistNowCheck:{
+  text:"排泄の動作について、\n現在はいかがですか？",
+  buttons:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
+},
+
+bathBeforeCheck:{
+  text:"入浴について、\n入院前はいかがでしたか？",
+  buttons:["自宅風呂　自立","自宅風呂　介助","デイサービス等で介助","わからない"]
+},
+
+bathNowCheck:{
+  text:"入浴について、\n現在はいかがですか？",
+  buttons:["シャワー自立","シャワー介助","寝たまま入る","体拭き","わからない"]
+},
+
+adlSummaryCheck:{
+  text:"",
   buttons:[]
 },
 
@@ -968,7 +1008,7 @@ disabilityInpatientMenu:{
 
 outpatientMenu:{
   text:"通院中なんですね。\nどんなことが気になっていますか？",
-  buttons:["介護について","在宅サービスについて","医療費について","障害福祉制度について","生活費について","仕事について"]
+  buttons:["医療費","介護保険について","障害福祉制度について","生活費について","仕事について"]
 },
   
   dischargeHome:{
@@ -1150,7 +1190,7 @@ careServiceContentMenu:{
 
   careLevel:{
 
-    text:"介護度を選択してください。",
+    text:"介護保険の要介護認定を選択してください。",
     buttons:["なし","要支援1","要支援2","要介護1","要介護2","要介護3","要介護4","要介護5","わからない"]
   },
 
@@ -3201,6 +3241,29 @@ ${blocks.join("\n\n")}
 }
 
 // ADLの質問がすべて終わった後、まとめを1つ表示してから判定へ進む
+// あなたに合わせた相談：通院中→医療費
+// 外来でかかる医療費の自己負担限度額・合算のしくみを案内する
+function showOutpatientMedicalCostIntro(){
+
+  showHighCostOutpatient();
+
+  addBotMessage(`例えば、
+
+・A病院の外来診療費
+・B薬局の調剤費
+・他の病院の外来診療費
+・他の薬局の調剤費
+
+これらは、同じ月であれば、すべて合算して上の上限額を超えているかを判定できます。
+
+「病院ごとに別々に払っているから対象外」と思われがちですが、実際は合算されるため、上限を超えていれば、後から申請することで超えた分が払い戻されます。
+
+マイナ保険証を利用すれば、窓口での支払いそのものが自動的に自己負担限度額までになる場合もあります。
+
+還付の申請は、加入している医療保険（健康保険組合、協会けんぽ、市区町村の国民健康保険など）へ行います。`);
+
+}
+
 function showAdlSummary(){
 
   state.adlSummaryShown = true;
@@ -3230,6 +3293,10 @@ function showAdlSummary(){
   }
 
   addBotMessage(text);
+
+}
+
+function addAdlSummaryNextButton(){
 
   addStandaloneInlineButton(
     "次へ",
@@ -3452,6 +3519,30 @@ function showMedicalProcedureContinuityQuestion(){
 
 }
 
+function answerMedicalProcedureContinuity(item, answer){
+
+  saveHistory();
+
+  addUserMessage(answer);
+
+  state.user.medicalProcedureContinuity[item] = answer;
+
+  state.user.medicalProcedureQueueIndex += 1;
+
+  showMedicalProcedureContinuityQuestion();
+
+  if(state.currentScreen === "medicalProcedureContinuityCheck"){
+
+    const nextItem = getCurrentMedicalProcedureItem();
+
+    if(nextItem){
+      renderMedicalProcedureContinuityButtons(nextItem);
+    }
+
+  }
+
+}
+
 // 医療行為の質問がすべて終わった後、まとめを1つ表示してからADLの質問へ進む
 // 「退院後も必要」と答えた場合に見せる、その医療行為をしたままの
 // 退院の一般例（データがある項目のみ。無い項目には出さない）
@@ -3467,7 +3558,7 @@ function showMedicalProcedureSummary(){
   const items = state.user.currentMedicalProcedures;
 
   if(!items.length){
-    state.currentScreen = "adlBeforeCheck";
+    state.currentScreen = "walkingBeforeCheck";
     renderScreen();
     return;
   }
@@ -3539,36 +3630,13 @@ ${MEDICAL_PROCEDURE_HOME_EXAMPLE[i]}`;
     "次へ",
     ()=>{
       saveHistory();
-      state.currentScreen = "adlBeforeCheck";
+      state.currentScreen = "walkingBeforeCheck";
       renderScreen();
     }
   );
 
 }
 
-function answerMedicalProcedureContinuity(item, answer){
-
-  saveHistory();
-
-  addUserMessage(answer);
-
-  state.user.medicalProcedureContinuity[item] = answer;
-
-  state.user.medicalProcedureQueueIndex += 1;
-
-  showMedicalProcedureContinuityQuestion();
-
-  if(state.currentScreen === "medicalProcedureContinuityCheck"){
-
-    const nextItem = getCurrentMedicalProcedureItem();
-
-    if(nextItem){
-      renderMedicalProcedureContinuityButtons(nextItem);
-    }
-
-  }
-
-}
 
 function addNextFacilityButton(nextScreen){
 
@@ -3748,6 +3816,16 @@ const menuModules = {
     careServiceReducer("介護保険サービスとは");
     state.currentScreen = careServiceNext("介護保険サービスとは");
     renderButtons();
+  },
+
+  "医療費":()=>{
+    state.currentScreen = "medicalConcernMenu";
+    renderScreen();
+  },
+
+  "医療費助成の制度":()=>{
+    state.currentScreen = "reduceCostMenu";
+    renderScreen();
   },
 
   "自宅退院したい":()=>{
@@ -5936,6 +6014,14 @@ intakeStep2Outpatient:{
 
   reducer:(text)=>{
 
+    if(text==="介護保険について"){
+      careServiceReducer("介護保険サービスとは");
+    }
+
+    if(text==="医療費"){
+      showOutpatientMedicalCostIntro();
+    }
+
     if(text!=="何を相談したらいいか分からない"){
       state.user.mainConcern = text;
     }
@@ -5949,11 +6035,15 @@ intakeStep2Outpatient:{
     }
 
     if(text==="医療費"){
-      return "medicalConcernMenu";
+      return "outpatientMedicalCostIntro";
     }
 
-    if(text==="介護保険サービス"){
-      return "careServiceMenu";
+    if(text==="介護保険について"){
+      return careServiceNext("介護保険サービスとは");
+    }
+
+    if(text==="医療費助成の制度"){
+      return "reduceCostMenu";
     }
 
     if(text==="介護・福祉"){
@@ -7323,7 +7413,7 @@ currentMedicalProceduresCheck:{
         return "medicalProcedureContinuityCheck";
       }
 
-      return "adlBeforeCheck";
+      return "walkingBeforeCheck";
 
     }
 
@@ -7333,22 +7423,112 @@ currentMedicalProceduresCheck:{
 
 },
 
-adlBeforeCheck:{
+walkingBeforeCheck:{
 
-  reducer:(text)=>{},
+  reducer:(text)=>{
+    state.user.walkingBefore = text;
+  },
 
   next:(text)=>{
-    return "adlBeforeCheck";
+    return "walkingNowCheck";
   }
 
 },
 
-adlNowCheck:{
+walkingNowCheck:{
+
+  reducer:(text)=>{
+    state.user.walkingNow = text;
+  },
+
+  next:(text)=>{
+    return "toiletPlaceBeforeCheck";
+  }
+
+},
+
+toiletPlaceBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletPlaceBefore = text;
+  },
+
+  next:(text)=>{
+    return "toiletAssistBeforeCheck";
+  }
+
+},
+
+toiletAssistBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletAssistBefore = text;
+  },
+
+  next:(text)=>{
+    return "toiletPlaceNowCheck";
+  }
+
+},
+
+toiletPlaceNowCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletPlaceNow = text;
+  },
+
+  next:(text)=>{
+    return "toiletAssistNowCheck";
+  }
+
+},
+
+toiletAssistNowCheck:{
+
+  reducer:(text)=>{
+    state.user.toiletAssistNow = text;
+  },
+
+  next:(text)=>{
+    return "bathBeforeCheck";
+  }
+
+},
+
+bathBeforeCheck:{
+
+  reducer:(text)=>{
+    state.user.bathBefore = text;
+  },
+
+  next:(text)=>{
+    return "bathNowCheck";
+  }
+
+},
+
+bathNowCheck:{
+
+  reducer:(text)=>{
+
+    state.user.bathNow = text;
+
+    showAdlSummary();
+
+  },
+
+  next:(text)=>{
+    return "adlSummaryCheck";
+  }
+
+},
+
+adlSummaryCheck:{
 
   reducer:(text)=>{},
 
-  next:(text)=>{
-    return "adlNowCheck";
+  next:()=>{
+    return "adlSummaryCheck";
   }
 
 },
@@ -7798,7 +7978,10 @@ function renderAdlGroupedSelect(groups, nextLabel, onNext){
 
       const btn = document.createElement("button");
 
-      const isSelected = state.user[group.field] === opt;
+      const currentValue =
+        group.field ? state.user[group.field] : group.get();
+
+      const isSelected = currentValue === opt;
 
       btn.className =
         "inline-button" + (isSelected ? " selected" : "");
@@ -7812,8 +7995,15 @@ function renderAdlGroupedSelect(groups, nextLabel, onNext){
       btn.appendChild(labelSpan);
 
       btn.onclick = ()=>{
-        state.user[group.field] = opt;
+
+        if(group.field){
+          state.user[group.field] = opt;
+        }else{
+          group.set(opt);
+        }
+
         renderAdlGroupedSelect(groups, nextLabel, onNext);
+
       };
 
       wrapper.appendChild(btn);
@@ -10015,57 +10205,6 @@ function renderButtons(){
 
   }
 
-  if(state.currentScreen === "adlBeforeCheck"){
-
-    renderAdlGroupedSelect(
-      ADL_BEFORE_GROUPS,
-      "次へ",
-      ()=>{
-        state.adlSummaryShown = false;
-        state.currentScreen = "adlNowCheck";
-        renderScreen();
-      }
-    );
-
-    requestAnimationFrame(updateScrollHint);
-
-    return;
-
-  }
-
-  if(state.currentScreen === "adlNowCheck"){
-
-    area.style.display = "none";
-
-    if(state.adlSummaryShown){
-
-      addStandaloneInlineButton(
-        "次へ",
-        ()=>{
-          saveHistory();
-          showPreAdmissionMatchResult();
-          renderButtons();
-        }
-      );
-
-    }else{
-
-      renderAdlGroupedSelect(
-        ADL_NOW_GROUPS,
-        "決定",
-        ()=>{
-          showAdlSummary();
-        }
-      );
-
-    }
-
-    requestAnimationFrame(updateScrollHint);
-
-    return;
-
-  }
-
   if(state.currentScreen === "transferCompareSelect"){
 
     renderToggleMultiSelect(
@@ -10144,12 +10283,43 @@ function renderButtons(){
         "次へ",
         ()=>{
           saveHistory();
-          state.currentScreen = "adlBeforeCheck";
+          state.currentScreen = "walkingBeforeCheck";
           renderScreen();
         }
       );
 
     }
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "adlSummaryCheck"){
+
+    area.style.display = "none";
+
+    addAdlSummaryNextButton();
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "outpatientMedicalCostIntro"){
+
+    area.style.display = "none";
+
+    addStandaloneInlineButton(
+      "入院の医療費についても知りたい",
+      ()=>{
+        saveHistory();
+        state.currentScreen = "medicalConcernMenu";
+        renderScreen();
+      }
+    );
 
     ensureScrollRoom();
 
@@ -12221,7 +12391,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
