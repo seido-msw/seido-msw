@@ -4,7 +4,17 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>相談員　みちさん</title>
+<title>相談員 みちさん｜医療・福祉制度ナビ</title>
+<meta name="description" content="相談員みちさんは、入院・転院・医療費・介護保険・施設探しなど、医療や福祉の制度をわかりやすく案内するチャットボットです。あなたの状況に合わせて、使える制度を一緒に確認できます。">
+<meta name="keywords" content="医療費助成,高額療養費,転院,退院支援,介護保険,介護施設,医療ソーシャルワーカー,MSW,福祉制度,相談員みちさん">
+<link rel="canonical" href="https://seido-msw.github.io/seido-msw/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="相談員 みちさん｜医療・福祉制度ナビ">
+<meta property="og:description" content="入院・転院・医療費・介護保険・施設探しなど、医療や福祉の制度をわかりやすく案内するチャットボットです。">
+<meta property="og:url" content="https://seido-msw.github.io/seido-msw/">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary">
 
 <style>
 
@@ -563,8 +573,6 @@ const state = {
   careServiceActiveItem:null,
   careServiceContentIndex:null,
 
-  adlSummaryShown:false,
-
   disease40to64Shown:false,
   pendingCostBreakdown:false,
 
@@ -628,6 +636,9 @@ user:{
   bathNow:"",
   transferCompareItems:[],
   careServiceSummaryItems:[],
+  medicalCostSummaryItems:[],
+  transferSummaryItems:[],
+  facilitySummaryItems:[],
   medicalProcedureContinuity:{},
   medicalProcedureQueueIndex:0
 },
@@ -644,10 +655,8 @@ user:{
 const screens = {
 
   start:{
-text:`**相談員 みちです。**
-
-夜でも、休日でも。
-気になった時に、いつでも相談して下さい。
+text:`夜でも、休日でも。
+気になったときに、いつでも相談してください。
 
 医療・介護・福祉の制度や支援について、
 一緒に整理します。`,
@@ -743,7 +752,7 @@ quickSearchMenu:{
 
 purpose:{
   text:"こんにちは、みちです。\n\nまずは、今どんな状況か教えてください。",
-  buttons:["入院しています","通院しています","通院している医療機関はありません"]
+  buttons:["入院しています","通院しています"]
 },
 
 intakeStep2Inpatient:{
@@ -812,7 +821,7 @@ summaryOfferCheck:{
 },
 
 conditionChangeCheck:{
-  text:"入院前と今との違いを\n教えて下さい。",
+  text:"入院前と今との違いを\n教えてください。",
   buttons:["次へ"]
 },
 
@@ -977,12 +986,7 @@ facilityMatchQ3:{
 },
 
 facilityMatchQ4:{
-  text:"医療的な処置が必要で、看取りまで\n一つの**病院**で完結してほしいですか？",
-  buttons:["はい","いいえ"]
-},
-
-facilityMatchQ5:{
-  text:"がんの終末期であり、\n病院に入院して\n身体的・精神的なケアを\nしてほしいですか？",
+  text:"医療的な処置が必要で、看取りまで\n一つの**施設**で完結してほしいですか？",
   buttons:["はい","いいえ"]
 },
 
@@ -1023,7 +1027,12 @@ homeCare:{
   
   medicalConcernMenu:{
   text:"医療費・お金について選択してください。",
-  buttons:["入院費がいくらかかるか知りたい","医療費を軽くする制度を知りたい"]
+  buttons:["入院費がいくらかかるか知りたい","外来費がいくらかかるか知りたい","医療費を軽くする制度を知りたい"]
+},
+
+outpatientCostResult:{
+  text:"",
+  buttons:[]
 },
 
 medicalCostMenu:{
@@ -1097,8 +1106,43 @@ reduceCostMenu:{
 },
 
 highCostOutInSelect:{
-  text:"高額療養費について、\n外来と入院どちらを\n知りたいですか？",
-  buttons:["外来","入院"]
+  text:"高額療養費について、\n入院と外来どちらを\n知りたいですか？",
+  buttons:["入院費がいくらかかるか知りたい","外来費がいくらかかるか知りたい"]
+},
+
+reduceCostFinalMenu:{
+  text:"",
+  buttons:[]
+},
+
+medicalCostSummarySelect:{
+  text:"共有したい内容を\n選んでください。\n（複数選択できます）",
+  buttons:[]
+},
+
+medicalCostSummaryResult:{
+  text:"",
+  buttons:[]
+},
+
+transferSummarySelect:{
+  text:"共有したい内容を\n選んでください。\n（複数選択できます）",
+  buttons:[]
+},
+
+transferSummaryResult:{
+  text:"",
+  buttons:[]
+},
+
+facilitySummarySelect:{
+  text:"共有したい内容を\n選んでください。\n（複数選択できます）",
+  buttons:[]
+},
+
+facilitySummaryResult:{
+  text:"",
+  buttons:[]
 },
 
 reduceCostQ1:{
@@ -1949,29 +1993,43 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 自己負担額が異なります。`,
 
   judo:
-`【重度心身障害者医療費助成】
+`【重度心身障害者医療費助成（マル障）】
 
 身体障害者手帳、療育手帳、
 精神障害者保健福祉手帳を
-お持ちの場合、重度心身障害者
-医療費助成制度（自治体によって
-呼び方が異なります）の対象と
-なる可能性があります。
+お持ちの方の医療費の
+自己負担を軽減する制度です
+（自治体によって呼び方が
+異なります）。
+
+【対象者】
+身体障害者手帳、療育手帳、
+精神障害者保健福祉手帳を
+お持ちの方。
 
 ただし、対象となる等級
 （1級のみ、1〜2級、1〜3級など）
-や、内部障害の場合の条件、
-自己負担額の仕組みは、
+や、内部障害の場合の条件は、
 お住まいの市区町村によって
 大きく異なります。
-そのため、ここでは対象の
-判定や金額の計算には
-含めていません。
 
+【医療費助成】
+自己負担額の仕組み（無料、
+一部負担、上限額など）は
+市区町村によって大きく
+異なるため、ここでは
+金額の計算には含めていません。
+
+【適応日】
+お住まいの市区町村への
+申請が受理された日から
+適用されるのが一般的です
+（自治体により異なります）。
+
+【備考】
 すでにお手帳をお持ちの場合は、
 お手帳を交付した窓口へ、
-「マル障(重度心身障害者医療費
-助成)の対象になるか」を
+「マル障の対象になるか」を
 確認してみてください。
 
 お持ちでない場合や、詳しい
@@ -2024,7 +2082,7 @@ B型肝炎・C型肝炎の治療（インターフェロン治療など）を
 入院費は、保留や分割の
 支払い相談が可能な病院も
 あります。医療費が払えない為、
-治療ができないと思った時は、
+治療ができないと思ったときは、
 医療機関または市区町村へ
 ご相談ください。`,
 
@@ -2190,12 +2248,11 @@ const REDUCE_COST_LINKS = {
 
   ketsuyuHiv:[],
 
-  tousekiTokutei:[
-    {
-      label:"全国健康保険協会で確認する",
-      url:"https://www.kyoukaikenpo.or.jp/g2/cat230/r123/"
-    }
-  ],
+  tousekiTokutei:[],
+
+  touseki_kousei:[],
+
+  touseki_tokuteishippei:[],
 
   nanbyo:[],
 
@@ -2210,14 +2267,51 @@ const REDUCE_COST_LINKS = {
 
   judo:[],
 
-  kodomo:[
-    {
-      label:"こども家庭庁の実施状況を確認する",
-      url:"https://www.cfa.go.jp/policies/boshihoken/kodomoiryouhityousa-r4r5"
-    }
-  ]
+  kodomo:[]
 
 };
+
+function getReduceCostShareNextButtons(topic){
+
+  const resumeMap = {
+    touseki_kousei:"reduceCostQ2",
+    touseki:"reduceCostQ3",
+    touseki_techou:"reduceCostQ3",
+    touseki_juudo:"reduceCostQ3",
+    touseki_tokuteishippei:"reduceCostQ3",
+    ketsuyuHiv:"reduceCostQ3",
+    ketsuyu_techou:"reduceCostQ3",
+    nanbyo:(state.user.age !== "0〜19歳") ? "reduceCostQ4b" : "reduceCostQ4",
+    shoman:"reduceCostQ4b",
+    seiho:"reduceCostQ5",
+    kanen:"reduceCostQ6",
+    judo:"reduceCostQ7",
+    kodomo:"reduceCostFinalMenu"
+  };
+
+  const resumeScreen = resumeMap[topic] || "reduceCostFinalMenu";
+
+  return [
+    {
+      label:"相談共有",
+      highlight:true,
+      onclick:()=>{
+        saveHistory();
+        state.currentScreen = "medicalCostSummarySelect";
+        renderScreen();
+      }
+    },
+    {
+      label:"次へ",
+      onclick:()=>{
+        saveHistory();
+        state.currentScreen = resumeScreen;
+        renderScreen();
+      }
+    }
+  ];
+
+}
 
 /* =========================================
    CARE SERVICE INFO（介護サービスについて）
@@ -3243,6 +3337,189 @@ ${blocks.join("\n\n")}
 // ADLの質問がすべて終わった後、まとめを1つ表示してから判定へ進む
 // あなたに合わせた相談：通院中→医療費
 // 外来でかかる医療費の自己負担限度額・合算のしくみを案内する
+// かんたん検索（辞書モード）用：プロフィールに関係なく、
+// 69歳未満・70歳以上それぞれの自己負担限度額・食事代の
+// 早見表を表示する（年齢や所得区分は聞かない）
+function buildHighCostReferenceTable(){
+
+  let text = `【高額療養費の目安（早見表）】
+
+自己負担限度額は、年齢と所得区分によって決まります。
+
+■69歳未満の方（1か月あたり）
+`;
+
+  const under70 = HIGH_COST_DATA.inpatient.under70;
+
+  Object.keys(under70).forEach(key=>{
+
+    const d = under70[key];
+
+    text += `
+${key}
+外来・入院とも：約${formatYen(d.limit)}
+入院時の食事代：${formatYen(d.mealCost)}/食
+`;
+
+  });
+
+  text += `
+■70歳以上の方（1か月あたり）
+`;
+
+  const over70In = HIGH_COST_DATA.inpatient.over70;
+  const over70Out = HIGH_COST_DATA.outpatient.over70;
+
+  Object.keys(over70In).forEach(key=>{
+
+    const dIn = over70In[key];
+    const dOut = over70Out[key];
+
+    if(dIn.limit === dOut.limit){
+
+      text += `
+${key}
+外来・入院とも：約${formatYen(dIn.limit)}
+入院時の食事代：${formatYen(dIn.mealCost)}/食
+`;
+
+    }else{
+
+      text += `
+${key}
+外来のみ：約${formatYen(dOut.limit)}
+入院（世帯合算）：約${formatYen(dIn.limit)}
+入院時の食事代：${formatYen(dIn.mealCost)}/食
+`;
+
+    }
+
+  });
+
+  text += `
+※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
+
+  return text;
+
+}
+
+function showHighCostReferenceTable(){
+  addBotMessage(buildHighCostReferenceTable());
+}
+
+// 入院の医療費用：自己負担限度額と食事代を、別々のカードに分けて表示する
+function buildInpatientLimitTable(){
+
+  let text = `【入院医療費の自己負担限度額（早見表）】
+
+■69歳未満の方（1か月あたり）
+`;
+
+  const under70 = HIGH_COST_DATA.inpatient.under70;
+
+  Object.keys(under70).forEach(key=>{
+    text += `
+${key}：約${formatYen(under70[key].limit)}`;
+  });
+
+  text += `
+
+■70歳以上の方（1か月あたり）
+`;
+
+  const over70 = HIGH_COST_DATA.inpatient.over70;
+
+  Object.keys(over70).forEach(key=>{
+    text += `
+${key}：約${formatYen(over70[key].limit)}`;
+  });
+
+  text += `
+
+※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
+
+  return text;
+
+}
+
+function buildInpatientMealTable(){
+
+  let text = `【入院時の食事代（1食あたり・早見表）】
+
+■69歳未満の方
+`;
+
+  const under70 = HIGH_COST_DATA.inpatient.under70;
+
+  Object.keys(under70).forEach(key=>{
+    text += `
+${key}：${formatYen(under70[key].mealCost)}`;
+  });
+
+  text += `
+
+■70歳以上の方
+`;
+
+  const over70 = HIGH_COST_DATA.inpatient.over70;
+
+  Object.keys(over70).forEach(key=>{
+    text += `
+${key}：${formatYen(over70[key].mealCost)}`;
+  });
+
+  text += `
+
+※区分によって食事代が軽減される場合があります（住民税非課税世帯など）。`;
+
+  return text;
+
+}
+
+function showInpatientCostReference(){
+  addBotMessage(buildInpatientLimitTable());
+  addBotMessage(buildInpatientMealTable());
+}
+
+// 外来の医療費用：自己負担限度額の早見表（食事代は対象外）
+function buildOutpatientLimitTable(){
+
+  let text = `【外来医療費の自己負担限度額（早見表）】
+
+■69歳未満の方（1か月あたり）
+`;
+
+  const under70 = HIGH_COST_DATA.outpatient.under70;
+
+  Object.keys(under70).forEach(key=>{
+    text += `
+${key}：約${formatYen(under70[key].limit)}`;
+  });
+
+  text += `
+
+■70歳以上の方（1か月あたり）
+`;
+
+  const over70 = HIGH_COST_DATA.outpatient.over70;
+
+  Object.keys(over70).forEach(key=>{
+    text += `
+${key}：約${formatYen(over70[key].limit)}`;
+  });
+
+  text += `
+
+※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
+
+  return text;
+
+}
+
+function showOutpatientCostReference(){
+  addBotMessage(buildOutpatientLimitTable());
+}
+
 function showOutpatientMedicalCostIntro(){
 
   showHighCostOutpatient();
@@ -3265,8 +3542,6 @@ function showOutpatientMedicalCostIntro(){
 }
 
 function showAdlSummary(){
-
-  state.adlSummaryShown = true;
 
   const u = state.user;
 
@@ -3651,96 +3926,31 @@ function addNextFacilityButton(nextScreen){
 
 }
 
-function showIryouRyouyouAndButtons(){
-
-  state.currentScreen = "facilityMenu";
-  menuModules["医療療養病棟"]();
-
-  addStandaloneInlineButton(
-    "介護医療院について見る",
-    ()=>{
-      saveHistory();
-      showKaigoIryouinAndButtons();
-    }
-  );
-
-  addNextFacilityButton("facilityMatchQ5");
-
-}
-
-function showKaigoIryouinAndButtons(){
-
-  state.currentScreen = "facilityMenu";
-  menuModules["介護医療院"]();
-
-  addStandaloneInlineButton(
-    "医療療養病棟について見る",
-    ()=>{
-      saveHistory();
-      showIryouRyouyouAndButtons();
-    }
-  );
-
-  addNextFacilityButton("facilityMatchQ5");
-
-}
-
 function showRoukenExplanation(leadText){
 
-const body = `【介護老人保健施設（老健）】
+const body = `介護老人保健施設（老健）
 
-**役割**
+【**役割**】
+数か月程度入所して、体調を整えたり、リハビリテーションを受けたりしながら、基本的には自宅へ戻ることを目指す施設です。
 
-数か月程度入所して、
-体調を整えたり、
-リハビリテーションを受けたりしながら、
-基本的には自宅へ戻ることを
-目指す施設です。
+【**対象者**】
+要介護1以上の方
 
-**対象者**
-
-要介護1以上の方から
-申込みが可能です。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-医師（嘱託医）が配置され、
-入所中の健康管理や診察を
-行います。
+医師（嘱託医）が配置され、診察や処方を行います。
 
-入所中の医療は基本的に
-老健で対応するため、入所すると、
-それまで通っていた医療機関への
-受診は基本的になくなります。
-
-そのため、がん治療など
-継続的な専門治療が必要な方や、
-高額な薬を継続して使用している方は、
-入所が難しい場合があります。
+入所中は基本的に医療機関への受診はなくなります。そのため、がん治療など継続的な専門治療が必要な方や、高額な薬を継続して使用している方は、入所が難しい場合があります。
 
 ■看護
-看護師が24時間配置されているため、
-夜間も看護職員による対応が
-可能です。
-
-ただし、対応できる医療処置は
-施設によって異なります。
+看護師が24時間配置
+対応できる医療処置は施設によって異なります。
 
 ■リハビリ
-リハビリ専門職による
-リハビリテーションを受けながら、
-自宅で生活するために必要な動作や
-体力の回復を目指します。
+リハビリ専門職からのリハビリテーションが可能。
 
-■介護
-介護職員が、食事・排泄・入浴などの
-日常生活を支援します。
-
-**申込み**
-
-まずはケアマネやMSW等に
-相談しましょう。`;
+【**申込み**】
+まずはケアマネやMSW等に相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -3748,51 +3958,25 @@ addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
 function showTokuyouExplanation(leadText){
 
-const body = `【特別養護老人ホーム（特養）】
+const body = `特別養護老人ホーム（特養）
 
-**役割**
+【**役割**】
+生活の場（終の住処）として過ごす施設となります。
 
-生活の場（終の住処）として
-過ごす施設となります。
+【**対象者**】
+原則、要介護3以上の方
 
-**対象者**
-
-原則、要介護3以上の方から
-申込みが可能です。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-嘱託医が施設に往診に来て、
-診察や処方を行う為、
-基本的に通院が無くなります。
+嘱託医が施設に往診し、診察や処方を行うため、基本的に通院はなくなります。
 
-看取りに対応している施設も
-ありますが、どこまで対応できるかは
-施設の医療体制によって異なります。
+看取りや医療行為(点滴・酸素・経管栄養・吸引等)の対応は施設毎に異なります。
 
 ■看護
-看護師は基本的に日中の
-勤務のみとなる為、
-夜間に医療処置は
-対応ができません。
-（夜間の吸引や点滴等）
+看護師は基本的に日中のみの勤務のため、夜間の医療処置（吸引や点滴等）は対応出来ない場合が多いです。
 
-胃瘻や経鼻栄養等に
-対応している施設もありますが、
-継続的に点滴や酸素が必要などの
-医療的な管理が多い方は
-受け入れが難しい場合があります。
-
-■介護
-介護職員が24時間いて、
-食事・排泄・入浴などの
-日常生活を支援します。
-
-**申込み方法**
-
-まずはケアマネもしくはMSW等に
-相談しましょう。`;
+【**申込み方法**】
+まずはケアマネもしくはMSW等に相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -3807,11 +3991,6 @@ const menuModules = {
     renderScreen();
   },
 
-  "転院したい":()=>{
-    state.currentScreen = "transferReasonMenu";
-    renderScreen();
-  },
-
   "介護保険について":()=>{
     careServiceReducer("介護保険サービスとは");
     state.currentScreen = careServiceNext("介護保険サービスとは");
@@ -3820,11 +3999,6 @@ const menuModules = {
 
   "医療費":()=>{
     state.currentScreen = "medicalConcernMenu";
-    renderScreen();
-  },
-
-  "医療費助成の制度":()=>{
-    state.currentScreen = "reduceCostMenu";
     renderScreen();
   },
 
@@ -3839,7 +4013,7 @@ const menuModules = {
   },
 
   "自立支援医療":()=>{
-    showReduceCostResult("jiritsu");
+    showKouseiIryouDetail();
     state.currentScreen = "reduceCostResult";
     renderButtons();
   },
@@ -3851,7 +4025,7 @@ const menuModules = {
   },
 
   "特定疾病":()=>{
-    showReduceCostResult("tousekiTokutei");
+    showTokuteishippeiDetail();
     state.currentScreen = "reduceCostResult";
     renderButtons();
   },
@@ -3922,17 +4096,25 @@ addBotMessage(`【精神障害者保健福祉手帳】
 
 "入院費がいくらかかるか知りたい":()=>{
 
-    const nextScreen = getResumeScreen();
-
-    if(nextScreen){
-      state.pendingCostBreakdown = true;
-      state.currentScreen = nextScreen;
-      renderScreen();
-      return;
+    if(state.currentScreen === "medicalConcernMenu"){
+      showInpatientCostBreakdown();
+      state.currentScreen = "inpatientCostResult";
+    }else{
+      showInpatientCostReference();
+      state.currentScreen = "outpatientCostResult";
     }
+    renderButtons();
 
-    showInpatientCostBreakdown();
-    state.currentScreen = "inpatientCostResult";
+},
+
+"外来費がいくらかかるか知りたい":()=>{
+
+    if(state.currentScreen === "medicalConcernMenu"){
+      showHighCostOutpatient();
+    }else{
+      showOutpatientCostReference();
+    }
+    state.currentScreen = "outpatientCostResult";
     renderButtons();
 
 },
@@ -3972,7 +4154,7 @@ addBotMessage(`【精神障害者保健福祉手帳】
 },
 
 "医療費を軽くする制度を知りたい":()=>{
-    state.currentScreen="reduceCostMenu";
+    state.currentScreen="reduceCostQ1";
     renderScreen();
 },
 
@@ -4523,7 +4705,7 @@ const body = `【緩和ケア病棟】
 　※必ずしも全ての告知が
 　必要ではない事もある為、
 　入院している退院支援担当者へ
-　相談して下さい。
+　相談してください。
 
 【費用】
 
@@ -4586,47 +4768,25 @@ addStandaloneInlineButton(
 
 "介護医療院":()=>{
 
-addBotMessage(`【介護医療院】
+addBotMessage(`介護医療院
 
-**役割**
+【**役割**】
+長期的な医療と介護が必要な方が、医療を受けながら生活する施設です。看取りまで対応しています。
 
-長期的な医療と介護が必要な方が、
-医療を受けながら生活します。
+【**対象者**】
+要介護1以上の方が申込みできます（実際には要介護4程度の方が多いです）。
 
-看取りまで対応しています。
-
-**対象者**
-
-要介護1以上の方が
-申込みできます。
-
-実際には、要介護4程度の方が
-多いです。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-医師が配置され、長期的な療養に
-必要な診察や医療管理を行います。
-
-喀痰吸引や経管栄養など、
-医療的なケアにも対応しています。
+医師が配置され、長期的な療養に必要な診察や医療管理を行います。喀痰吸引や経管栄養などの医療的なケアにも対応しています。
 
 ■看護
-看護師が配置され、健康管理や
-服薬管理、必要な医療的ケアを
-行います。
+看護師が配置され、健康管理や服薬管理、必要な医療的ケアを行います。
 
 ■リハビリ
-リハビリ専門職による
-リハビリテーションを受けられます。
+リハビリ専門職によるリハビリテーションを受けられます。
 
-■介護
-介護職員が、食事・排泄・入浴などの
-日常生活を支援します。
-
-医療と介護の両方を受けながら
-生活することができます。`);
+医療と介護の両方を受けながら生活することができます。`);
 
 addStandaloneInlineButton(
   "費用の目安を見る",
@@ -4637,48 +4797,25 @@ addStandaloneInlineButton(
 
 "有料老人ホーム・サービス付き高齢者向け住宅（サ高住）":()=>{
 
-addBotMessage(`【有料老人ホーム・サービス付き高齢者向け住宅】
+addBotMessage(`有料老人ホーム・サービス付き高齢者向け住宅
 
-**役割**
+【**役割**】
+自宅での生活が難しくなった方が、介護や医療の支援を受けながら生活するための住まいです。
 
-自宅での生活が難しくなった方が、
-介護や医療の支援を受けながら
-生活するための住まいです。
+【**対象者**】
+施設によって対象となる方や要介護度が異なります。
 
-**対象者**
-
-施設によって対象となる方や
-要介護度が異なります。
-
-**タイプ**
-
+【**タイプ**】
 ■介護付き
-施設の職員から介護を受けながら
-生活するタイプです。
-
-比較的費用が高くなる傾向が
-あります。
+施設の職員から介護を受けながら生活するタイプです。比較的費用が高くなる傾向があります。
 
 ■医療特化型
-がん末期や神経難病など、
-医療的な支援が多く必要な方を
-対象とするタイプです。
+がん末期や神経難病など、医療的な支援が多く必要な方を対象とするタイプです。
 
 ■住宅型・サ高住
-24時間の見守りや食事の提供が
-ありますが、介護や看護は
-施設の職員がすべて行うわけでは
-ありません。
+24時間の見守りや食事の提供がありますが、介護や看護は施設の職員がすべて行うわけではありません。アパートの一室などを借りて自宅と同じように暮らし、必要な介護サービスや訪問看護を外から受けたり、デイサービスに通ったりします。
 
-アパートの一室などを借りて
-自宅と同じように暮らし、
-必要な介護サービスや訪問看護などを
-外から受けたり、デイサービスなどに
-通ったりします。
-
-特養や老健などへの入所が
-難しい場合に、選択肢と
-なることがあります。`);
+特養や老健への入所が難しい場合の選択肢になることがあります。`);
 
 addStandaloneInlineButton(
   "費用の目安を見る",
@@ -4744,58 +4881,26 @@ addBotMessage(`【医療療養病棟】
 
 "医療特化型有料老人ホーム":(leadText)=>{
 
-const body = `【医療特化型有料老人ホーム】
+const body = `医療特化型有料老人ホーム
 
-**役割**
+【**役割**】
+医療的な処置が多く必要な方が、医療対応を受けながら生活するための住まいです。看取りまで対応している施設もあります。
 
-医療的な処置が多く必要な方が、
-医療対応を受けながら
-生活するための住まいです。
+【**対象者**】
+がん末期、神経難病、人工呼吸器管理など、いわゆる「別表7」に該当するような医療的な管理が多い方を主な対象としています。
 
-看取りまで対応している
-施設もあります。
-
-**対象者**
-
-がん末期、神経難病、
-人工呼吸器管理など、
-いわゆる「別表7」に
-該当するような、
-医療的な管理が多い方を
-主な対象としています。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-提携する医療機関や
-配置された看護師により、
-医療処置に対応します。
-
-対応できる処置の範囲は
-施設によって異なります。
+提携する医療機関や配置された看護師により、医療処置に対応します。対応できる処置の範囲は施設によって異なります。
 
 ■看護
-看護師が手厚く配置され、
-夜間も対応できる
-施設が多くあります。
+看護師が手厚く配置され、夜間も対応できる施設が多くあります。
 
-■介護
-介護職員が、食事・排泄・入浴などの
-日常生活を支援します。
+【**費用について**】
+公的な基準額がなく、施設ごとに料金を設定しています。医療対応が手厚い分、比較的費用が高くなる傾向があります。
 
-**費用について**
-
-公的な基準額がなく、
-施設ごとに料金を設定しています。
-
-医療対応が手厚い分、
-比較的費用が高くなる
-傾向があります。
-
-**申込み方法**
-
-まずは主治医や担当MSWに
-相談しましょう。`;
+【**申込み方法**】
+まずは主治医や担当MSWに相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -4803,115 +4908,48 @@ addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
 "ショートステイ":()=>{
 
-addBotMessage(`【ショートステイ（短期入所）】
+addBotMessage(`ショートステイ（短期入所）
 
-**役割**
+【**役割**】
+自宅で生活している方が、短期間だけ施設に泊まれるサービスです。1泊2日、2泊3日といった短い利用から、1か月やそれ以上利用する方もいます。
 
-自宅で生活している方が、
-短期間だけ施設に
-泊まれるサービスです。
+【**対象者**】
+要支援1以上の方から利用できます。利用できる日数は介護度によって異なります。
 
-1泊2日、2泊3日といった
-短い利用から、
-時には1か月やそれ以上
-利用している方もいます。
-
-**対象者**
-
-要支援1以上の方から
-利用できます。
-
-利用できる日数は、
-介護度によって異なります。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-併設する特養や老健などに
-準じた体制です。
-
-施設によって、
-対応できる医療処置は
-異なります。
+自宅にいる時と同じ考え方となります。
 
 ■看護
-日中のみ看護師が
-配置されているため、
-相談によっては
-医療処置が可能です。
+日中のみ看護師が配置されているため、相談によっては医療処置が可能です。夜間は看護師が不在のため、痰の吸引等はできません。
 
-夜間は看護師が不在のため、
-痰の吸引等はできません。
+【**利用の仕方**】
+ケアマネジャーを通じて事前に予約が必要です。利用できる回数や頻度は介護度によって異なります。
 
-■介護
-介護職員が、食事・排泄・入浴などの
-日常生活を支援します。
+【**ロングショートについて**】
+数か月ずっと利用する「ロングショート」も場合によっては可能ですが、あくまで一時凌ぎのため、次の療養場所の検討が必要です。
 
-**利用の仕方**
-
-ケアマネジャーを通じて
-事前に予約が必要です。
-
-また、利用できる回数や頻度は、
-介護度によって異なります。
-
-**ロングショートについて**
-
-数か月ずっと利用する
-「ロングショート」も、
-場合によっては可能です。
-
-ただし、あくまで一時凌ぎで
-しかないため、次の療養場所を
-どうするか検討が必要です。
-
-**申込み方法**
-
-まずはケアマネジャーに
-相談しましょう。`);
+【**申込み方法**】
+まずはケアマネジャーに相談しましょう。`);
 
 },
 
 "グループホーム":(leadText)=>{
 
-const body = `【認知症対応型共同生活介護（グループホーム）】
+const body = `認知症対応型共同生活介護（グループホーム）
 
-**役割**
+【**役割**】
+認知症の方が、少人数で共同生活をしながら、その人らしい生活を続けることを目指します。
 
-認知症の方が、少人数で
-共同生活をしながら、その人らしい
-生活を続けることを目指します。
+【**対象者**】
+要支援2または要介護1以上で、認知症の診断がある方
 
-**対象者**
-
-要支援2または要介護1以上で、
-認知症の診断がある方が
-対象です。
-
-**施設体制**
-
+【**施設体制**】
 ■医療
-医師による診察や訪問診療などを
-受けながら生活します。
-
-医療的な対応には限りが
-あります。
+医師による診察や訪問診療などを受けながら生活しますが、医療的な対応には限りがあります。
 
 ■看護
-看護師の配置は施設によって
-異なります。
-
-訪問看護などの外部サービスを
-利用する場合もあります。
-
-■介護
-少人数の家庭的な環境で、
-介護職員が食事・排泄・入浴などの
-日常生活を支援します。
-
-できることは自分で行いながら、
-生活そのものを支える介護を
-受けます。`;
+看護師の配置は施設によって異なります。訪問看護などの外部サービスを利用する場合もあります。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -5043,7 +5081,7 @@ addBotMessage(`【なぜ転院が必要なの？】
 
 など、
 
-その時の状態に合った病院へ
+そのときの状態に合った病院へ
 転院をお願いすることがあります。
 
 「まだ治っていないから退院」
@@ -5168,7 +5206,7 @@ addBotMessage(`【地域包括ケア病棟】
 レスパイト入院は、
 対象となる病院の
 退院支援部門の方へ
-ご相談下さい。`);
+ご相談ください。`);
 },
 
 "自分はどちら？":()=>{
@@ -5323,17 +5361,7 @@ const transitions = {
 
       if(text === "はい"){
 
-        addBotMessage(`医療的な処置を続けながら、
-看取りまで対応できる療養先として、
-
-**医療療養病棟**・**介護医療院**
-
-が選択肢になります。
-
-同じ病院に両方が
-併設されている場合もあります。
-
-気になる方を選んでください。`);
+        menuModules["介護医療院"]();
 
       }
 
@@ -5343,37 +5371,6 @@ const transitions = {
 
       if(text === "はい"){
         return "facilityMatchQ4Result";
-      }
-
-      return "facilityMatchQ5";
-
-    }
-
-  },
-
-  facilityMatchQ5:{
-
-    reducer:(text)=>{
-
-      if(text === "はい"){
-
-        menuModules["緩和ケア病棟とは？"](`身体的・精神的なケアを
-受けながら過ごせる場所として、
-
-**緩和ケア病棟**
-
-が合っている可能性があります。`);
-
-        addNextFacilityButton("facilityMatchQ6");
-
-      }
-
-    },
-
-    next:(text)=>{
-
-      if(text === "はい"){
-        return "facilityMatchResult";
       }
 
       return "facilityMatchQ6";
@@ -5910,7 +5907,7 @@ quickSearchMenu:{
   next:(text)=>{
 
     if(text==="医療費"){
-      return "medicalConcernMenu";
+      return "reduceCostMenu";
     }
 
     if(text==="介護保険（施設入所）"){
@@ -5965,8 +5962,7 @@ purpose:{
       return "intakeStep2Inpatient";
     }
 
-    // 「通院しています」「通院している医療機関はありません」は
-    // 現時点では同じ内容を使う（今後、必要に応じて分ける）
+    // 「通院しています」の場合
     return "intakeStep2Outpatient";
 
   }
@@ -5981,6 +5977,10 @@ intakeStep2Inpatient:{
       state.user.mainConcern = text;
     }
 
+    if(text==="医療費"){
+      showInpatientCostBreakdown();
+    }
+
   },
 
   next:(text)=>{
@@ -5990,7 +5990,7 @@ intakeStep2Inpatient:{
     }
 
     if(text==="医療費"){
-      return "medicalConcernMenu";
+      return "inpatientCostResult";
     }
 
     if(text==="退院後の生活"){
@@ -6897,13 +6897,13 @@ reduceCostMenu:{
   reducer:(text)=>{
 
     if(text==="自立支援医療（更生医療）"){
-      showReduceCostResult("jiritsu");
+      showKouseiIryouDetail();
     }
     else if(text==="指定難病"){
       showNanbyoIntro();
     }
     else if(text==="特定疾病療養受療証"){
-      showReduceCostResult("tousekiTokutei");
+      showTokuteishippeiDetail();
     }
     else if(text==="肝炎医療費助成"){
       showKanenIntro();
@@ -6942,52 +6942,12 @@ reduceCostMenu:{
 
 },
 
-highCostOutInSelect:{
-
-  reducer:(text)=>{
-
-    if(text==="外来"){
-
-      addBotMessage(`【高額療養費制度（外来）】
-
-外来（通院）でかかった医療費も、1か月の自己負担額には上限があります。
-
-複数の医療機関を受診した場合は、自己負担額を合算できる場合があります（世帯合算）。
-
-マイナ保険証を利用すれば、窓口での支払いが自動的に自己負担限度額までになります。
-
-マイナ保険証を使わない場合は、加入している保険者へ「限度額適用認定証」の申請が必要です。
-
-限度額を超えて支払った分は、後から申請すれば払い戻しを受けられる場合もあります。`);
-
-    }else if(text==="入院"){
-
-      addBotMessage(`【高額療養費制度（入院）】
-
-入院でかかった医療費も、1か月の自己負担額には上限があります。
-
-マイナ保険証を利用すれば、窓口での支払いが自動的に自己負担限度額までになります。
-
-マイナ保険証を使わない場合は、事前に「限度額適用認定証」を保険者へ申請しておくと、入院時の窓口負担を自己負担限度額までに抑えられます。
-
-食事代や差額ベッド代などは、高額療養費の対象外となり、別途自己負担が必要です。`);
-
-    }
-
-  },
-
-  next:(text)=>{
-    return "reduceCostResult";
-  }
-
-},
-
 reduceCostQ1:{
 
   reducer:(text)=>{
 
     if(text==="はい"){
-      showReduceCostResult("jiritsu");
+      showKouseiIryouDetail();
     }
 
   },
@@ -7171,7 +7131,116 @@ reduceCostQ7:{
       return "reduceCostResult";
     }
 
-    return "reduceCostMenu";
+    return "reduceCostFinalMenu";
+
+  }
+
+},
+
+reduceCostFinalMenu:{
+
+  reducer:(text)=>{},
+
+  next:(text)=>{
+    return "reduceCostFinalMenu";
+  }
+
+},
+
+medicalCostSummarySelect:{
+
+  reducer:(text)=>{
+
+    if(text === "決定"){
+
+      if(state.user.medicalCostSummaryItems.length){
+        generateMedicalCostSummaryPdf();
+      }else{
+        addBotMessage(`共有したい内容を、
+1つ以上選んでください。`);
+      }
+
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text === "決定"
+      &&
+      state.user.medicalCostSummaryItems.length
+    ){
+      return "medicalCostSummaryResult";
+    }
+
+    return "medicalCostSummarySelect";
+
+  }
+
+},
+
+transferSummarySelect:{
+
+  reducer:(text)=>{
+
+    if(text === "決定"){
+
+      if(state.user.transferSummaryItems.length){
+        generateTransferSummaryPdf();
+      }else{
+        addBotMessage(`共有したい内容を、
+1つ以上選んでください。`);
+      }
+
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text === "決定"
+      &&
+      state.user.transferSummaryItems.length
+    ){
+      return "transferSummaryResult";
+    }
+
+    return "transferSummarySelect";
+
+  }
+
+},
+
+facilitySummarySelect:{
+
+  reducer:(text)=>{
+
+    if(text === "決定"){
+
+      if(state.user.facilitySummaryItems.length){
+        generateFacilitySummaryPdf();
+      }else{
+        addBotMessage(`共有したい内容を、
+1つ以上選んでください。`);
+      }
+
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text === "決定"
+      &&
+      state.user.facilitySummaryItems.length
+    ){
+      return "facilitySummaryResult";
+    }
+
+    return "facilitySummarySelect";
 
   }
 
@@ -7892,156 +7961,6 @@ function getResumeScreen(){
 const FAMILY_MEMBER_OPTIONS = ["父","母","兄","姉","弟","妹","配偶者","長男","長女","次男","次女","三男","三女","孫1","孫2","孫3"];
 
 // 複数選択トグル画面を共通で描画する
-// （supportSystemsと同じ考え方。同じ画面のまま
-// 　トグルし、間に発言が挟まっても正しく置き換える）
-// ADL（歩行・排泄・入浴）を、項目ごとにグループ分けして
-// 1画面でまとめて選べるようにする（グループ内は単一選択）
-const ADL_BEFORE_GROUPS = [
-  {
-    heading:"歩行",
-    field:"walkingBefore",
-    options:["何も捕まらずに歩けた","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","一人では歩けない","わからない"]
-  },
-  {
-    heading:"排泄（場所）",
-    field:"toiletPlaceBefore",
-    options:["トイレ","ポータブルトイレ","わからない"]
-  },
-  {
-    heading:"排泄（動作）",
-    field:"toiletAssistBefore",
-    options:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
-  },
-  {
-    heading:"入浴",
-    field:"bathBefore",
-    options:["自宅風呂　自立","自宅風呂　介助","デイサービス等で介助","わからない"]
-  }
-];
-
-const ADL_NOW_GROUPS = [
-  {
-    heading:"歩行",
-    field:"walkingNow",
-    options:["何も捕まらず歩ける","伝え歩き・手引き歩行","歩行器使えば一人で歩ける","歩行器使いながら介助が必要","歩けない","わからない"]
-  },
-  {
-    heading:"排泄（場所）",
-    field:"toiletPlaceNow",
-    options:["病棟トイレ","ポータブルトイレ","わからない"]
-  },
-  {
-    heading:"排泄（動作）",
-    field:"toiletAssistNow",
-    options:["排泄動作　自立","拭き取りや上げ下げ　介助","失禁","わからない"]
-  },
-  {
-    heading:"入浴",
-    field:"bathNow",
-    options:["シャワー自立","シャワー介助","寝たまま入る","体拭き","わからない"]
-  }
-];
-
-function renderAdlGroupedSelect(groups, nextLabel, onNext){
-
-  const area = document.getElementById("choiceButtons");
-
-  area.style.display = "none";
-
-  const chatEl = document.getElementById("chat");
-
-  if(
-    currentInlineButtonsInfo.screen === state.currentScreen
-    &&
-    currentInlineButtonsInfo.element
-    &&
-    currentInlineButtonsInfo.element.parentNode === chatEl
-  ){
-    chatEl.removeChild(currentInlineButtonsInfo.element);
-  }
-
-  const wrapper = document.createElement("div");
-
-  wrapper.className = "inline-buttons";
-
-  groups.forEach(group=>{
-
-    const heading = document.createElement("div");
-
-    heading.className = "toggle-group-heading";
-
-    heading.innerText = group.heading;
-
-    wrapper.appendChild(heading);
-
-    group.options.forEach(opt=>{
-
-      const btn = document.createElement("button");
-
-      const currentValue =
-        group.field ? state.user[group.field] : group.get();
-
-      const isSelected = currentValue === opt;
-
-      btn.className =
-        "inline-button" + (isSelected ? " selected" : "");
-
-      const labelSpan = document.createElement("span");
-
-      labelSpan.className = "inline-button-label";
-
-      labelSpan.innerText = opt;
-
-      btn.appendChild(labelSpan);
-
-      btn.onclick = ()=>{
-
-        if(group.field){
-          state.user[group.field] = opt;
-        }else{
-          group.set(opt);
-        }
-
-        renderAdlGroupedSelect(groups, nextLabel, onNext);
-
-      };
-
-      wrapper.appendChild(btn);
-
-    });
-
-  });
-
-  const nextBtn = document.createElement("button");
-
-  nextBtn.className = "inline-button highlight";
-
-  const nextLabelSpan = document.createElement("span");
-
-  nextLabelSpan.className = "inline-button-label";
-
-  nextLabelSpan.innerText = nextLabel;
-
-  nextBtn.appendChild(nextLabelSpan);
-
-  nextBtn.onclick = ()=>{
-    saveHistory();
-    onNext();
-  };
-
-  wrapper.appendChild(nextBtn);
-
-  chatEl.appendChild(wrapper);
-
-  currentInlineButtonsInfo = {
-    screen:state.currentScreen,
-    element:wrapper
-  };
-
-  requestAnimationFrame(updateScrollHint);
-
-}
-
 function renderToggleMultiSelect(options, arrayField, extraButtons, groupBreaks){
 
   groupBreaks = groupBreaks || [];
@@ -8735,6 +8654,341 @@ function generateCareServiceSummaryPdf(){
 
 }
 
+/* =========================================
+   医療費まとめ（あなたに合った相談：
+   プロフィールに基づく入院医療費の内容＋
+   辞書編の医療費助成制度の各内容を
+   選んで1つのPDFにまとめる）
+========================================= */
+
+// addBotMessage()を一時的に横取りして、
+// 既存のshowXxx()系関数（チャットに直接
+// メッセージを追加する形の関数）が生成する
+// テキストを、画面に表示せずに文字列として
+// 取り出すためのヘルパー。
+// 各showXxx()関数はaddBotMessage()を
+// 1回だけ呼ぶ設計になっているため、
+// この方法で安全にテキストだけ取得できる。
+function captureBotMessages(fn){
+
+  const originalAddBotMessage = window.addBotMessage;
+  const originalAddStandaloneInlineButton = window.addStandaloneInlineButton;
+  const captured = [];
+
+  window.addBotMessage = (text)=>{
+    captured.push(text);
+  };
+
+  // 転院・施設案内などの一部の関数は、本文の後に
+  // 「費用の目安を見る」等の追加ボタンを画面に出す
+  // ものがある。まとめPDF生成中はチャット画面を
+  // 更新したくないため、ここでも無効化しておく。
+  window.addStandaloneInlineButton = ()=>{};
+
+  try{
+    fn();
+  }finally{
+    window.addBotMessage = originalAddBotMessage;
+    window.addStandaloneInlineButton = originalAddStandaloneInlineButton;
+  }
+
+  return captured.join("\n\n");
+
+}
+
+const MEDICAL_COST_SUMMARY_ITEMS = [
+  "プロフィールを加味した入院医療費の内容",
+  "マル障（重度心身障害者医療費助成）",
+  "自立支援医療（更生医療）",
+  "特定疾病療養受療証",
+  "肝炎医療費助成",
+  "指定難病",
+  "小児慢性特定疾病"
+];
+
+const MEDICAL_COST_SUMMARY_CONTENT_GETTERS = {
+
+  "プロフィールを加味した入院医療費の内容":()=>
+    captureBotMessages(()=>showInpatientCostBreakdown()),
+
+  "マル障（重度心身障害者医療費助成）":()=>
+    REDUCE_COST_INFO.judo,
+
+  "自立支援医療（更生医療）":()=>
+    captureBotMessages(()=>showKouseiIryouDetail()),
+
+  "特定疾病療養受療証":()=>
+    captureBotMessages(()=>showTokuteishippeiDetail()),
+
+  "肝炎医療費助成":()=>
+    captureBotMessages(()=>showKanenIntro()),
+
+  "指定難病":()=>
+    captureBotMessages(()=>showNanbyoIntro()),
+
+  "小児慢性特定疾病":()=>
+    captureBotMessages(()=>showShomanIntro())
+
+};
+
+function buildMedicalCostSummaryHtml(){
+
+  const items = state.user.medicalCostSummaryItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\*\*/g,"")
+    .replace(/\[\[|\]\]/g,"");
+
+  const sections = items.map(label=>{
+
+    const getter = MEDICAL_COST_SUMMARY_CONTENT_GETTERS[label];
+
+    if(!getter){
+      return "";
+    }
+
+    const text = getter();
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-bottom:6px;">${esc(label)}</div>
+        <div style="white-space:pre-wrap;">${esc(text)}</div>
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　医療費について
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${sections}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※くわしい内容や、実際に利用できるかどうかは、加入している保険者や医療機関、お住まいの市区町村の窓口へご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateMedicalCostSummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildMedicalCostSummaryHtml(),
+    "医療費について.pdf",
+    "医療費について"
+  );
+
+}
+
+/* =========================================
+   転院まとめ（あなたに合った相談：
+   転院理由チェックで該当した内容を
+   選んで1つのPDFにまとめる）
+========================================= */
+
+const TRANSFER_SUMMARY_ITEMS = [
+  "地域包括ケア病棟",
+  "回復期リハビリテーション病院",
+  "緩和ケア病棟",
+  "医療療養病棟",
+  "介護医療院"
+];
+
+const TRANSFER_SUMMARY_CONTENT_GETTERS = {
+
+  "地域包括ケア病棟":()=>
+    captureBotMessages(()=>menuModules["地域包括ケア病棟とは？"]()),
+
+  "回復期リハビリテーション病院":()=>
+    captureBotMessages(()=>menuModules["回復期リハビリテーション病院とは？"]()),
+
+  "緩和ケア病棟":()=>
+    captureBotMessages(()=>menuModules["緩和ケア病棟とは？"]()),
+
+  "医療療養病棟":()=>
+    captureBotMessages(()=>menuModules["療養型の病院とは"]()),
+
+  "介護医療院":()=>
+    captureBotMessages(()=>menuModules["介護医療院"]())
+
+};
+
+function buildTransferSummaryHtml(){
+
+  const items = state.user.transferSummaryItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\*\*/g,"")
+    .replace(/\[\[|\]\]/g,"");
+
+  const sections = items.map(label=>{
+
+    const getter = TRANSFER_SUMMARY_CONTENT_GETTERS[label];
+
+    if(!getter){
+      return "";
+    }
+
+    const text = getter();
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-bottom:6px;">${esc(label)}</div>
+        <div style="white-space:pre-wrap;">${esc(text)}</div>
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　転院について
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${sections}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※くわしい内容や、実際に選べるかどうかは、入院している病院の退院支援担当者へご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateTransferSummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildTransferSummaryHtml(),
+    "転院について.pdf",
+    "転院について"
+  );
+
+}
+
+/* =========================================
+   施設まとめ（あなたに合った相談：
+   施設マッチングで該当した内容を
+   選んで1つのPDFにまとめる）
+========================================= */
+
+const FACILITY_SUMMARY_ITEMS = [
+  "介護老人保健施設（老健）",
+  "特別養護老人ホーム（特養）",
+  "介護医療院",
+  "医療特化型有料老人ホーム",
+  "グループホーム"
+];
+
+const FACILITY_SUMMARY_CONTENT_GETTERS = {
+
+  "介護老人保健施設（老健）":()=>
+    captureBotMessages(()=>showRoukenExplanation()),
+
+  "特別養護老人ホーム（特養）":()=>
+    captureBotMessages(()=>showTokuyouExplanation()),
+
+  "介護医療院":()=>
+    captureBotMessages(()=>menuModules["介護医療院"]()),
+
+  "医療特化型有料老人ホーム":()=>
+    captureBotMessages(()=>menuModules["医療特化型有料老人ホーム"]()),
+
+  "グループホーム":()=>
+    captureBotMessages(()=>menuModules["グループホーム"]())
+
+};
+
+function buildFacilitySummaryHtml(){
+
+  const items = state.user.facilitySummaryItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\*\*/g,"")
+    .replace(/\[\[|\]\]/g,"");
+
+  const sections = items.map(label=>{
+
+    const getter = FACILITY_SUMMARY_CONTENT_GETTERS[label];
+
+    if(!getter){
+      return "";
+    }
+
+    const text = getter();
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-bottom:6px;">${esc(label)}</div>
+        <div style="white-space:pre-wrap;">${esc(text)}</div>
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　施設について
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${sections}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※くわしい内容や、実際に利用できるかどうかは、担当のケアマネジャーやMSWへご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateFacilitySummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildFacilitySummaryHtml(),
+    "施設について.pdf",
+    "施設について"
+  );
+
+}
+
 function generatePreAdmissionSummaryPdf(){
 
   generateHtmlSummaryPdf(
@@ -9348,11 +9602,23 @@ ${tableText}
   const monthlyDiaper = DIAPER_PLAN_DAILY_COST * 30;
   const total = medicalCost + monthlyMeal + monthlyCsSet + monthlyDiaper;
 
+  let profileBlock =
+`【あなたのプロフィール】
+健康保険証：${state.user.insurance}
+限度額区分：${state.user.limit}`;
+
+  if(state.user.supportSystems && state.user.supportSystems.length){
+    profileBlock += `
+受給者証等：${state.user.supportSystems.join("、")}`;
+  }
+
   addBotMessage(`【1か月の入院費の目安】
 
 あなたのプロフィールをもとに
 計算した、1か月あたりの
 目安です。
+
+${profileBlock}
 
 ■医療費（自己負担上限額）
 約${formatYen(medicalCost)}${subsidyNote}
@@ -9503,17 +9769,20 @@ function renderButtons(){
 
     addInlineButtons([
       {
-        label:"医療療養病棟について見る",
+        label:"次の施設へ",
         onclick:()=>{
           saveHistory();
-          showIryouRyouyouAndButtons();
+          state.currentScreen = "facilityMatchQ6";
+          renderScreen();
         }
       },
       {
-        label:"介護医療院について見る",
+        label:"相談共有",
+        highlight:true,
         onclick:()=>{
           saveHistory();
-          showKaigoIryouinAndButtons();
+          state.currentScreen = "facilitySummarySelect";
+          renderScreen();
         }
       }
     ]);
@@ -9558,6 +9827,16 @@ function renderButtons(){
 
     }
 
+    resultButtons.push({
+      label:"相談共有",
+      highlight:true,
+      onclick:()=>{
+        saveHistory();
+        state.currentScreen = "facilitySummarySelect";
+        renderScreen();
+      }
+    });
+
     addInlineButtons(resultButtons);
 
     ensureScrollRoom();
@@ -9570,7 +9849,17 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addInlineButtons([]);
+    addInlineButtons([
+      {
+        label:"相談共有",
+        highlight:true,
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "transferSummarySelect";
+          renderScreen();
+        }
+      }
+    ]);
 
     ensureScrollRoom();
 
@@ -9667,6 +9956,134 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "reduceCostFinalMenu"){
+
+    area.style.display = "none";
+
+    addInlineButtons([
+      {
+        label:"あなたに合った相談トップに戻る",
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "purpose";
+          renderScreen();
+        }
+      },
+      {
+        label:"相談内容の共有",
+        highlight:true,
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "medicalCostSummarySelect";
+          renderScreen();
+        }
+      }
+    ]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "medicalCostSummarySelect"){
+
+    renderToggleMultiSelect(
+      MEDICAL_COST_SUMMARY_ITEMS,
+      "medicalCostSummaryItems",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }],
+      [{
+        index:1,
+        heading:"医療費助成制度について"
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "medicalCostSummaryResult"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "transferSummarySelect"){
+
+    renderToggleMultiSelect(
+      TRANSFER_SUMMARY_ITEMS,
+      "transferSummaryItems",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "transferSummaryResult"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilitySummarySelect"){
+
+    renderToggleMultiSelect(
+      FACILITY_SUMMARY_ITEMS,
+      "facilitySummaryItems",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "facilitySummaryResult"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "outpatientCostResult"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
   if(state.currentScreen === "facilityCompareResult"){
 
     area.style.display = "none";
@@ -9709,7 +10126,7 @@ function renderButtons(){
 
       renderNanbyoSearch();
 
-      addInlineButtons([]);
+      addInlineButtons(getReduceCostShareNextButtons("nanbyo"));
 
       ensureScrollRoom();
 
@@ -9731,6 +10148,7 @@ function renderButtons(){
           label:"特定疾病療養受療証",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showTokuteishippeiDetail();
             renderButtons();
           }
@@ -9739,6 +10157,7 @@ function renderButtons(){
           label:"身体障害者手帳（腎機能障害）",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showReduceCostResult("touseki_techou");
             renderButtons();
           }
@@ -9747,6 +10166,7 @@ function renderButtons(){
           label:"重度心身障害者医療費助成",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -9755,29 +10175,7 @@ function renderButtons(){
           label:"自立支援医療（更生医療）",
           onclick:()=>{
             saveHistory();
-            showKouseiIryouDetail();
-            renderButtons();
-          }
-        }
-      );
-
-    }
-
-    if(state.reduceCostTopic === "touseki_techou"){
-
-      inlineButtons.push(
-        {
-          label:"重度心身障害者医療費助成制度",
-          onclick:()=>{
-            saveHistory();
-            showReduceCostResult("touseki_juudo");
-            renderButtons();
-          }
-        },
-        {
-          label:"自立支援医療（更生医療）",
-          onclick:()=>{
-            saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -9793,6 +10191,7 @@ function renderButtons(){
           label:"特定疾病療養受療証",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showTokuteishippeiDetail();
             renderButtons();
           }
@@ -9801,6 +10200,7 @@ function renderButtons(){
           label:"身体障害者手帳",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showReduceCostResult("ketsuyu_techou");
             renderButtons();
           }
@@ -9809,6 +10209,7 @@ function renderButtons(){
           label:"重度心身障害者医療費助成",
           onclick:()=>{
             saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showReduceCostResult("touseki_juudo");
             renderButtons();
           }
@@ -9817,29 +10218,7 @@ function renderButtons(){
           label:"自立支援医療（更生医療）",
           onclick:()=>{
             saveHistory();
-            showKouseiIryouDetail();
-            renderButtons();
-          }
-        }
-      );
-
-    }
-
-    if(state.reduceCostTopic === "ketsuyu_techou"){
-
-      inlineButtons.push(
-        {
-          label:"重度心身障害者医療費助成制度",
-          onclick:()=>{
-            saveHistory();
-            showReduceCostResult("touseki_juudo");
-            renderButtons();
-          }
-        },
-        {
-          label:"自立支援医療（更生医療）",
-          onclick:()=>{
-            saveHistory();
+            state.reduceCostSuppressShareNext = true;
             showKouseiIryouDetail();
             renderButtons();
           }
@@ -9854,6 +10233,14 @@ function renderButtons(){
         onclick:()=>window.open(link.url,"_blank")
       });
     });
+
+    if(state.reduceCostSuppressShareNext){
+      state.reduceCostSuppressShareNext = false;
+    }else{
+      inlineButtons.push(
+        ...getReduceCostShareNextButtons(state.reduceCostTopic)
+      );
+    }
 
     addInlineButtons(inlineButtons);
 
@@ -10316,8 +10703,9 @@ function renderButtons(){
       "入院の医療費についても知りたい",
       ()=>{
         saveHistory();
-        state.currentScreen = "medicalConcernMenu";
-        renderScreen();
+        showHighCostInpatient();
+        state.currentScreen = "outpatientCostResult";
+        renderButtons();
       }
     );
 
@@ -10453,7 +10841,25 @@ function renderButtons(){
 
   let buttons = [];
 
-  if(state.currentScreen === "insurance"){
+  if(state.currentScreen === "medicalConcernMenu"){
+
+    if(state.user.currentSituation === "入院しています"){
+
+      buttons = ["入院費がいくらかかるか知りたい","医療費を軽くする制度を知りたい"];
+
+    }else if(state.user.currentSituation === "通院しています"){
+
+      buttons = ["外来費がいくらかかるか知りたい","医療費を軽くする制度を知りたい"];
+
+    }else{
+
+      buttons = screens.medicalConcernMenu.buttons;
+
+    }
+
+  }
+
+  else if(state.currentScreen === "insurance"){
 
     buttons = validators.insuranceButtons();
 
@@ -10949,33 +11355,40 @@ function showKouseiIryouDetail(){
   let body =
 `【自立支援医療（更生医療）】
 
-身体障害者手帳をお持ちの
-18歳以上の方が対象です。
-
-人工透析など、障害の程度を
+身体障害者手帳に係る障害を
 軽くしたり、機能を回復
-させたりする医療について、
-自己負担が原則1割になります
-（所得に応じて上限あり）。
+させたりするための医療を
+受けるとき、医療費の自己負担を
+軽減できる制度です。
 
-【適応日】
-申請（受理）した日から
-適用されます。`;
+【対象者】
+身体障害者手帳をお持ちの
+18歳以上の方で、その障害に
+対する治療によって
+改善が見込まれる方
+（人工透析、心臓ペースメーカーの
+植込み、臓器移植後の
+抗免疫療法など）。
+
+【医療費助成】
+自己負担が原則1割になります
+（所得に応じて月額上限あり）。`;
 
   // 生活保護
   if(u.insurance === "生活保護"){
 
     body += `
 
-【あなたのプロフィール】
 保険：生活保護
-
-【医療費自己負担（月額上限）】
-0円`;
+自己負担（月額上限）：0円`;
 
     body += `
 
-【申請先】
+【適応日】
+申請（受理）した日から
+適用されます。
+
+【備考】
 お住まいの市区町村の
 障害福祉窓口へ
 申請します。`;
@@ -11045,7 +11458,6 @@ function showKouseiIryouDetail(){
 
     body += `
 
-【あなたのプロフィール】
 住民税：非課税世帯
 （${basisLabel}）
 
@@ -11063,7 +11475,6 @@ function showKouseiIryouDetail(){
 
     body += `
 
-【あなたのプロフィール】
 住民税：課税世帯
 （${basisLabel}）
 
@@ -11079,7 +11490,7 @@ function showKouseiIryouDetail(){
 未入力のため、課税・非課税の
 判定ができません。
 
-【医療費自己負担（月額上限）の目安】
+自己負担（月額上限）の目安：
 
 住民税非課税世帯
 　→ 2,500円 または 5,000円／月
@@ -11091,7 +11502,11 @@ function showKouseiIryouDetail(){
 
   body += `
 
-【申請先】
+【適応日】
+申請（受理）した日から
+適用されます。
+
+【備考】
 お住まいの市区町村の
 障害福祉窓口へ
 申請します。`;
@@ -11140,11 +11555,18 @@ function showTokuteishippeiDetail(){
   let body =
 `【特定疾病療養受療証】
 
-人工透析・血友病・HIVなど、
 長期間にわたり継続して
-高額な医療費がかかる病気の方が
-対象になります。
+高額な医療費がかかる病気について、
+1つの医療機関での自己負担に
+上限を設ける制度です。
 
+【対象者】
+・人工透析が必要な慢性腎不全
+・血友病
+・HIVによる血液凝固因子障害
+の治療を受けている方
+
+【医療費助成】
 1つの医療機関での自己負担が
 1か月あたり1万円
 （上位所得の方は2万円）
@@ -11172,7 +11594,6 @@ function showTokuteishippeiDetail(){
 
     body += `
 
-【あなたの場合】
 限度額区分：${u.limit}
 
 通常の高額療養費の
@@ -11193,11 +11614,11 @@ ${formatYen(yourAmount)}／月
 
   body += `
 
-【制度適応日】
+【適応日】
 保険者に申請した日の
 月から適用されます。
 
-【申請先】
+【備考】
 加入している健康保険
 （保険者）へ申請します。`;
 
@@ -11227,18 +11648,23 @@ function showNanbyoIntro(){
 
 厚生労働省が定める疾病について、
 医療費助成を受けられる制度です。
-病名や重症度によって
-対象となるかどうかが異なります。`;
+
+【対象者】
+指定難病（348疾病）と診断され、
+病名や重症度が
+医療費助成の基準に
+該当する方。`;
+
+  body += `
+
+【医療費助成】`;
 
   // 生活保護
   if(u.insurance === "生活保護"){
 
     body += `
-
-【プロフィール情報】
 保険：生活保護
 
-【医療費助成】
 **難病に関する受診のみ**
 自己負担0円になります。`;
 
@@ -11276,12 +11702,9 @@ function showNanbyoIntro(){
     if(taxStatus === "非課税"){
 
       body += `
-
-【プロフィール情報】
 住民税：非課税世帯
 （${basisLabel}）
 
-【医療費助成】
 **難病に関する受診のみ**、
 自己負担が2,500円～5,000円
 （月額上限）になります。
@@ -11292,12 +11715,9 @@ function showNanbyoIntro(){
     }else if(taxStatus === "課税"){
 
       body += `
-
-【プロフィール情報】
 住民税：課税世帯
 （${basisLabel}）
 
-【医療費助成】
 **難病に関する受診のみ**、
 3割負担が2割負担へ軽減され、
 自己負担は月額10,000円～30,000円
@@ -11307,12 +11727,10 @@ function showNanbyoIntro(){
     }else{
 
       body += `
-
 限度額区分・食費区分が
 未入力のため、課税・非課税の
 判定ができません。
 
-【医療費助成】
 **難病に関する受診のみ**、
 3割負担が2割負担へ軽減され、
 月額の自己負担上限額が
@@ -11334,13 +11752,14 @@ function showNanbyoIntro(){
 かかります。決定後、還付と
 なります。
 
-詳しくは、お住まいの都道府県・
-保健所、市区町村やかかりつけ
-医療機関へお問い合わせください。
-
+【備考】
 対象疾病（348疾病）は、
 病名や告示番号でこの場で
-検索できます。`;
+検索できます。
+
+詳しくは、お住まいの都道府県・
+保健所、市区町村やかかりつけ
+医療機関へお問い合わせください。`;
 
   addBotMessage(body);
 
@@ -11362,21 +11781,26 @@ function showShomanIntro(){
   let body =
 `【小児慢性特定疾病医療費助成】
 
+小児慢性特定疾病にかかる
+医療費の自己負担を
+軽減できる制度です。
+
+【対象者】
 18歳未満（引き続き治療が
 必要と認められる場合は
 20歳未満まで）で、
-小児慢性特定疾病に該当する場合、
-医療費助成を受けられる
-可能性があります。`;
+小児慢性特定疾病に
+該当する方。`;
+
+  body += `
+
+【医療費助成】`;
 
   if(u.insurance === "生活保護"){
 
     body += `
-
-【プロフィール情報】
 保険：生活保護
 
-【医療費助成】
 **小児慢性特定疾病に関する
 受診のみ**
 自己負担0円になります。
@@ -11416,12 +11840,9 @@ function showShomanIntro(){
     if(taxStatus === "非課税"){
 
       body += `
-
-【プロフィール情報】
 住民税：非課税世帯
 （${basisLabel}）
 
-【医療費助成】
 **小児慢性特定疾病に関する
 受診のみ**、自己負担が
 1,250円～2,500円
@@ -11433,12 +11854,9 @@ function showShomanIntro(){
     }else if(taxStatus === "課税"){
 
       body += `
-
-【プロフィール情報】
 住民税：課税世帯
 （${basisLabel}）
 
-【医療費助成】
 **小児慢性特定疾病に関する
 受診のみ**、自己負担が
 月額5,000円～15,000円
@@ -11448,12 +11866,10 @@ function showShomanIntro(){
     }else{
 
       body += `
-
 限度額区分・食費区分が
 未入力のため、課税・非課税の
 判定ができません。
 
-【医療費助成】
 **小児慢性特定疾病に関する
 受診のみ**、月額の自己負担
 上限額が設定されます
@@ -11474,6 +11890,7 @@ function showShomanIntro(){
 かかることがあります。
 決定後、還付となります。
 
+【備考】
 詳しくは、お住まいの都道府県・
 保健所、市区町村やかかりつけ
 医療機関へお問い合わせください。`;
@@ -11555,14 +11972,15 @@ B型肝炎・C型肝炎の治療
 核酸アナログ製剤治療など）が
 必要と診断された方。`;
 
+  body += `
+
+【医療費助成】`;
+
   if(u.insurance === "生活保護"){
 
     body += `
-
-【プロフィール情報】
 保険：生活保護
 
-【医療費助成】
 **肝炎治療に関する受診のみ**
 自己負担額が軽減される
 可能性があります。
@@ -11576,12 +11994,9 @@ B型肝炎・C型肝炎の治療
     if(taxInfo.status === "非課税"){
 
       body += `
-
-【プロフィール情報】
 住民税：非課税世帯
 （${taxInfo.basisLabel}）
 
-【医療費助成】
 **肝炎治療に関する受診のみ**、
 自己負担が月額[[10,000円]]
 （上限）になります。`;
@@ -11601,12 +12016,9 @@ B型肝炎・C型肝炎の治療
         isHighIncome ? "20,000円" : "10,000円";
 
       body += `
-
-【プロフィール情報】
 住民税：課税世帯
 （${taxInfo.basisLabel}）
 
-【医療費助成】
 **肝炎治療に関する受診のみ**、
 自己負担が月額
 [[${yourAmount}]]（上限）に
@@ -11615,12 +12027,10 @@ B型肝炎・C型肝炎の治療
     }else{
 
       body += `
-
 限度額区分・食費区分が
 未入力のため、課税・非課税の
 判定ができません。
 
-【医療費助成】
 **肝炎治療に関する受診のみ**、
 月額の自己負担上限額が
 10,000円～20,000円の範囲で
@@ -11640,6 +12050,7 @@ B型肝炎・C型肝炎の治療
 申請から2〜3か月程度
 かかります。
 
+【備考】
 詳しくは、お住まいの都道府県・
 保健所へご相談ください。`;
 
@@ -12335,6 +12746,7 @@ const menuScreens = [
   "transferMenu",
 
 "medicalConcernMenu",
+"highCostOutInSelect",
 "medicalCostMenu",
 "paymentProblemMenu",
 "paymentIncomeResult",
@@ -12391,7 +12803,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro","outpatientCostResult","reduceCostFinalMenu","medicalCostSummaryResult","transferSummaryResult","facilitySummaryResult"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -12566,9 +12978,6 @@ function saveHistory(){
         ? null
         : state.careServiceContentIndex,
 
-    adlSummaryShown:
-      state.adlSummaryShown || false,
-
     disease40to64Shown:
       state.disease40to64Shown || false,
 
@@ -12620,9 +13029,6 @@ function goBack(){
     (prev.careServiceContentIndex === undefined)
       ? null
       : prev.careServiceContentIndex;
-
-  state.adlSummaryShown =
-    prev.adlSummaryShown || false;
 
   state.disease40to64Shown =
     prev.disease40to64Shown || false;
@@ -12995,7 +13401,6 @@ function goToStart(){
   state.careServiceViewedItems = [];
   state.careServiceActiveItem = null;
   state.careServiceContentIndex = null;
-  state.adlSummaryShown = false;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
   state.homeDischargeTopic = "";
@@ -13075,7 +13480,6 @@ function resetApp(){
   state.careServiceViewedItems = [];
   state.careServiceActiveItem = null;
   state.careServiceContentIndex = null;
-  state.adlSummaryShown = false;
   state.disease40to64Shown = false;
   state.pendingCostBreakdown = false;
 
@@ -13130,6 +13534,9 @@ function resetApp(){
   bathNow:"",
   transferCompareItems:[],
   careServiceSummaryItems:[],
+  medicalCostSummaryItems:[],
+  transferSummaryItems:[],
+  facilitySummaryItems:[],
   medicalProcedureContinuity:{},
   medicalProcedureQueueIndex:0
 };
