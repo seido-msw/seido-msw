@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <title>相談員 みちさん｜医療・福祉制度ナビ</title>
 <meta name="description" content="相談員みちさんは、入院・転院・医療費・介護保険・施設探しなど、医療や福祉の制度をわかりやすく案内するチャットボットです。あなたの状況に合わせて、使える制度を一緒に確認できます。">
@@ -43,6 +43,7 @@ body{
 
   height:100vh;
   height:100svh;
+  height:100dvh;
 
   display:flex;
   flex-direction:column;
@@ -451,7 +452,7 @@ body{
   gap:8px;
 
   padding:12px 12px;
-  padding-bottom:12px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));
 
   border-top:2px solid #1D4A54;
   background:#2B6777;
@@ -659,7 +660,10 @@ text:`夜でも、休日でも。
 気になったときに、いつでも相談してください。
 
 医療・介護・福祉の制度や支援について、
-一緒に整理します。`,
+一緒に整理します。
+
+---
+現役の医療ソーシャルワーカーが作成しています。一般的な情報のご案内です。最終的な判断は、担当のMSW・ケアマネ等にご確認ください。`,
     buttons:["みちさんに相談する","相談員みちさんとは"]
   },
 
@@ -733,7 +737,6 @@ text:`ご協力ありがとうございました。
   profileChoice:{
 text:`ありがとうございます。
 
-進め方を選んでください。
 📋 **あなたに合った制度を調べる**
 　年齢や保険などを最初に伺い、心配事やわからないことを一緒に整理していきます。
 
@@ -741,6 +744,7 @@ text:`ありがとうございます。
 💬 **かんたん検索**
 　分からないことを簡単に調べられます。
 
+---
 入力していただいた内容は、このブラウザの中だけに一時的に保存され、どこにも送信・保存されません。ブラウザを閉じると自動的に消えます。`,
     buttons:["あなたに合った制度を調べる","かんたん検索"]
   },
@@ -11068,7 +11072,10 @@ function scheduleScrollToLastQuestion(){
 
     }else{
 
-      const messages = chat.querySelectorAll(".message");
+      // 自分の回答（.message.user）を先頭に
+      // 表示してしまわないよう、みちさんの
+      // メッセージ（.message.bot）のみを対象にする
+      const messages = chat.querySelectorAll(".message.bot");
 
       const lastMessage =
         messages.length ? messages[messages.length - 1] : null;
