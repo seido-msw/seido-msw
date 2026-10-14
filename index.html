@@ -709,7 +709,7 @@ text:`ありがとうございました。
 
   surveyQ1:{
     text:"今回、何について相談しましたか？",
-    buttons:["医療費・お金","退院後の生活","介護・介護保険","制度・サービス","その他"]
+    buttons:["医療費・お金","退院後の生活","介護・介護保険","施設入所","その他"]
   },
 
   surveyQ2:{
@@ -13273,6 +13273,7 @@ const GOOGLE_FORM_VALUE_MAP = {
     "退院後の生活":"退院後の生活",
     "介護・介護保険":"介護・介護保険",
     "制度・サービス":"制度",
+    "施設入所":"その他",
     "その他":"その他"
   },
 
@@ -13304,15 +13305,39 @@ const GOOGLE_FORM_VALUE_MAP = {
    actionUrl と entries を設定すると、こちらに送信する。
    空のままなら、これまでのフォームに送信する。 */
 const DEMO_FORM_CONFIG = {
-  actionUrl:"",
+  actionUrl:"https://docs.google.com/forms/d/e/1FAIpQLSeEnDdG0mhvAdTrQmfQdiSBnQQnC2mqZUQIkMd57YA1rdLIwQ/formResponse",
   entries:{
-    venue:       "",
-    ageGroup:    "",
-    category:    "",
-    rating:      "",
-    clarified:   "",
-    willConsult: "",
-    freeText:    ""
+    venue:       "entry.1238439199",
+    ageGroup:    "entry.1969467401",
+    category:    "entry.1953425869",
+    rating:      "entry.1351053431",
+    clarified:   "entry.1585277753",
+    willConsult: "entry.207684239",
+    freeText:    "entry.93216728"
+  }
+};
+
+// アプリ内の文言 → デモ用フォームの選択肢文言
+const DEMO_FORM_VALUE_MAP = {
+  ageGroup:{
+    "60代未満":"60代未満","60代":"60歳代","70代":"70歳代","80代以上":"80歳以上"
+  },
+  category:{
+    "医療費・お金":"医療費","退院後の生活":"退院後の生活",
+    "介護・介護保険":"介護保険","施設入所":"施設入所",
+    "制度・サービス":"その他","その他":"その他"
+  },
+  rating:{
+    "とても分かりやすい":"とてもわかりやすかった","分かりやすい":"わかりやすかった",
+    "普通":"普通","やや分かりにくい":"わかりづらい","分かりにくい":"とてもわかりづらかった"
+  },
+  clarified:{
+    "とてもそう思う":"とても思う","そう思う":"そう思う",
+    "どちらともいえない":"どちらとも言えない","あまり思わない":"あまり思わない",
+    "思わない":"全く思わない"
+  },
+  willConsult:{
+    "はい":"はい","まだ分からない":"まだわからない","いいえ":"いいえ"
   }
 };
 
@@ -13322,12 +13347,14 @@ function submitToDemoForm(){
   const e = DEMO_FORM_CONFIG.entries;
   const formData = new FormData();
 
-  formData.append(e.venue, ANALYTICS_CONTEXT.venue || "");
-  formData.append(e.ageGroup, d.ageGroup || "");
-  formData.append(e.category, d.category || "");
-  formData.append(e.rating, d.ratingLabel || "");
-  formData.append(e.clarified, d.clarified || "");
-  formData.append(e.willConsult, d.willConsult || "");
+  const M = DEMO_FORM_VALUE_MAP;
+
+  formData.append(e.venue, ANALYTICS_CONTEXT.venue || "不明");
+  formData.append(e.ageGroup, M.ageGroup[d.ageGroup] || d.ageGroup || "");
+  formData.append(e.category, M.category[d.category] || d.category || "");
+  formData.append(e.rating, M.rating[d.ratingLabel] || d.ratingLabel || "");
+  formData.append(e.clarified, M.clarified[d.clarified] || d.clarified || "");
+  formData.append(e.willConsult, M.willConsult[d.willConsult] || d.willConsult || "");
   formData.append(e.freeText, d.freeText || "");
 
   fetch(
@@ -13339,7 +13366,7 @@ function submitToDemoForm(){
 
 function submitToGoogleForm(){
 
-  if(DEMO_FORM_CONFIG.actionUrl){
+  if(DEMO_FORM_CONFIG.actionUrl && DEMO_FORM_CONFIG.entries.venue){
     try{ submitToDemoForm(); }catch(err){}
     return;
   }
