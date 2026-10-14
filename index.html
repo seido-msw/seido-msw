@@ -584,6 +584,7 @@ const state = {
   profileCollected:false,
 
   surveyData:{
+    ageGroup:"",
     category:"",
     rating:0,
     ratingLabel:"",
@@ -642,6 +643,8 @@ user:{
   medicalCostSummaryItems:[],
   transferSummaryItems:[],
   facilitySummaryItems:[],
+  elderlySummaryItems:[],
+  elderlyStep:-1,
   medicalProcedureContinuity:{},
   medicalProcedureQueueIndex:0
 },
@@ -665,7 +668,7 @@ text:`夜でも、休日でも。
 一緒に整理します。
 
 ---
-現役の医療ソーシャルワーカーが作成しています。一般的な情報のご案内です。最終的な判断は、担当のMSW・ケアマネ等にご確認ください。`,
+現役の医療ソーシャルワーカーが作成しています。一般的な情報のご案内です。最終的な判断は、退院支援担当者・ケアマネ等にご確認ください。`,
     buttons:["みちさんに相談する","相談員みちさんとは"]
   },
 
@@ -697,6 +700,11 @@ text:`ありがとうございました。
 
 **回答は任意です。**`,
     buttons:["アンケートに回答する","今回は回答しない"]
+  },
+
+  surveyQ0:{
+    text:"差し支えなければ、\nあなたの年代を教えてください。",
+    buttons:["60代未満","60代","70代","80代以上"]
   },
 
   surveyQ1:{
@@ -747,12 +755,12 @@ text:`ありがとうございます。
 　分からないことを簡単に調べられます。
 
 ---
-入力していただいた内容は、このブラウザの中だけに一時的に保存され、どこにも送信・保存されません。ブラウザを閉じると自動的に消えます。`,
+入力していただいた内容は、このブラウザの中だけに一時的に保存され、サーバーには送信されません。ブラウザを閉じると自動的に消えます。\n\nなお、どの画面が見られたかという利用状況は、個人を特定しない形で集計し、サービスの改善に使います。`,
     buttons:["あなたに合った制度を調べる","かんたん検索"]
   },
 
 quickSearchMenu:{
-  text:"どのことについて調べますか？",
+  text:"知りたいことを選んでください。",
   buttons:["医療費","介護保険について","介護保険（施設入所）","転院","緩和ケア・看取り","高齢になってからの入院"]
 },
 
@@ -763,12 +771,12 @@ purpose:{
 
 intakeStep2Inpatient:{
   text:"今、一番気になっていることは\n何ですか？",
-  buttons:["医療費","退院後の生活"]
+  buttons:["医療費","退院後の生活","高齢になってからの入院"]
 },
 
 intakeStep2Outpatient:{
   text:"今、一番気になっていることは\n何ですか？",
-  buttons:["医療費","介護保険について","何を相談したらいいか分からない"]
+  buttons:["医療費","介護保険について","高齢になってからの入院"]
 },
 
 outpatientMedicalCostIntro:{
@@ -1142,6 +1150,21 @@ transferSummarySelect:{
 },
 
 transferSummaryResult:{
+  text:"",
+  buttons:[]
+},
+
+elderlyRouteResult:{
+  text:"",
+  buttons:[]
+},
+
+elderlySummarySelect:{
+  text:"共有したい内容を\n選んでください。\n（複数選択できます）",
+  buttons:[]
+},
+
+elderlySummaryResult:{
   text:"",
   buttons:[]
 },
@@ -2190,13 +2213,13 @@ const FAMILY_DECISION_INFO =
 本人が以前に話していたこと、大切にしていた価値観、希望していた生活のかたちなど、「本人だったらどう考えるか」を手がかりにします。文書に残っていなくても、日頃の会話や様子から本人の意思を推し量ることも大切な手がかりになります。
 
 【**家族だけで抱え込まない**】
-治療方針の判断は、ご家族だけで決めるものではありません。医師・看護師・MSW等の医療チームと一緒に、本人にとって何が最善かを話し合いながら決めていくものです。迷ったときは遠慮なくご相談ください。
+治療方針の判断は、ご家族だけで決めるものではありません。医師・看護師・退院支援担当者等の医療チームと一緒に、本人にとって何が最善かを話し合いながら決めていくものです。迷ったときは遠慮なくご相談ください。
 
 【**判断に「正解」はない**】
 本人を思って出した結論に、間違いはありません。後になって迷いや後悔の気持ちが出てくることもありますが、それは本人を大切に思っていたからこそです。
 
 【**相談先**】
-現在の主治医、看護師、MSW等へご相談ください。`;
+現在の主治医、看護師、退院支援担当者等へご相談ください。`;
 
 /* =========================================
    CARE SERVICE INFO（介護サービスについて）
@@ -2325,7 +2348,7 @@ const CARE_SERVICE_INFO = {
 サービスを先に利用開始できます。
 
 退院までのスケジュールが心配な場合は、
-早めに病院のMSWへご相談ください。
+早めに病院の退院支援担当者へご相談ください。
 申請のタイミングを一緒に調整します。`,
 
   alreadyCertified:
@@ -2363,7 +2386,7 @@ const CARE_SERVICE_INFO = {
 
 【ケアマネジャーの決め方】
 
-医療機関のMSWや
+医療機関の退院支援担当者や
 地域包括支援センターを通して、
 打診することが多いです。`
 
@@ -2603,8 +2626,8 @@ const HOME_DISCHARGE_INFO = {
 必要な処置の内容によって、
 利用できるサービスが異なります。
 
-くわしくは、担当のMSWまたは
-退院支援看護師へご相談ください。`,
+くわしくは、退院支援担当者や
+看護師へご相談ください。`,
 
   adl:
 `【身の回りのことが一人では難しくなった】
@@ -2644,7 +2667,7 @@ const HOME_DISCHARGE_INFO = {
 サービスの使い方もあります。
 
 まずは、担当ケアマネジャーや
-MSWへご相談ください。`,
+退院支援担当者へご相談ください。`,
 
   alone:
 `【一人暮らし、または日中一人になる】
@@ -2684,7 +2707,7 @@ MSWへご相談ください。`,
 （人生会議・ACP）も大切です。
 
 くわしくは、
-主治医や担当MSWへ
+主治医や退院支援担当者へ
 ご相談ください。`,
 
   unclearNeeds:
@@ -2693,7 +2716,7 @@ MSWへご相談ください。`,
 何が必要か分からないときは、
 一人で悩まなくて大丈夫です。
 
-担当の医療ソーシャルワーカー（MSW）が、
+退院支援担当者が、
 今の状況を一緒に整理しながら、
 必要な支援を考えます。
 
@@ -3479,7 +3502,7 @@ function showPreAdmissionMatchResult(){
 
 退院までに主治医や看護師さんへ
 「この状態は今後も続きそうか」
-を聞いておくと、担当のMSWとの
+を聞いておくと、退院支援担当者との
 相談もスムーズに進みます。`);
 
     state.currentScreen = "preAdmissionResult";
@@ -3529,7 +3552,7 @@ ${reasonLines}
 
 退院までに主治医や看護師さんへ
 「この状態は今後も続きそうか」
-を確認しておくと、担当のMSWとの
+を確認しておくと、退院支援担当者との
 相談もスムーズに進みます。
 
 もし今の場所への退院が
@@ -3782,7 +3805,7 @@ const body = `介護老人保健施設（老健）
 リハビリ専門職からのリハビリテーションが可能。
 
 【**申込み**】
-まずはケアマネやMSW等に相談しましょう。`;
+まずはケアマネや退院支援担当者等に相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -3808,7 +3831,7 @@ const body = `特別養護老人ホーム（特養）
 看護師は基本的に日中のみの勤務のため、夜間の医療処置（吸引や点滴等）は対応出来ない場合が多いです。
 
 【**申込み方法**】
-まずはケアマネもしくはMSW等に相談しましょう。`;
+まずはケアマネもしくは退院支援担当者等に相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -4354,7 +4377,7 @@ addBotMessage(`療養型の病院とは
 ■介護医療院（介護保険）
 医療療養病棟の基準以外の、おおむね要介護4程度の方が対象です。
 
-病院や施設によって受け入れ体制は異なりますので、入院している退院支援担当者へ確認が必要です。
+病院や施設によって受け入れ体制は異なりますので、入院している病院の退院支援担当者へ確認が必要です。
 
 【**費用**】
 ■医療療養病棟
@@ -4405,7 +4428,7 @@ addBotMessage(`【自宅でも医療処置は受けられる？】
 総合的に判断します。
 
 「自宅に帰りたい」という希望がある場合は、
-主治医や担当MSWへご相談ください。
+主治医や退院支援担当者へご相談ください。
 
 ご本人やご家族の希望を伺いながら、
 安心して生活できる方法を一緒に考えていきます。`);
@@ -4499,7 +4522,7 @@ addBotMessage(`【緩和ケア病棟以外の選択肢】
 利用できる施設やサービスは、
 必要な医療処置や病状によって異なります。
 
-担当MSWと相談しながら、
+退院支援担当者と相談しながら、
 ご本人に合った療養場所を
 一緒に考えていきます。`);
 },
@@ -4512,9 +4535,16 @@ addBotMessage(`【緩和ケア病棟以外の選択肢】
 
 addBotMessage(`入院で体の力が落ちやすい理由
 
-病気やけがの治療のために安静にすることは、同時に筋力や体力を落とす原因にもなります。特に高齢の方は、短期間の入院でも、歩く力や食べる力が入院前の状態まで戻らないことがあります。
+【**入院中に起こること**】
+病気やけがの治療のためにベッド安静にすることは、同時に筋力や体力を落とす原因にもなります。特に高齢の方は、短期間の入院でも、入院前の状態まで戻らないことがあります。
 
-できるだけ体を動かす機会を保つことや、入院中からリハビリに取り組むことが、回復の助けになります。気になる場合は、主治医やリハビリ担当者にご相談ください。`);
+【**回復の助けになること**】
+次のような取り組みが、回復の助けになります。
+・リハビリ
+・着替えや食事、トイレなどを、できるだけ自分で行うこと
+
+【**退院・施設に移れる場合**】
+退院できる、介護施設に移れる等であれば、病院から出た方が体力や筋力が戻りやすくなります。病院よりも生活動作が増えるためです。`);
 
 },
 
@@ -4522,9 +4552,19 @@ addBotMessage(`入院で体の力が落ちやすい理由
 
 addBotMessage(`入院で混乱が起きやすい理由
 
-入院による環境の変化は、高齢の方に一時的な混乱（せん妄）を引き起こすことがあります。見慣れない場所、生活リズムの変化、体調不良などが重なることで起こりやすくなります。
+【**起こりやすい混乱**】
+入院による環境の変化は、高齢の方に一時的な混乱（せん妄）を引き起こすことがあります。多くは治療中だけの一時的な状態ですが、認知機能の低下のきっかけになることもあります。
 
-多くは治療中だけの一時的な状態ですが、認知機能の低下のきっかけになることもあります。ご家族の面会や、使い慣れたものを身近に置くことが、落ち着きを取り戻す助けになることがあります。`);
+【**起こりやすくなる要因**】
+次のようなことが重なると起こりやすくなります。
+・見慣れない場所
+・生活リズムの変化
+・体調不良
+
+【**落ち着きを取り戻す助けになること**】
+次のようなことが、落ち着きを取り戻す助けになることがあります。
+・ご家族の面会
+・使い慣れたものを身近に置くこと`);
 
 },
 
@@ -4532,21 +4572,39 @@ addBotMessage(`入院で混乱が起きやすい理由
 
 addBotMessage(`「治す」以外の選択肢
 
-治療には、病気を治すことを目指す以外に、本人ができるだけ穏やかに、負担なく過ごせることを目指すという考え方もあります。
+【**治療の考え方**】
+治療には、次のような考え方があります。
+・病気を治すことを目指す
+・ご本人ができるだけ穏やかに、負担なく過ごせることを目指す
+　（痛みや苦しさをやわらげる、住み慣れた場所で過ごす など）
 
-どちらが正しいということではなく、本人の状態や希望に合わせて、医療者と一緒に考えていくことが大切です。迷ったときは、主治医やMSW等にご相談ください。`);
+どちらが正しいということではなく、ご本人の状態や希望に合わせて、医療者と一緒に考えていくことが大切です。
+
+【**相談先**】
+迷ったときは、主治医や退院支援担当者等にご相談ください。`);
 
 },
 
 "代わりに判断するとき":()=>{
 
-addBotMessage(`家族が本人に代わって意思決定をする
+addBotMessage(`ご家族がご本人に代わって意思決定をする
 
-本人の意思確認が難しい状況で、ご家族が治療方針について判断を求められることがあります。
+ご本人の意思確認が難しい状況で、ご家族が治療方針について判断を求められることがあります。
 
-本人が以前に話していたことや大切にしていた価値観、日頃の様子などを手がかりに、「本人だったらどう考えるか」を考えていきます。判断はご家族だけで抱え込むものではなく、医師や看護師、MSW等の医療チームと一緒に、本人にとって何が最善かを話し合いながら決めていくものです。
+【**考える手がかり**】
+「ご本人だったらどう考えるか」を、次のようなことを手がかりに考えていきます。
+・ご本人が以前に話していたこと
+・大切にしていた価値観
+・日頃の様子
 
-出した結論に「正解」はなく、本人を思って出した判断に間違いはありません。迷ったときは、主治医や看護師、MSW等にご相談ください。`);
+【**一人で抱え込まない**】
+判断はご家族だけで抱え込むものではなく、医師や看護師、退院支援担当者等の医療チームと一緒に、ご本人にとって何が最善かを話し合いながら決めていくものです。
+
+【**判断に「正解」はない**】
+出した結論に「正解」はなく、ご本人を思って考え抜いた判断を、間違いと決めつける必要はありません。
+
+【**相談先**】
+迷ったときは、主治医や看護師、退院支援担当者等にご相談ください。`);
 
 },
 
@@ -4654,7 +4712,7 @@ addBotMessage(`医療療養病棟
 介護職員が、食事・排泄・入浴などの日常生活を支援します。
 
 【**申込み方法**】
-まずは主治医や担当MSWに相談しましょう。`);
+まずは主治医や退院支援担当者に相談しましょう。`);
 
 },
 
@@ -4679,7 +4737,7 @@ const body = `医療特化型有料老人ホーム
 公的な基準額がなく、施設ごとに料金を設定しています。医療対応が手厚い分、比較的費用が高くなる傾向があります。
 
 【**申込み方法**】
-まずは主治医や担当MSWに相談しましょう。`;
+まずは主治医や退院支援担当者に相談しましょう。`;
 
 addBotMessage(leadText ? (leadText + "\n\n" + body) : body);
 
@@ -4825,7 +4883,7 @@ addBotMessage(`【施設の費用にかかわる制度について】
 収入・資産・世帯の状況によって
 異なります。
 
-くわしくは、担当MSWや
+くわしくは、退院支援担当者や
 ケアマネジャー、市区町村の
 窓口へご相談ください。`);
 
@@ -4883,11 +4941,11 @@ addBotMessage(`【なぜ転院が必要なの？】
 希望どおりにならない場合も
 あります。
 
-担当MSWが転院先探しを
+退院支援担当者が転院先探しを
 お手伝いします。
 
 不安なことがあれば、
-主治医や担当MSWへ
+主治医や退院支援担当者へ
 ご相談ください。`);
 },
 
@@ -4938,7 +4996,7 @@ addBotMessage(`【自分はどちら？】
 
 退院後の生活などを総合的に判断して決まります。
 
-詳しくは主治医や担当MSWへ
+詳しくは主治医や退院支援担当者へ
 ご相談ください。`);
 },
 
@@ -4962,7 +5020,7 @@ addBotMessage(`【入院期間】
 addBotMessage(`【転院先は選べる？】
 
 希望する地域や病院がある場合は、
-担当MSWへご相談ください。
+退院支援担当者へご相談ください。
 
 病状や受入状況によっては
 希望どおりにならない場合もありますが、
@@ -5145,7 +5203,7 @@ const transitions = {
 
 など、他にも考慮する点があります。
 
-担当の医療ソーシャルワーカー（MSW）や
+退院支援担当者や
 ケアマネジャーと相談しながら、
 ご本人に合った施設を
 一緒に選びましょう。`);
@@ -5316,7 +5374,7 @@ const transitions = {
 
 など、他にも考慮する点があります。
 
-担当の医療ソーシャルワーカー（MSW）や
+退院支援担当者や
 主治医と相談しながら、
 必要な転院先を一緒に
 確認しましょう。`);
@@ -5345,7 +5403,7 @@ const transitions = {
 
         addBotMessage(`承知しました。
 気になることがあれば、
-いつでも担当のMSWへ
+いつでも退院支援担当者へ
 ご相談ください。`);
 
       }
@@ -5465,6 +5523,7 @@ const transitions = {
     if(text==="アンケートに回答する"){
 
       state.surveyData = {
+        ageGroup:"",
         category:"",
         rating:0,
         ratingLabel:"",
@@ -5473,12 +5532,24 @@ const transitions = {
         freeText:""
       };
 
-      return "surveyQ1";
+      return "surveyQ0";
 
     }
 
     return "start";
 
+  }
+
+},
+
+  surveyQ0:{
+
+  reducer:(text)=>{
+    state.surveyData.ageGroup = text;
+  },
+
+  next:()=>{
+    return "surveyQ1";
   }
 
 },
@@ -5681,6 +5752,10 @@ intakeStep2Inpatient:{
       showInpatientCostBreakdown();
     }
 
+    if(text==="高齢になってからの入院"){
+      elderlyRouteReducer(ELDERLY_ROUTE_ORDER[0]);
+    }
+
   },
 
   next:(text)=>{
@@ -5695,6 +5770,10 @@ intakeStep2Inpatient:{
 
     if(text==="退院後の生活"){
       return "dischargeMenu";
+    }
+
+    if(text==="高齢になってからの入院"){
+      return "elderlyRouteResult";
     }
 
     if(text==="介護・福祉"){
@@ -5722,6 +5801,10 @@ intakeStep2Outpatient:{
       showOutpatientMedicalCostIntro();
     }
 
+    if(text==="高齢になってからの入院"){
+      elderlyRouteReducer(ELDERLY_ROUTE_ORDER[0]);
+    }
+
     if(text!=="何を相談したらいいか分からない"){
       state.user.mainConcern = text;
     }
@@ -5740,6 +5823,10 @@ intakeStep2Outpatient:{
 
     if(text==="介護保険について"){
       return careServiceNext("介護保険サービスとは");
+    }
+
+    if(text==="高齢になってからの入院"){
+      return "elderlyRouteResult";
     }
 
     if(text==="医療費助成の制度"){
@@ -5763,6 +5850,9 @@ intakeStep2Unclear:{
 
   reducer:(text)=>{
     state.user.mainConcern = text;
+    if(text==="介護"){
+      careServiceReducer("介護保険サービスとは");
+    }
   },
 
   next:(text)=>{
@@ -5776,7 +5866,7 @@ intakeStep2Unclear:{
     }
 
     if(text==="介護"){
-      return "mainMenu";
+      return careServiceNext("介護保険サービスとは");
     }
 
     if(text==="お金"){
@@ -6884,6 +6974,63 @@ medicalCostSummarySelect:{
 
 },
 
+/* ---------- 高齢になってからの入院（インテーク：1本ルート） ---------- */
+
+elderlyRouteResult:{
+
+  reducer:(text)=>{
+    elderlyRouteReducer(text);
+  },
+
+  next:()=>{
+    return "elderlyRouteResult";
+  }
+
+},
+
+elderlySummarySelect:{
+
+  reducer:(text)=>{
+
+    if(text === "決定"){
+
+      if(state.user.elderlySummaryItems.length){
+        generateElderlySummaryPdf();
+      }else{
+        addBotMessage(`共有したい内容を、
+1つ以上選んでください。`);
+      }
+
+    }
+
+  },
+
+  next:(text)=>{
+
+    if(
+      text === "決定"
+      &&
+      state.user.elderlySummaryItems.length
+    ){
+      return "elderlySummaryResult";
+    }
+
+    return "elderlySummarySelect";
+
+  }
+
+},
+
+elderlySummaryResult:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "elderlySummaryResult";
+  }
+
+},
+
 transferSummarySelect:{
 
   reducer:(text)=>{
@@ -7328,7 +7475,7 @@ summaryOfferCheck:{
 
       addBotMessage(`承知しました。
 気になることがあれば、
-いつでも担当のMSWへ
+いつでも退院支援担当者へ
 ご相談ください。`);
 
     }
@@ -7973,7 +8120,7 @@ function buildProfileSummaryText(){
   text += `
 この内容は、このブラウザを閉じるまで
 一時的に保存されます。
-外部やサーバーには送信・保存されません。
+入力内容は外部やサーバーには送信されません。
 
 間違いがある場合は、
 「プロフィールをリセット」から
@@ -8051,7 +8198,7 @@ function buildPreAdmissionSummaryHtml(){
       <div style="white-space:pre-wrap;">${esc(capabilityText)}</div>
 
       <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
-        ※この内容はあくまで一般的な目安です。実際の状況については、入院している病院の退院支援担当者・医療ソーシャルワーカー（MSW）へご相談ください。
+        ※この内容はあくまで一般的な目安です。実際の状況については、入院している病院の退院支援担当者へご相談ください。
       </div>
 
     </div>
@@ -8266,7 +8413,7 @@ function buildTransferCompareHtml(){
       ${cards}
 
       <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
-        ※この内容はあくまで一般的な目安です。実際にどの選択肢が合っているかは、入院している病院の退院支援担当者・医療ソーシャルワーカー（MSW）へご相談ください。
+        ※この内容はあくまで一般的な目安です。実際にどの選択肢が合っているかは、入院している病院の退院支援担当者へご相談ください。
       </div>
 
     </div>
@@ -8597,6 +8744,97 @@ function generateTransferSummaryPdf(){
 }
 
 /* =========================================
+   高齢になってからの入院（あなたに合った相談：
+   1本ルートで説明し、各項目で相談共有・次へ。
+   共有は選んだ内容を1つのPDFにまとめる）
+========================================= */
+
+const ELDERLY_ROUTE_ORDER = [
+  "体力が落ちやすい理由",
+  "混乱が起きやすい理由",
+  "治す以外の選択肢",
+  "代わりに判断するとき"
+];
+
+function elderlyRouteReducer(label){
+
+  const idx = ELDERLY_ROUTE_ORDER.indexOf(label);
+
+  if(idx < 0){
+    return;
+  }
+
+  state.user.elderlyStep = idx;
+
+  menuModules[label]();
+
+}
+
+const ELDERLY_SUMMARY_ITEMS = ELDERLY_ROUTE_ORDER;
+
+function buildElderlySummaryHtml(){
+
+  const items = state.user.elderlySummaryItems;
+
+  const now = new Date();
+
+  const dateStr =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  const esc = (s) => s
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/\*\*/g,"")
+    .replace(/\[\[|\]\]/g,"");
+
+  const sections = items.map(label=>{
+
+    if(!menuModules[label]){
+      return "";
+    }
+
+    const text = captureBotMessages(()=>menuModules[label]());
+
+    return `
+      <div style="margin-top:20px; padding:16px; border:1px solid #ddd; border-radius:8px;">
+        <div style="font-size:16px; font-weight:bold; color:#2B6777; margin-bottom:6px;">${esc(label)}</div>
+        <div style="white-space:pre-wrap;">${esc(text)}</div>
+      </div>
+    `;
+
+  }).join("");
+
+  return `
+    <div style="padding:40px; font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; color:#333; line-height:1.8; font-size:14px;">
+
+      <div style="font-size:22px; font-weight:bold; color:#2B6777; border-bottom:3px solid #2B6777; padding-bottom:10px; margin-bottom:4px;">
+        相談員　みちさん　高齢になってからの入院
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:8px;">作成日：${dateStr}</div>
+
+      ${sections}
+
+      <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
+        ※くわしい内容は、入院している病院の主治医・看護師・退院支援担当者等へご相談ください。
+      </div>
+
+    </div>
+  `;
+
+}
+
+function generateElderlySummaryPdf(){
+
+  generateHtmlSummaryPdf(
+    buildElderlySummaryHtml(),
+    "高齢になってからの入院.pdf",
+    "高齢になってからの入院"
+  );
+
+}
+
+/* =========================================
    施設まとめ（あなたに合った相談：
    施設マッチングで該当した内容を
    選んで1つのPDFにまとめる）
@@ -8675,7 +8913,7 @@ function buildFacilitySummaryHtml(){
       ${sections}
 
       <div style="margin-top:30px; padding:14px; background:#f5efe4; border-radius:8px; font-size:12px; color:#555;">
-        ※くわしい内容や、実際に利用できるかどうかは、担当のケアマネジャーやMSWへご相談ください。
+        ※くわしい内容や、実際に利用できるかどうかは、担当のケアマネジャーや退院支援担当者へご相談ください。
       </div>
 
     </div>
@@ -9356,6 +9594,8 @@ function renderScreen(){
 
   const screen = screens[state.currentScreen];
 
+  trackScreen(state.currentScreen);
+
   let questionText = screen.text;
 
   if(
@@ -9720,6 +9960,83 @@ function renderButtons(){
   }
 
   if(state.currentScreen === "medicalCostSummaryResult"){
+
+    area.style.display = "none";
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "elderlyRouteResult"){
+
+    area.style.display = "none";
+
+    const elderlyIdx = state.user.elderlyStep;
+
+    const elderlyIsLast =
+      (elderlyIdx >= ELDERLY_ROUTE_ORDER.length - 1);
+
+    const elderlyButtons = [
+      {
+        label:"相談共有",
+        highlight:true,
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "elderlySummarySelect";
+          renderScreen();
+        }
+      }
+    ];
+
+    if(elderlyIsLast){
+
+      elderlyButtons.push({
+        label:"あなたに合った相談トップに戻る",
+        onclick:()=>{
+          saveHistory();
+          state.currentScreen = "purpose";
+          renderScreen();
+        }
+      });
+
+    }else{
+
+      elderlyButtons.push({
+        label:"次へ",
+        onclick:()=>handleSelect(ELDERLY_ROUTE_ORDER[elderlyIdx + 1])
+      });
+
+    }
+
+    addInlineButtons(elderlyButtons);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "elderlySummarySelect"){
+
+    renderToggleMultiSelect(
+      ELDERLY_SUMMARY_ITEMS,
+      "elderlySummaryItems",
+      [{
+        label:"決定",
+        highlight:true,
+        onclick:()=>handleSelect("決定")
+      }]
+    );
+
+    requestAnimationFrame(updateScrollHint);
+
+    return;
+
+  }
+
+  if(state.currentScreen === "elderlySummaryResult"){
 
     area.style.display = "none";
 
@@ -12015,7 +12332,7 @@ ${name}に入所すると、介護サービス費のほかに、
 目安です。介護度・所得などに
 よって実際の金額は異なります。
 
-詳しい金額は、担当MSWや
+詳しい金額は、退院支援担当者や
 ケアマネジャーへご相談ください。
 
 ---
@@ -12465,6 +12782,12 @@ function addQuestionCard(text){
 
 function handleSelect(text){
 
+  trackEvent("select_item",{
+    screen_name:state.currentScreen,
+    item_name:String(text).slice(0,40),
+    mode:state.isQuickSearch ? "quick" : "intake"
+  });
+
   saveHistory();
 
   addUserMessage(text);
@@ -12530,7 +12853,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro","outpatientCostResult","reduceCostFinalMenu","medicalCostSummaryResult","transferSummaryResult","facilitySummaryResult"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro","outpatientCostResult","reduceCostFinalMenu","medicalCostSummaryResult","transferSummaryResult","facilitySummaryResult","elderlyRouteResult","elderlySummaryResult"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -12829,6 +13152,68 @@ function rebuildChat(){
 const PROFILE_STORAGE_KEY = "seidoNaviProfile";
 
 /* =========================================
+   利用状況の集計（Google アナリティクス 4）
+   ・GA_MEASUREMENT_ID が空のあいだは、何も送信しない。
+   ・送るのは「見られた画面の名前」「アンケート結果の選択肢」
+     「チラシの場所（URLの v=）」だけ。入力内容や自由記載は送らない。
+   ・QRの読み取り数は、QRのURLに付けた utm_ で区別する。
+========================================= */
+
+const GA_MEASUREMENT_ID = "G-S5RYNWBFSG";
+
+const ANALYTICS_CONTEXT = (function(){
+  try{
+    const q = new URLSearchParams(location.search);
+    return { venue:(q.get("v") || q.get("utm_campaign") || "").slice(0,40) };
+  }catch(e){
+    return { venue:"" };
+  }
+})();
+
+(function initAnalytics(){
+
+  if(!GA_MEASUREMENT_ID) return;
+
+  try{
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+
+    const sc = document.createElement("script");
+    sc.async = true;
+    sc.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA_MEASUREMENT_ID);
+    document.head.appendChild(sc);
+
+    window.gtag("js", new Date());
+    window.gtag("config", GA_MEASUREMENT_ID, {
+      allow_google_signals:false,
+      allow_ad_personalization_signals:false,
+      venue:ANALYTICS_CONTEXT.venue
+    });
+
+  }catch(e){}
+
+})();
+
+function trackEvent(name, params){
+  try{
+    if(!GA_MEASUREMENT_ID || !window.gtag) return;
+    window.gtag("event", name, Object.assign({ venue:ANALYTICS_CONTEXT.venue }, params || {}));
+  }catch(e){}
+}
+
+let _lastTrackedScreen = "";
+
+function trackScreen(name){
+  if(!name || name === _lastTrackedScreen) return;
+  _lastTrackedScreen = name;
+  trackEvent("screen_view",{
+    screen_name:name,
+    mode:state.isQuickSearch ? "quick" : "intake"
+  });
+}
+
+/* =========================================
    MICHI STATS（利用実績・アンケート）
    ※現状はサーバーがないため、
    　このブラウザの中だけに保存されます。
@@ -12915,7 +13300,49 @@ const GOOGLE_FORM_VALUE_MAP = {
 
 };
 
+/* デモ用アンケート（別フォーム）
+   actionUrl と entries を設定すると、こちらに送信する。
+   空のままなら、これまでのフォームに送信する。 */
+const DEMO_FORM_CONFIG = {
+  actionUrl:"",
+  entries:{
+    venue:       "",
+    ageGroup:    "",
+    category:    "",
+    rating:      "",
+    clarified:   "",
+    willConsult: "",
+    freeText:    ""
+  }
+};
+
+function submitToDemoForm(){
+
+  const d = state.surveyData;
+  const e = DEMO_FORM_CONFIG.entries;
+  const formData = new FormData();
+
+  formData.append(e.venue, ANALYTICS_CONTEXT.venue || "");
+  formData.append(e.ageGroup, d.ageGroup || "");
+  formData.append(e.category, d.category || "");
+  formData.append(e.rating, d.ratingLabel || "");
+  formData.append(e.clarified, d.clarified || "");
+  formData.append(e.willConsult, d.willConsult || "");
+  formData.append(e.freeText, d.freeText || "");
+
+  fetch(
+    DEMO_FORM_CONFIG.actionUrl,
+    { method:"POST", mode:"no-cors", body:formData }
+  );
+
+}
+
 function submitToGoogleForm(){
+
+  if(DEMO_FORM_CONFIG.actionUrl){
+    try{ submitToDemoForm(); }catch(err){}
+    return;
+  }
 
   try{
 
@@ -13003,6 +13430,8 @@ function saveSurveyResponse(){
     responses.push({
       timestamp:
         new Date().toISOString(),
+      ageGroup:
+        state.surveyData.ageGroup,
       category:
         state.surveyData.category,
       rating:
@@ -13026,6 +13455,12 @@ function saveSurveyResponse(){
 
   submitToGoogleForm();
 
+  trackEvent("survey_complete",{
+    age_group:state.surveyData.ageGroup || "",
+    topic:state.surveyData.category || "",
+    rating:state.surveyData.rating || 0
+  });
+
 }
 
 /* =========================================
@@ -13044,6 +13479,8 @@ function completeConsultation(){
   saveProfileToSession();
 
   recordConsultationCompleted();
+
+  trackEvent("consultation_complete");
 
 }
 
@@ -13157,7 +13594,7 @@ function goToStart(){
    　通常の相談中だけ表示する）
 ========================================= */
 
-const SURVEY_SCREENS = ["surveyIntro","surveyQ1","surveyQ2","surveyQ3","surveyQ4","surveyQ5","surveyThanks"];
+const SURVEY_SCREENS = ["surveyIntro","surveyQ0","surveyQ1","surveyQ2","surveyQ3","surveyQ4","surveyQ5","surveyThanks"];
 
 function updateFooterVisibility(){
 
@@ -13268,6 +13705,8 @@ function resetApp(){
   medicalCostSummaryItems:[],
   transferSummaryItems:[],
   facilitySummaryItems:[],
+  elderlySummaryItems:[],
+  elderlyStep:-1,
   medicalProcedureContinuity:{},
   medicalProcedureQueueIndex:0
 };
