@@ -107,6 +107,7 @@ body{
   position:relative;
 
   overflow-y:auto;
+  overflow-anchor:none;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
 
@@ -135,7 +136,8 @@ body{
   font-size:15px;
   white-space:pre-wrap;
   overflow-wrap:anywhere;
-  word-break:break-word;
+  word-break:keep-all;
+  line-break:strict;
 }
 
 .message-link{
@@ -158,6 +160,17 @@ body{
   margin-left:auto;
 }
 
+/* プロフィール表：コロンの位置をそろえる */
+.pf-grid{
+  display:grid;
+  grid-template-columns:max-content max-content 1fr;
+  column-gap:.3em;
+  align-items:start;
+}
+.pf-label{white-space:nowrap;}
+.pf-colon{}
+.pf-val{min-width:0;}
+
 .question-card{
   background:#FFFFFF;
   border:2px solid #C5DEE1;
@@ -168,7 +181,8 @@ body{
   margin-right:auto;
   color:#000000;
   overflow-wrap:anywhere;
-  word-break:break-word;
+  word-break:keep-all;
+  line-break:strict;
   white-space:pre-wrap;
   line-height:1.55;
   font-size:15px;
@@ -367,7 +381,15 @@ body{
   -webkit-box-orient:vertical;
 
   overflow:hidden;
+  overflow-wrap:anywhere;
+  word-break:keep-all;
+  line-break:strict;
+  white-space:pre-line;
+}
+
+.inline-button-label.free-wrap{
   word-break:break-word;
+  overflow-wrap:anywhere;
 }
 
 .inline-button.secondary{
@@ -745,13 +767,11 @@ text:`ご協力ありがとうございました。
   },
 
   profileChoice:{
-text:`ありがとうございます。
+text:`【**あなたに合った制度を調べる**】
+年齢や保険などを最初に伺います。
 
-📋 **あなたに合った制度を調べる**
-　年齢や保険などを最初に伺い、心配事やわからないことを一緒に整理していきます。
-
-💬 **かんたん検索**
-　分からないことを簡単に調べられます。
+【**かんたん検索**】
+分からないことを簡単に調べられます。
 
 ---
 入力していただいた内容は、このブラウザの中だけに一時的に保存され、サーバーには送信されません。ブラウザを閉じると自動的に消えます。
@@ -759,6 +779,11 @@ text:`ありがとうございます。
 なお、どの画面が見られたかという利用状況は、個人を特定しない形で集計し、サービスの改善に使います。`,
     buttons:["あなたに合った制度を調べる","かんたん検索"]
   },
+
+intakeNotice:{
+  text:"ご家族のことでご相談の場合は、\u2063\n入院・通院している方\n（患者さん）の情報でお答えください。\n\nこれらの質問は、\u2063\n「本人」＝患者さんのことです。",
+  buttons:["はじめる"]
+},
 
 quickSearchMenu:{
   text:"知りたいことを選んでください。",
@@ -5667,12 +5692,17 @@ const transitions = {
   next:(text)=>{
 
     if(text==="あなたに合った制度を調べる"){
-      return "age";
+      return "intakeNotice";
     }
 
     return "quickSearchMenu";
 
   }
+},
+
+intakeNotice:{
+  reducer:(text)=>{},
+  next:()=>"age"
 },
 
 quickSearchMenu:{
@@ -5713,6 +5743,10 @@ purpose:{
 
   reducer:(text)=>{
 
+    if(text==="プロフィールを編集する"){
+      return;
+    }
+
     if(text==="プロフィールを確認する"){
       addBotMessage(buildProfileSummaryText());
       return;
@@ -5724,6 +5758,10 @@ purpose:{
   },
 
   next:(text)=>{
+
+    if(text==="プロフィールを編集する"){
+      return "age";
+    }
 
     if(text==="プロフィールを確認する"){
       return "profileSummary";
@@ -6069,10 +6107,6 @@ intakeStep2Unclear:{
 
         releaseInfoBox();
 
-        if(!state.profileCollected){
-          addBotMessage("ありがとうございます。\nここまで整理できました。");
-        }
-
         return;
 
       }
@@ -6080,10 +6114,6 @@ intakeStep2Unclear:{
       if(text === "決定"){
 
         releaseInfoBox();
-
-        if(!state.profileCollected){
-          addBotMessage("ありがとうございます。\nここまで整理できました。");
-        }
 
         return;
 
@@ -7862,7 +7892,7 @@ function renderToggleMultiSelect(options, arrayField, extraButtons, groupBreaks)
 
     labelSpan.className = "inline-button-label";
 
-    labelSpan.innerText = breakBeforeParen(text);
+    setButtonLabel(labelSpan, text);
 
     btn.appendChild(labelSpan);
 
@@ -7897,7 +7927,7 @@ function renderToggleMultiSelect(options, arrayField, extraButtons, groupBreaks)
 
     labelSpan.className = "inline-button-label";
 
-    labelSpan.innerText = breakBeforeParen(b.label);
+    setButtonLabel(labelSpan, b.label);
 
     btn.appendChild(labelSpan);
 
@@ -9604,9 +9634,30 @@ function renderScreen(){
     state.profileCollected
   ){
 
+    // プロフィール本文（見出し行と末尾の保存の注記は除く）
+    const full = buildProfileSummaryText();
+    const bodyStart = full.indexOf("\n\n");
+    const noteStart = full.indexOf("\nこの内容は");
+    const profileBody =
+      (bodyStart === -1)
+        ? ""
+        : full.slice(
+            bodyStart + 2,
+            noteStart === -1 ? full.length : noteStart
+          ).trim();
+
+    const profileRows =
+      profileBody
+        .split("\n")
+        .map(l=>(l.includes(": ") && !l.startsWith("（")) ? "\uE002" + l : l)
+        .join("\n");
+
     questionText =
 `プロフィールを教えていただき
 ありがとうございました。
+
+【**現在のプロフィール**】
+${profileRows}
 
 ここからは具体的な相談事を
 伺います。
@@ -9661,7 +9712,7 @@ function renderButtons(){
         highlight:true,
         onclick:()=>{
           saveHistory();
-          state.currentScreen = "age";
+          state.currentScreen = "intakeNotice";
           renderScreen();
         }
       }
@@ -10541,7 +10592,7 @@ function renderButtons(){
 
         labelSpan.className = "inline-button-label";
 
-        labelSpan.innerText = breakBeforeParen(text);
+        setButtonLabel(labelSpan, text);
 
         btn.appendChild(labelSpan);
 
@@ -10969,6 +11020,15 @@ function renderButtons(){
         state.currentScreen
       ].buttons || [];
 
+    // プロフィールを入力済みのときは、ここから直せるようにする
+    if(
+      state.currentScreen === "purpose"
+      &&
+      state.profileCollected
+    ){
+      buttons = buttons.concat(["プロフィールを編集する"]);
+    }
+
   }
 
   area.style.display = "none";
@@ -10986,7 +11046,7 @@ function renderButtons(){
         &&
         LIMIT_BUTTON_LABELS[text]
       ) || text,
-      secondary:(text==="なし"),
+      secondary:(text==="なし" || text==="プロフィールを編集する"),
       highlight:(
         text==="決定"
         ||
@@ -11149,7 +11209,7 @@ function addStandaloneInlineButton(label, onclick){
 
   labelSpan.className = "inline-button-label";
 
-  labelSpan.innerText = breakBeforeParen(label);
+  setButtonLabel(labelSpan, label);
 
   btn.appendChild(labelSpan);
 
@@ -11200,7 +11260,7 @@ function addInlineButtons(buttons){
 
     labelSpan.className = "inline-button-label";
 
-    labelSpan.innerText = breakBeforeParen(b.label);
+    setButtonLabel(labelSpan, b.label);
 
     btn.appendChild(labelSpan);
 
@@ -11252,7 +11312,14 @@ function scrollCareServiceContentIntoView(){
 
     if(!chat) return;
 
-    const el = chat.children[state.careServiceContentIndex];
+    // state.messages の番号は、ボタン塊などを数えないため、
+    // それらを除いた子要素から探す
+    const msgEls = [...chat.children].filter(c =>
+      c.classList.contains("message") ||
+      c.classList.contains("question-card")
+    );
+
+    const el = msgEls[state.careServiceContentIndex];
 
     if(el){
       chat.scrollTop = el.offsetTop - 10;
@@ -11288,34 +11355,27 @@ function scheduleScrollToLastQuestion(){
 
     if(!chat) return;
 
-    const questionCards = chat.querySelectorAll(".question-card");
-
-    const lastQuestionCard =
-      questionCards.length
-        ? questionCards[questionCards.length - 1]
-        : null;
-
-    if(lastQuestionCard){
-
-      chat.scrollTop = lastQuestionCard.offsetTop - 10;
-
-    }else{
-
-      // 自分の回答（.message.user）を先頭に
-      // 表示してしまわないよう、みちさんの
-      // メッセージ（.message.bot）のみを対象にする
-      const messages = chat.querySelectorAll(".message.bot");
-
-      const lastMessage =
-        messages.length ? messages[messages.length - 1] : null;
-
-      if(lastMessage){
-        chat.scrollTop = lastMessage.offsetTop - 10;
-      }else if(chat.lastElementChild){
-        chat.scrollTop =
-          chat.lastElementChild.offsetTop - 10;
-      }
-
+    // 最後の自分の回答の直後（=直近のやりとりの先頭）を一番上に表示する。
+    // 進むときのスクロール（turnStartElement）と同じ位置になる。
+    const skip = el => el.classList.contains("inline-buttons")
+      || el.classList.contains("nanbyo-search-box");
+    let target = null;
+    const users = chat.querySelectorAll(".message.user");
+    if(users.length){
+      let el = users[users.length - 1].nextElementSibling;
+      while(el && skip(el)) el = el.nextElementSibling;
+      target = el;
+    }
+    if(!target){
+      const cards = chat.querySelectorAll(".question-card");
+      target = cards.length ? cards[cards.length - 1] : null;
+    }
+    if(!target){
+      const msgs = chat.querySelectorAll(".message.bot");
+      target = msgs.length ? msgs[msgs.length - 1] : chat.lastElementChild;
+    }
+    if(target){
+      chat.scrollTop = target.offsetTop - 10;
     }
 
     updateScrollHint();
@@ -12700,7 +12760,184 @@ function careServiceNext(text){
    RICH TEXT（**text** を太字に変換）
 ========================================= */
 
+/* =========================================
+   文章の折り返し（文節の区切りで折り返す）
+   ・文の途中に手書きで入っている改行は、表示のときだけつなぐ
+   ・折り返せる位置を「文節の区切り」だけにして、
+     言葉の途中や、助詞の前で折れないようにする
+========================================= */
+
+const PHRASE_MARK = "\uE000";
+
+// 次の語にくっつけて扱う語（接頭語・連体詞など）
+const PHRASE_FORWARD = new Set([
+  "お","ご","この","その","あの","どの","各","新","本","同","全","約","計","再","未","不","無","非","第","毎","当","貴","御","両"
+]);
+
+const PHRASE_OPEN = "「『（(［【〈《〔";
+
+let _phraseSegmenter = null;
+try{
+  if(typeof Intl !== "undefined" && Intl.Segmenter){
+    _phraseSegmenter = new Intl.Segmenter("ja",{granularity:"word"});
+  }
+}catch(e){ _phraseSegmenter = null; }
+
+function _phraseUnits(line){
+
+  const units = [];
+  let carry = "";
+
+  for(const seg of _phraseSegmenter.segment(line)){
+
+    const t = seg.segment;
+
+    // 英数字・記号の塊は分けない
+    const isWord = seg.isWordLike;
+
+    if(carry){
+      units.push(carry + t);
+      carry = "";
+      continue;
+    }
+
+    if(PHRASE_FORWARD.has(t) || (!isWord && PHRASE_OPEN.includes(t) && t.length === 1)){
+      carry = t;
+      continue;
+    }
+
+    const hiraganaShort = /^[ぁ-ん]{1,2}$/.test(t);
+
+    if(units.length && (!isWord || hiraganaShort)){
+      units[units.length-1] += t;
+    }else{
+      units.push(t);
+    }
+
+  }
+
+  if(carry){
+    if(units.length){ units[units.length-1] += carry; }
+    else{ units.push(carry); }
+  }
+
+  // 漢字どうしが続く熟語（「入院前」「介護保険」など）や、
+  // 数字＋漢字（「65歳」など）は、途中で分けない
+  const merged = [];
+  const HAN = /[\u4E00-\u9FFF\u3005\u3007]/;
+  const DIGIT = /[0-9０-９]/;
+  units.forEach(u=>{
+    const prev = merged.length ? merged[merged.length-1] : "";
+    const last = prev.slice(-1);
+    const first = u.charAt(0);
+    if(
+      prev &&
+      first && last &&
+      (
+        (HAN.test(last) && HAN.test(first))
+        ||
+        (DIGIT.test(last) && (HAN.test(first) || DIGIT.test(first)))
+      )
+    ){
+      merged[merged.length-1] = prev + u;
+    }else{
+      merged.push(u);
+    }
+  });
+
+  return merged;
+
+}
+
+function addPhraseMarks(text){
+
+  if(!_phraseSegmenter) return text;
+
+  // URL はそのまま（途中に印を入れない）
+  return String(text).split(/(https?:\/\/[^\s]+)/).map((part,idx)=>{
+
+    if(idx % 2 === 1) return part;
+
+    return part.split("\n").map(line=>{
+      if(!line.trim()) return line;
+      try{ return _phraseUnits(line).join(PHRASE_MARK); }
+      catch(e){ return line; }
+    }).join("\n");
+
+  }).join("");
+
+}
+
+function softJoinLines(text){
+
+  const lines = String(text).split("\n");
+  const out = [];
+
+  const isSpecial = (l)=>
+    l.trim()==="" ||
+    /^(【|・|※|---|\[\[|[①-⑩]|▶|▼|■|●|◆|[0-9０-９]+[\.．)）])/.test(l.trim()) ||
+    l.includes("：") || l.includes("\u3000") ||
+    l.includes(": ") ||      // 「項目: 内容」の行はつなげない
+    l.endsWith("\u2063");   // 行末の目印＝ここで必ず改行する
+
+  for(let i=0;i<lines.length;i++){
+
+    const cur = lines[i];
+    const prev = out.length ? out[out.length-1] : null;
+
+    if(
+      prev !== null &&
+      !isSpecial(prev) &&
+      !isSpecial(cur) &&
+      /[、をにはがでとのもへやかてしくらり]$/.test(prev)
+    ){
+      out[out.length-1] = prev + cur;
+    }else{
+      out.push(cur);
+    }
+
+  }
+
+  return out.join("\n").split("\u2063").join("");
+
+}
+
+function markToWbr(html){
+  return html.split(PHRASE_MARK).join("<wbr>");
+}
+
+/* ボタンの文字：文節の区切りで折り返す */
+function setButtonLabel(span, label){
+
+  // 「（」の手前では、印を入れない
+  // （長いカッコ書きが1行目に残って、文字が切れるのを防ぐ）
+  const escaped =
+    addPhraseMarks(breakBeforeParen(label))
+      .split(PHRASE_MARK + "（").join("（")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;");
+
+  span.innerHTML = markToWbr(escaped);
+
+  // 2行に収まらず切れてしまうときは、これまでの折り返し方に戻す
+  requestAnimationFrame(()=>{
+    try{
+      if(
+        span.isConnected &&
+        span.scrollHeight > span.clientHeight + 1
+      ){
+        span.classList.add("free-wrap");
+        span.textContent = label;
+      }
+    }catch(e){}
+  });
+
+}
+
 function formatRichText(text){
+
+  text = addPhraseMarks(softJoinLines(text));
 
   const escaped =
     text
@@ -12708,8 +12945,25 @@ function formatRichText(text){
       .replace(/</g,"&lt;")
       .replace(/>/g,"&gt;");
 
+  // 行頭に目印（\uE002）がある連続した行は、
+  // 「項目 : 内容」の表にして、コロンの位置をそろえる
+  const withTable =
+    escaped.replace(/(?:\uE002[^\n]*(?:\n|$))+/g, block=>{
+      const rows = block.split("\n").filter(l=>l.length).map(l=>{
+        const body = l.replace(/^\uE002/,"");
+        const i = body.indexOf(": ");
+        if(i === -1){
+          return '<span class="pf-label">' + body + '</span><span></span><span></span>';
+        }
+        return '<span class="pf-label">' + body.slice(0,i) + '</span>'
+          + '<span class="pf-colon">:</span>'
+          + '<span class="pf-val">' + body.slice(i+2) + '</span>';
+      });
+      return '<span class="pf-grid">' + rows.join("") + '</span>';
+    });
+
   const withDivider =
-    escaped.replace(
+    withTable.replace(
       /^---$/gm,
       '<hr class="dotted-divider">'
     );
@@ -12728,10 +12982,10 @@ function formatRichText(text){
     );
 
   // URLをタップできるリンクに変換する
-  return withBox.replace(
+  return markToWbr(withBox.replace(
     /(https?:\/\/[^\s<]+)/g,
     '<a href="$1" target="_blank" rel="noopener" class="message-link">$1</a>'
-  );
+  ));
 
 }
 
@@ -13785,11 +14039,19 @@ function ensureScrollRoom(){
 
   // 先に基準の余白へ戻してから高さを測ることで、
   // 呼び出すたびに余白が積み上がってしまうのを防ぐ
+  // 余白を一瞬戻すと、スクロール位置が上に押し戻されてしまうため、
+  // 位置を覚えておいて、あとで元に戻す
+  const savedTop = chat.scrollTop;
+
   chat.style.paddingBottom = "80px";
 
   const availableHeight = chat.clientHeight;
 
   chat.style.paddingBottom = availableHeight + "px";
+
+  if(chat.scrollTop !== savedTop){
+    chat.scrollTop = savedTop;
+  }
 
 }
 
