@@ -57,7 +57,7 @@ body{
   background:#2B6777;
   color:white;
   padding:2px 14px;
-  font-size:15px;
+  font-size:13px;
   font-weight:bold;
 
   display:flex;
@@ -83,14 +83,14 @@ body{
   color:white;
   border-radius:20px;
   padding:3px 10px;
-  font-size:12px;
+  font-size:14px;
   font-weight:bold;
   white-space:nowrap;
   cursor:pointer;
 }
 
 .version-info{
-  font-size:10px;
+  font-size:12px;
   font-weight:normal;
   opacity:0.85;
   white-space:nowrap;
@@ -124,7 +124,7 @@ body{
   padding:12px;
   margin-bottom:12px;
   line-height:1.7;
-  font-size:12px;
+  font-size:14px;
 }
 
 .message{
@@ -133,7 +133,7 @@ body{
   border-radius:18px;
   margin-bottom:12px;
   line-height:1.6;
-  font-size:15px;
+  font-size:17px;
   white-space:pre-wrap;
   overflow-wrap:anywhere;
   word-break:keep-all;
@@ -185,7 +185,7 @@ body{
   line-break:strict;
   white-space:pre-wrap;
   line-height:1.55;
-  font-size:15px;
+  font-size:17px;
   min-height:calc(4.8em + 20px);
   box-sizing:border-box;
 }
@@ -217,7 +217,7 @@ body{
   background:#FFFFFF;
   color:#000000;
   border:3px solid #2B6777;
-  font-size:15px;
+  font-size:17px;
   padding:20px 18px;
   box-shadow:0 4px 14px rgba(43,103,119,0.15);
 }
@@ -278,7 +278,7 @@ body{
 
 .toggle-group-heading{
   width:100%;
-  font-size:15px;
+  font-size:17px;
   font-weight:bold;
   color:#2B6777;
   border-top:2px dashed #C9BBA2;
@@ -290,7 +290,7 @@ body{
   width:calc(50% - 5px);
   min-width:120px;
 
-  min-height:56px;
+  height:68px;   /* すべてのボタンを同じ大きさにする */
 
   display:flex;
   align-items:center;
@@ -302,22 +302,25 @@ body{
   color:#FFFFFF;
 
   border-radius:14px;
-  padding:8px 26px 8px 12px;
+  padding:6px 22px 6px 6px;
 
   box-shadow:0 5px 0 #1D4A54, 0 6px 8px rgba(0,0,0,0.12);
 
   cursor:pointer;
 }
 
+.inline-button-label.free-wrap{text-wrap:balance;}
+
 .inline-button::after{
   content:"▶";
   position:absolute;
   right:10px;
-  font-size:11px;
+  font-size:12px;
   opacity:0.75;
 }
 
 .nanbyo-search-box{
+  margin-bottom:18px;
   width:100%;
   display:flex;
   flex-direction:column;
@@ -342,7 +345,7 @@ body{
   background:linear-gradient(180deg, #367C8D 0%, #2B6777 100%);
   color:white;
   font-weight:bold;
-  font-size:15px;
+  font-size:16px;
   border:2.5px solid #1D4A54;
   border-radius:12px;
   box-shadow:0 5px 0 #1D4A54;
@@ -361,7 +364,7 @@ body{
 
 .nanbyo-result-item{
   padding:10px 14px;
-  font-size:14px;
+  font-size:16px;
   border-bottom:1px solid #E3EFF0;
   color:#3A3530;
 }
@@ -371,17 +374,16 @@ body{
 }
 
 .inline-button-label{
-  font-size:14px;
+  font-size:16px;
   font-weight:bold;
   line-height:1.35;
   text-align:center;
 
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
+  display:block;
+  text-wrap:balance;   /* 2行になるときは、行の長さをそろえる */
 
   overflow:hidden;
-  overflow-wrap:anywhere;
+  overflow-wrap:normal;
   word-break:keep-all;
   line-break:strict;
   white-space:pre-line;
@@ -450,7 +452,7 @@ body{
   background:white;
   color:#2B6777;
 
-  font-size:13px;
+  font-size:16px;
   font-weight:bold;
 
   padding:4px 6px;
@@ -471,10 +473,10 @@ body{
 .control-area{
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
+  gap:2px;
 
-  padding:12px 12px;
-  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  padding:4px 4px;
+  padding-bottom:calc(4px + max(env(safe-area-inset-bottom), 24px));
 
   border-top:2px solid #1D4A54;
   background:#2B6777;
@@ -485,19 +487,25 @@ body{
   border-radius:12px;
   color:white;
 
-  height:48px;
-  padding:0 6px;
+  height:52px;
+  padding:0 2px;
 
-  font-size:12px;
+  font-size:16px;
   font-weight:bold;
 
   cursor:pointer;
 
-  flex:1 1 30%;
+  flex:1 1 0;
   min-width:0;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+}
+
+.balance-text{display:block;text-wrap:balance;}
+
+@media (max-width:340px){
+  .control-btn{font-size:14px;padding:0 1px;}
 }
 
 .back-btn{
@@ -564,7 +572,7 @@ body{
     <button
       class="control-btn complete-btn"
       onclick="completeConsultation()">
-      相談を完了する
+      ✓ 相談完了
     </button>
 
   </div>
@@ -690,25 +698,20 @@ text:`夜でも、休日でも。
 一緒に整理します。
 
 ---
-現役の医療ソーシャルワーカーが作成しています。一般的な情報のご案内です。最終的な判断は、退院支援担当者・ケアマネ等にご確認ください。`,
+\u2064現役の病院職員が作成しています。一般的な情報のご案内です。最終的な判断は、退院支援担当者等にご確認ください。`,
     buttons:["みちさんに相談する","相談員みちさんとは"]
   },
 
   aboutMichi:{
-text:`医療・介護・福祉のことは、
-「誰に相談したらいいんだろう？」
-「こんなこと、相談していいのかな？」
-と迷うことがあります。
+text:`医療・介護・福祉のことで、\u2063
+「誰に相談したらいいの？」\u2063
+「相談していいのかな？」\u2063
+と迷ったら、お気軽にどうぞ。
 
-まだ何を相談したらいいのか、決まっていなくても大丈夫です。
-
-みちさんとの相談では、いくつか質問をしながら、
-今の状況や気になっていることを一緒に整理していきます。
-
-夜でも、休日でも。
-気になったときに、いつでも相談してくださいね。
-「何を相談したらいいか分からない」
-そんなところからでも大丈夫です。`,
+夜でも、休日でも大丈夫です。\u2063
+何を相談するか決まっていなくても、\u2063
+質問に答えるだけで、\u2063
+今の状況を一緒に整理します。`,
     buttons:["みちさんに相談する","トップへ戻る"]
   },
 
@@ -771,11 +774,9 @@ text:`【**あなたに合った制度を調べる**】
 年齢や保険などを最初に伺います。
 
 【**かんたん検索**】
-分からないことを簡単に調べられます。
-
+疑問を簡単に調べられます。
 ---
-入力していただいた内容は、このブラウザの中だけに一時的に保存され、サーバーには送信されません。ブラウザを閉じると自動的に消えます。
-
+\u2064入力内容は、このブラウザの中だけに一時保存され、サーバーには送信されません。閉じると消えます。
 なお、どの画面が見られたかという利用状況は、個人を特定しない形で集計し、サービスの改善に使います。`,
     buttons:["あなたに合った制度を調べる","かんたん検索"]
   },
@@ -851,7 +852,7 @@ homeDischargeResult:{
 },
 
 preAdmissionPlaceCheck:{
-  text:"入院前は、どちらで\n過ごされていましたか？",
+  text:"入院前は、どちらにいましたか？",
   buttons:["自宅","ショートステイ","特別養護老人ホーム（特養）","介護老人保健施設（老健）","有料老人ホーム","ケアハウス（軽費老人ホーム）","グループホーム（認知症対応型）"]
 },
 
@@ -949,7 +950,9 @@ transferReasonMenu:{
 転院は、必要な医療を次の病院へつないでいくことです。治療やケアも、次の病院へ引き継がれていきます。
 
 次の病院は、退院支援担当者が一緒に探します。
-（空き状況などにより、希望通りにならないこともあります）
+（空き状況などにより、
+希望通りにならない
+こともあります）
 ---
 ここから、転院と言われた理由に近いものを、順番に確認していきます。`,
   buttons:[]
@@ -1031,7 +1034,7 @@ facilityMatchQ2:{
 },
 
 facilityMatchQ3:{
-  text:"以下のすべてに当てはまりますか？\n\n・要介護3以上が出ている\n・口から食事ができる、または胃ろう・経管栄養で栄養をとれている\n・夜間のたんの吸引や点滴が不要\n・抗がん剤治療や放射線治療、人工透析、定期的な輸血などが不要\n・終の住処として、家の代わりに生活する場を探している",
+  text:"以下のすべてに当てはまりますか？\n\n・要介護3以上が出ている\n・口から食事ができる、または胃ろうや経鼻栄養で栄養をとれている\n・夜間のたんの吸引や点滴が不要\n・抗がん剤治療や放射線治療、人工透析、定期的な輸血などが不要\n・終の住処として、家の代わりに生活する場を探している",
   buttons:["はい","いいえ"]
 },
 
@@ -1964,8 +1967,6 @@ const REDUCE_COST_INFO = {
   touseki:
 `人工透析と医療費助成
 
-人工透析の場合、利用できる制度として、
-
 ・特定疾病療養受療証
 ・自立支援医療（更生医療）
 ・身体障害者手帳（腎機能障害）
@@ -1975,8 +1976,6 @@ const REDUCE_COST_INFO = {
 
   ketsuyuHiv:
 `血友病・HIVと医療費助成
-
-血友病・HIVの場合、利用できる制度として、
 
 ・特定疾病療養受療証
 ・自立支援医療（更生医療）
@@ -2024,7 +2023,8 @@ https://www.shouman.jp
 B型肝炎・C型肝炎の治療（インターフェロン治療など）を行う場合、医療費の一部が助成される制度があります。治療内容や所得により自己負担額が異なります。`,
 
   judo:
-`重度心身障害者医療費助成（マル障）
+`重度心身障害者医療費助成
+（マル障）
 
 身体障害者手帳、療育手帳、精神障害者保健福祉手帳をお持ちの方の医療費の自己負担を軽減する制度です（自治体によって呼び方が異なります）。
 
@@ -2326,19 +2326,10 @@ const CARE_SERVICE_INFO = {
 
 介護保険で利用できる
 主なサービスです。
-
 気になるサービスを選んでください。
 
-（例）要介護1・1割負担の方が
-毎日デイサービスを利用すると、
-1か月に使える1割負担分の枠を
-超えます。
-
-枠を超えた分は、
-1割ではなく10割の自己負担に
-なります。
-
-このような量の調整は、
+利用できるサービス量は、
+介護度に合わせて
 ケアマネジャーが一緒に
 考えていきます。`,
 
@@ -2359,7 +2350,16 @@ const CARE_SERVICE_INFO = {
 
 限度額の範囲内であれば、
 無理のない範囲で
-サービスを組み合わせて利用できます。`,
+サービスを組み合わせて利用できます。
+
+（例）要介護1・1割負担の方が
+毎日デイサービスを利用すると、
+1か月に使える1割負担分の枠を
+超えます。
+
+枠を超えた分は、
+1割ではなく10割の自己負担に
+なります。`,
 
   inTime:
 `退院までに間に合う？
@@ -2510,10 +2510,11 @@ const CARE_SERVICE_LIST = {
 
 　［申請済の方］
 　介護保険でケアマネが調整する
-　※がん終末期や指定難病系の方は、
+　※がん終末期や
+　指定難病系の方は、
 　介護保険を申請していても
 　医療保険での利用となり、
-　訪問回数を増やすことができます。`,
+　訪問回数を増やせます。`,
 
   "デイケア（通所リハビリ）":
 `デイケア（通所リハビリ）
@@ -3277,15 +3278,13 @@ ${key}
 
   });
 
-  text += `
-※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
-
   return text;
 
 }
 
 function showHighCostReferenceTable(){
   addBotMessage(buildHighCostReferenceTable());
+  addBotMessage(buildLimitLookupNote());
 }
 
 // 入院の医療費用：自己負担限度額と食事代を、別々のカードに分けて表示する
@@ -3293,31 +3292,25 @@ function buildInpatientLimitTable(){
 
   let text = `入院医療費の自己負担限度額（早見表）
 
-■69歳未満の方（1か月あたり）
-`;
+■69歳未満の方（1か月あたり）`;
 
   const under70 = HIGH_COST_DATA.inpatient.under70;
 
   Object.keys(under70).forEach(key=>{
     text += `
-${key}：約${formatYen(under70[key].limit)}`;
+\uE002${key}: 約${formatYen(under70[key].limit)}`;
   });
 
   text += `
 
-■70歳以上の方（1か月あたり）
-`;
+■70歳以上の方（1か月あたり）`;
 
   const over70 = HIGH_COST_DATA.inpatient.over70;
 
   Object.keys(over70).forEach(key=>{
     text += `
-${key}：約${formatYen(over70[key].limit)}`;
+\uE002${key}: 約${formatYen(over70[key].limit)}`;
   });
-
-  text += `
-
-※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
 
   return text;
 
@@ -3325,41 +3318,47 @@ ${key}：約${formatYen(over70[key].limit)}`;
 
 function buildInpatientMealTable(){
 
-  let text = `入院時の食事代（1食あたり・早見表）
+  let text = `入院時の食事代\n（1食あたり・早見表）
 
-■69歳未満の方
-`;
+■69歳未満の方`;
 
   const under70 = HIGH_COST_DATA.inpatient.under70;
 
   Object.keys(under70).forEach(key=>{
     text += `
-${key}：${formatYen(under70[key].mealCost)}`;
+\uE002${key}: ${formatYen(under70[key].mealCost)}`;
   });
 
   text += `
 
-■70歳以上の方
-`;
+■70歳以上の方`;
 
   const over70 = HIGH_COST_DATA.inpatient.over70;
 
   Object.keys(over70).forEach(key=>{
     text += `
-${key}：${formatYen(over70[key].mealCost)}`;
+\uE002${key}: ${formatYen(over70[key].mealCost)}`;
   });
-
-  text += `
-
-※区分によって食事代が軽減される場合があります（住民税非課税世帯など）。`;
 
   return text;
 
 }
 
+// 自分の区分（限度額）を知る方法（早見表の下に表示する）
+function buildLimitLookupNote(){
+  return `【**ご自身の区分の確認方法**】
+
+マイナ保険証をお持ちの方
+→ 医療機関の窓口で、限度額情報を確認できます。
+
+お持ちでない方
+→ 加入している保険者へ「限度額適用認定証」を申請します。`;
+}
+
 function showInpatientCostReference(){
   addBotMessage(buildInpatientLimitTable());
   addBotMessage(buildInpatientMealTable());
+  addBotMessage(buildLimitLookupNote());
 }
 
 // 外来の医療費用：自己負担限度額の早見表（食事代は対象外）
@@ -3367,31 +3366,25 @@ function buildOutpatientLimitTable(){
 
   let text = `外来医療費の自己負担限度額（早見表）
 
-■69歳未満の方（1か月あたり）
-`;
+■69歳未満の方（1か月あたり）`;
 
   const under70 = HIGH_COST_DATA.outpatient.under70;
 
   Object.keys(under70).forEach(key=>{
     text += `
-${key}：約${formatYen(under70[key].limit)}`;
+\uE002${key}: 約${formatYen(under70[key].limit)}`;
   });
 
   text += `
 
-■70歳以上の方（1か月あたり）
-`;
+■70歳以上の方（1か月あたり）`;
 
   const over70 = HIGH_COST_DATA.outpatient.over70;
 
   Object.keys(over70).forEach(key=>{
     text += `
-${key}：約${formatYen(over70[key].limit)}`;
+\uE002${key}: 約${formatYen(over70[key].limit)}`;
   });
-
-  text += `
-
-※実際にどの区分に当てはまるかは、加入している保険者への確認、またはマイナ保険証で確認できます。`;
 
   return text;
 
@@ -3399,6 +3392,7 @@ ${key}：約${formatYen(over70[key].limit)}`;
 
 function showOutpatientCostReference(){
   addBotMessage(buildOutpatientLimitTable());
+  addBotMessage(buildLimitLookupNote());
 }
 
 // 外来の合算の例。限度額に合わせて、各自己負担額を変える
@@ -7385,8 +7379,6 @@ preAdmissionPlaceCheck:{
 退院支援担当者に相談することを
 おすすめします。`);
 
-      addNextReasonButton("summaryOfferCheck");
-
     }
 
   },
@@ -7745,12 +7737,12 @@ const PROFILE_UNCLEAR_INFO = {
 自己負担上限額を決める区分）は、
 以下の方法で確認できます。
 
-【**マイナ保険証をお持ちの方**】
+【**マイナ保険証がある方**】
 医療機関の窓口で
 限度額情報の確認手続きを
 行うことで分かります。
 
-【**マイナ保険証をお持ちでない方**】
+【**マイナ保険証がない方**】
 加入している健康保険（保険者）へ
 「限度額適用認定証」の
 発行を申請することで
@@ -9349,12 +9341,12 @@ function showDetailedCostExplanation(){
 まず、正確な区分を
 確認しましょう。
 
-【**マイナ保険証をお持ちの方**】
+【**マイナ保険証がある方**】
 医療機関の窓口で
 限度額情報の確認手続きを
 行うことで分かります。
 
-【**マイナ保険証をお持ちでない方**】
+【**マイナ保険証がない方**】
 保険者へ限度額適用認定証の
 申請が必要です。
 
@@ -9531,13 +9523,13 @@ ${tableText}
 正確な金額は、下記の方法で
 ご確認ください。
 
-【**マイナ保険証をお持ちの方**】
+【**マイナ保険証がある方**】
 
 医療機関の窓口で限度額情報の
 確認手続きを行うことで、
 自己負担限度額を確認できます。
 
-【**マイナ保険証をお持ちでない方**】
+【**マイナ保険証がない方**】
 
 保険者
 （市区町村国保・協会けんぽ・
@@ -9727,16 +9719,11 @@ function renderScreen(){
         .join("\n");
 
     questionText =
-`プロフィールを教えていただき
-ありがとうございました。
-
-【**現在のプロフィール**】
+`【**現在のプロフィール**】
 ${profileRows}
-
+---
 ここからは具体的な相談事を
-伺います。
-
-今の状況を教えてください。`;
+伺います。`;
 
   }
 
@@ -10809,7 +10796,17 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addInlineButtons([]);
+    addInlineButtons(
+      state.isQuickSearch
+        ? []
+        : [{
+            label:"相談共有",
+            highlight:true,
+            onclick:()=>{
+              generatePreAdmissionSummaryPdf();
+            }
+          }]
+    );
 
     ensureScrollRoom();
 
@@ -11282,9 +11279,14 @@ function addStandaloneInlineButton(label, onclick){
 
   const chat = document.getElementById("chat");
 
-  const wrapper = document.createElement("div");
+  // 直前が単発ボタンの塊なら、同じ塊に並べる（2列で揃える）
+  let wrapper = chat.lastElementChild;
 
-  wrapper.className = "inline-buttons";
+  if(!(wrapper && wrapper.classList.contains("standalone-group"))){
+    wrapper = document.createElement("div");
+    wrapper.className = "inline-buttons standalone-group";
+    chat.appendChild(wrapper);
+  }
 
   const btn = document.createElement("button");
 
@@ -11301,8 +11303,6 @@ function addStandaloneInlineButton(label, onclick){
   btn.onclick = onclick;
 
   wrapper.appendChild(btn);
-
-  chat.appendChild(wrapper);
 
   requestAnimationFrame(updateScrollHint);
 
@@ -11369,6 +11369,16 @@ function addInlineButtons(buttons){
   const wrapper = document.createElement("div");
 
   wrapper.className = "inline-buttons";
+
+  // 直前に単発ボタン（次の質問へ等）があれば、同じ塊に入れて2列に揃える
+  const prevGroup = chat.lastElementChild;
+
+  if(prevGroup && prevGroup.classList.contains("standalone-group")){
+    while(prevGroup.firstChild){
+      wrapper.appendChild(prevGroup.firstChild);
+    }
+    chat.removeChild(prevGroup);
+  }
 
   buttons.forEach(b=>{
 
@@ -11747,10 +11757,10 @@ function showKouseiIryouDetail(){
 自己負担（月額上限）の目安：
 
 住民税非課税世帯
-　→ 2,500円 または 5,000円／月
+→ 2,500円 または 5,000円
 
 住民税課税世帯
-　→ 5,000円 または 20,000円／月`;
+→ 5,000円 または 20,000円`;
 
   }
 
@@ -12947,7 +12957,9 @@ function _phraseUnits(line){
       continue;
     }
 
-    const hiraganaShort = /^[ぁ-ん]{1,2}$/.test(t);
+    // 単独で意味のある短いひらがな語（どれ・これ等）は前に付けない
+    const INDEP = ["どれ","これ","それ","あれ","どこ","どう","いつ","もう","まだ","また","ただ","すぐ","ぜひ","もし","よく","とても","なお","次に"];
+    const hiraganaShort = /^[ぁ-ん]{1,2}$/.test(t) && !INDEP.includes(t);
 
     if(units.length && (!isWord || hiraganaShort)){
       units[units.length-1] += t;
@@ -13077,11 +13089,21 @@ function softJoinLines(text){
 }
 
 function markToWbr(html){
-  return html.split(PHRASE_MARK).join("<wbr>");
+  return html.split(PHRASE_MARK).join("<wbr>")
+    .replace(/\u2064([^\n]*)/g,'<span class="balance-text">$1</span>');
 }
 
 /* ボタンの文字：文節の区切りで折り返す */
 function setButtonLabel(span, label){
+
+  span.dataset.label = label;
+
+  // 自然に折り返せない長い名前は、改行位置を指定する
+  const LABEL_BREAK = {
+    "相談員みちさんとは":"相談員\nみちさんとは",
+    "重度心身障害者医療費助成":"重度心身障害者\n医療費助成"
+  };
+  if(LABEL_BREAK[label]){ label = LABEL_BREAK[label]; }
 
   // 「（」の手前では、印を入れない
   // （長いカッコ書きが1行目に残って、文字が切れるのを防ぐ）
@@ -13094,15 +13116,73 @@ function setButtonLabel(span, label){
 
   span.innerHTML = markToWbr(escaped);
 
-  // 2行に収まらず切れてしまうときは、これまでの折り返し方に戻す
+  // すべてのボタンを同じ大きさにするため、
+  // 長い名前は、ボタンに収まるまで文字を少し小さくする
   requestAnimationFrame(()=>{
     try{
-      if(
-        span.isConnected &&
-        span.scrollHeight > span.clientHeight + 1
-      ){
+      if(!span.isConnected) return;
+
+      const btn = span.closest(".inline-button");
+      if(!btn) return;
+
+      const cs = getComputedStyle(btn);
+      const avail =
+        btn.clientHeight
+        - parseFloat(cs.paddingTop)
+        - parseFloat(cs.paddingBottom);
+
+      const SIZES = [16,15,14,13,12];
+
+      const fit = ()=>{
+        for(const fs of SIZES){
+          span.style.fontSize = fs + "px";
+          if(
+            span.scrollHeight <= avail + 1
+            &&
+            span.scrollWidth <= span.clientWidth + 1
+          ){
+            return true;
+          }
+        }
+        return false;
+      };
+
+      // 文字が小さくなりすぎるときは、真ん中あたりの
+      // 文節の区切りで2行にして、もう一度試す
+      const sizeNow = ()=>parseFloat(span.style.fontSize || 16);
+      let ok = fit();
+
+      if(ok && sizeNow() < 15 && label.indexOf("\n") === -1 && _phraseSegmenter){
+        try{
+          const units = _phraseUnits(label);
+          let best = null, bestMax = 1e9, acc = 0;
+          for(let i=0;i<units.length-1;i++){
+            acc += units[i].length;
+            const m = Math.max(acc, label.length - acc);
+            if(m < bestMax){ bestMax = m; best = acc; }
+          }
+          if(best){
+            const before = sizeNow();
+            const split = label.slice(0,best) + "\n" + label.slice(best);
+            span.innerHTML =
+              markToWbr(
+                addPhraseMarks(split)
+                  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+              );
+            if(!fit() || sizeNow() <= before){
+              // 良くならなかったので、元に戻す
+              span.innerHTML = markToWbr(escaped);
+              fit();
+            }
+          }
+        }catch(e){}
+      }
+
+      if(!ok){
+        // 文節の区切りでは収まらないときは、文字ごとに折り返す
         span.classList.add("free-wrap");
         span.textContent = label;
+        fit();
       }
     }catch(e){}
   });
@@ -13138,8 +13218,8 @@ function formatRichText(text){
 
   const withDivider =
     withTable.replace(
-      /^---$/gm,
-      '<hr class="dotted-divider">'
+      /(^|<\/span>)---$/gm,
+      '$1<hr class="dotted-divider">'
     );
 
   const withBold =
@@ -13337,13 +13417,13 @@ function getHighCostOutpatientText(){
 
 限度額区分が不明です。
 
-【**マイナ保険証をお持ちの方**】
+【**マイナ保険証がある方**】
 
 医療機関の窓口で限度額情報の
 確認手続きを行うことで、
 自己負担限度額を確認できます。
 
-【**マイナ保険証をお持ちでない方**】
+【**マイナ保険証がない方**】
 
 保険者
 （市区町村国保・協会けんぽ・
@@ -13382,13 +13462,13 @@ function showHighCostInpatient(){
 
 限度額区分が不明です。
 
-【**マイナ保険証をお持ちの方**】
+【**マイナ保険証がある方**】
 
 医療機関の窓口で限度額情報の
 確認手続きを行うことで、
 自己負担限度額を確認できます。
 
-【**マイナ保険証をお持ちでない方**】
+【**マイナ保険証がない方**】
 
 保険者
 （市区町村国保・協会けんぽ・
