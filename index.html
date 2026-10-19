@@ -2313,13 +2313,13 @@ const CARE_SERVICE_INFO = {
 
 ①市区町村・地域包括支援センターで申請
 
-②認定調査（本人がいる場所へ調査員が訪問。日程調整は行政が行い、家族の同席を依頼される）
+②認定調査・主治医意見書の作成（同時に進みます）
+　・認定調査（本人がいる場所へ調査員が訪問。日程調整は行政が行い、家族の同席を依頼される）
+　・主治医意見書の作成（病院との日程・書類のやり取りは行政が調整）
 
-③主治医意見書の作成（病院との日程・書類のやり取りは行政が調整）
+③審査・認定
 
-④審査・認定
-
-⑤認定結果（通常1か月以内、近年は2ヶ月弱ほどかかることも。結果が出る前でも申請日から利用可能ですが、利用前に関係者とよく相談することが大切です）`,
+④認定結果（通常1か月以内、近年は2か月弱ほどかかることも。結果が出る前でも申請日から利用可能ですが、利用前に関係者とよく相談することが大切です）`,
 
   serviceIntro:
 `サービス内容
@@ -2389,9 +2389,7 @@ const CARE_SERVICE_INFO = {
 入院・退院の状況をご連絡ください。`,
 
   careManager:
-`ケアマネジャーとは
-
-ケアマネジャー（介護支援専門員）とは、
+`ケアマネジャー（介護支援専門員）とは、
 
 利用するサービスの内容や量を
 本人・家族の希望に合わせて
@@ -2870,6 +2868,9 @@ const templates = {
 【**外来自己負担上限**】
 
 ${formatYen(data.limit)}
+
+マイナ保険証を利用すれば、窓口での支払いそのものが自動的にこの上限額までになる場合もあります。
+（同じ病院・薬局での支払いについての話です）
 
 外来診療にかかった
 自己負担額について、
@@ -3400,22 +3401,97 @@ function showOutpatientCostReference(){
   addBotMessage(buildOutpatientLimitTable());
 }
 
+// 外来の合算の例。限度額に合わせて、各自己負担額を変える
+function buildOutpatientExample(limit){
+
+  const under70 = !validators.isOver70();
+
+  const fractions = [0.4, 0.3, 0.25, 0.2];
+  const step = (limit >= 50000) ? 1000 : 100;
+
+  let amounts = fractions.map(f=>{
+    let v = Math.round(limit * f / step) * step;
+    // 69歳以下は、1回あたり21,000円以上の自己負担分が合算の対象
+    if(under70 && v < 21000){ v = 21000; }
+    return v;
+  });
+
+  let total = amounts.reduce((a,b)=>a+b, 0);
+
+  // 上限額を超える例になるようにする
+  if(total <= limit){
+    amounts[0] += (Math.ceil((limit - total + step) / step)) * step;
+    total = amounts.reduce((a,b)=>a+b, 0);
+  }
+
+  const over = total - limit;
+
+  const labels = [
+    "A病院の外来診療費",
+    "B薬局の調剤費",
+    "他の病院の外来診療費",
+    "他の薬局の調剤費"
+  ];
+
+  let text = `例えば、同じ月に次の自己負担があったとします。
+
+`;
+
+  labels.forEach((l,i)=>{
+    text += `・${l}　${formatYen(amounts[i])}
+`;
+  });
+
+  text += `
+これらは、同じ月であれば、すべて合算して上限額を超えているかを判定できます。
+`;
+
+  if(under70){
+    text += `（69歳以下の方は、1回あたり21,000円以上の自己負担分が合算の対象です）
+`;
+  }
+
+  text += `
+合計　${formatYen(total)}
+上限額　${formatYen(limit)}
+→ 超えた${formatYen(over)}が後日還付されます。`;
+
+  return text;
+
+}
+
 function showOutpatientMedicalCostIntro(){
 
-  showHighCostOutpatient();
+  let data = null;
 
-  addBotMessage(`例えば、
+  if(
+    state.user.limit
+    &&
+    state.user.limit !== "不明"
+    &&
+    !validators.skipBurdenRate()
+  ){
+    data = highCostService.getOutpatientData();
+  }
+
+  const example =
+    (data && data.limit)
+      ? buildOutpatientExample(data.limit)
+      : `例えば、
 
 ・A病院の外来診療費
 ・B薬局の調剤費
 ・他の病院の外来診療費
 ・他の薬局の調剤費
 
-これらは、同じ月であれば、すべて合算して上の上限額を超えているかを判定できます。
+これらは、同じ月であれば、すべて合算して上限額を超えているかを判定できます。`;
+
+  addBotMessage(getHighCostOutpatientText() + `
+
+---
+` + example + `
 
 「病院ごとに別々に払っているから対象外」と思われがちですが、実際は合算されるため、上限を超えていれば、後から申請することで超えた分が払い戻されます。
-
-マイナ保険証を利用すれば、窓口での支払いそのものが自動的に自己負担限度額までになる場合もあります。
 
 還付の申請は、加入している医療保険（健康保険組合、協会けんぽ、市区町村の国民健康保険など）へ行います。`);
 
@@ -4586,7 +4662,7 @@ addBotMessage(`入院で混乱が起きやすい理由
 ・生活リズムの変化
 ・体調不良
 
-【**落ち着きを取り戻す助けになること**】
+【**落ち着きを取り戻す助け**】
 次のようなことが、落ち着きを取り戻す助けになることがあります。
 ・ご家族の面会
 ・使い慣れたものを身近に置くこと`);
@@ -4598,7 +4674,7 @@ addBotMessage(`入院で混乱が起きやすい理由
 addBotMessage(`「治す」以外の選択肢
 
 【**治療の考え方**】
-治療には、次のような考え方があります。
+治療には、次の考え方があります。
 ・病気を治すことを目指す
 ・ご本人ができるだけ穏やかに、負担なく過ごせることを目指す
 　（痛みや苦しさをやわらげる、住み慣れた場所で過ごす など）
@@ -4612,9 +4688,7 @@ addBotMessage(`「治す」以外の選択肢
 
 "代わりに判断するとき":()=>{
 
-addBotMessage(`ご家族がご本人に代わって意思決定をする
-
-ご本人の意思確認が難しい状況で、ご家族が治療方針について判断を求められることがあります。
+addBotMessage(`ご本人の意思確認が難しい状況で、ご家族が治療方針について判断を求められることがあります。
 
 【**考える手がかり**】
 「ご本人だったらどう考えるか」を、次のようなことを手がかりに考えていきます。
@@ -10014,6 +10088,8 @@ function renderButtons(){
 
     area.style.display = "none";
 
+    addInlineButtons([]);
+
     ensureScrollRoom();
 
     return;
@@ -10091,6 +10167,8 @@ function renderButtons(){
 
     area.style.display = "none";
 
+    addInlineButtons([]);
+
     ensureScrollRoom();
 
     return;
@@ -10118,6 +10196,8 @@ function renderButtons(){
   if(state.currentScreen === "transferSummaryResult"){
 
     area.style.display = "none";
+
+    addInlineButtons([]);
 
     ensureScrollRoom();
 
@@ -10147,6 +10227,8 @@ function renderButtons(){
 
     area.style.display = "none";
 
+    addInlineButtons([]);
+
     ensureScrollRoom();
 
     return;
@@ -10156,6 +10238,8 @@ function renderButtons(){
   if(state.currentScreen === "outpatientCostResult"){
 
     area.style.display = "none";
+
+    addInlineButtons([]);
 
     ensureScrollRoom();
 
@@ -10372,15 +10456,6 @@ function renderButtons(){
     }else if(idx === CARE_SERVICE_ORDER.length - 1){
 
       inlineButtons.push({
-        label:"介護保険についてに戻る",
-        onclick:()=>{
-          careServiceReducer("介護保険サービスとは");
-          state.currentScreen = careServiceNext("介護保険サービスとは");
-          renderButtons();
-        }
-      });
-
-      inlineButtons.push({
         label:"相談内容を受け取る",
         highlight:true,
         onclick:()=>{
@@ -10389,6 +10464,8 @@ function renderButtons(){
           renderScreen();
         }
       });
+
+      inlineButtons.push(makeIntakeTopButton());
 
     }
 
@@ -10732,6 +10809,8 @@ function renderButtons(){
 
     area.style.display = "none";
 
+    addInlineButtons([]);
+
     ensureScrollRoom();
 
     return;
@@ -10783,14 +10862,20 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addStandaloneInlineButton(
-      "入院の医療費についても知りたい",
-      ()=>{
+    const inpatientCostButton = {
+      label:"入院の医療費についても知りたい",
+      onclick:()=>{
         saveHistory();
         showHighCostInpatient();
         state.currentScreen = "outpatientCostResult";
         renderButtons();
       }
+    };
+
+    addInlineButtons(
+      state.isQuickSearch
+        ? [inpatientCostButton]
+        : [inpatientCostButton, makeIntakeTopButton()]
     );
 
     ensureScrollRoom();
@@ -11223,9 +11308,50 @@ function addStandaloneInlineButton(label, onclick){
 
 }
 
+/* 「あなたに合った相談トップに戻る」ボタン（インテークの各分岐の最後に出す） */
+const INTAKE_TOP_LABEL = "あなたに合った相談トップに戻る";
+
+function makeIntakeTopButton(){
+  return {
+    label:INTAKE_TOP_LABEL,
+    onclick:()=>{
+      saveHistory();
+      state.currentScreen = "purpose";
+      renderScreen();
+    }
+  };
+}
+
+// 各分岐の最後の画面（インテークのときだけ、上のボタンを足す）
+const INTAKE_END_SCREENS = [
+  "homeDischargeResult",
+  "preAdmissionResult",
+  "preAdmissionPlaceNoteRest",
+  "transferReasonResult",
+  "facilityMatchResult",
+  "facilityCompareResult",
+  "facilityCostPersonalResult",
+  "beppyo7Info",
+  "outpatientCostResult",
+  "medicalCostSummaryResult",
+  "transferSummaryResult",
+  "facilitySummaryResult",
+  "elderlySummaryResult"
+];
+
 function addInlineButtons(buttons){
 
   const chat = document.getElementById("chat");
+
+  if(
+    !state.isQuickSearch
+    &&
+    INTAKE_END_SCREENS.includes(state.currentScreen)
+    &&
+    !buttons.some(b=>b.label === INTAKE_TOP_LABEL)
+  ){
+    buttons = buttons.concat([makeIntakeTopButton()]);
+  }
 
   // 同じ画面のボタン塊がすでにあれば、
   // （間にユーザーの発言などが挟まっていても）
@@ -11361,10 +11487,25 @@ function scheduleScrollToLastQuestion(){
       || el.classList.contains("nanbyo-search-box");
     let target = null;
     const users = chat.querySelectorAll(".message.user");
+    let afterUser = null;
     if(users.length){
       let el = users[users.length - 1].nextElementSibling;
       while(el && skip(el)) el = el.nextElementSibling;
-      target = el;
+      afterUser = el;
+    }
+    // いま答えを待っている質問カードが、最後の自分の回答より後にあるときは、
+    // その質問カードを一番上に出す（ボタンまで見えるようにする）
+    const latestCard = chat.querySelector(".question-card.latest");
+    if(
+      latestCard &&
+      (!afterUser ||
+        (afterUser.compareDocumentPosition(latestCard) &
+          Node.DOCUMENT_POSITION_FOLLOWING) ||
+        afterUser === latestCard)
+    ){
+      target = latestCard;
+    }else{
+      target = afterUser;
     }
     if(!target){
       const cards = chat.querySelectorAll(".question-card");
@@ -11497,7 +11638,7 @@ function showKouseiIryouDetail(){
 
     body += `
 
-適応日
+【**適応日**】
 申請（受理）した日から
 適用されます。
 
@@ -11615,7 +11756,7 @@ function showKouseiIryouDetail(){
 
   body += `
 
-適応日
+【**適応日**】
 申請（受理）した日から
 適用されます。
 
@@ -11727,7 +11868,7 @@ ${formatYen(yourAmount)}／月
 
   body += `
 
-適応日
+【**適応日**】
 保険者に申請した日の
 月から適用されます。
 
@@ -11770,7 +11911,7 @@ function showNanbyoIntro(){
 
   body += `
 
-医療費助成`;
+【**医療費助成**】`;
 
   // 生活保護
   if(u.insurance === "生活保護"){
@@ -11858,7 +11999,7 @@ function showNanbyoIntro(){
 
   body += `
 
-適応日
+【**適応日**】
 申請窓口が全ての書類を
 受け付けた日から適用されます。
 ※決定するまで90日程度
@@ -11907,7 +12048,7 @@ function showShomanIntro(){
 
   body += `
 
-医療費助成`;
+【**医療費助成**】`;
 
   if(u.insurance === "生活保護"){
 
@@ -11996,7 +12137,7 @@ function showShomanIntro(){
 
   body += `
 
-適応日
+【**適応日**】
 申請窓口が全ての書類を
 受け付けた日から適用されます。
 ※決定するまで数か月程度
@@ -12087,7 +12228,7 @@ B型肝炎・C型肝炎の治療
 
   body += `
 
-医療費助成`;
+【**医療費助成**】`;
 
   if(u.insurance === "生活保護"){
 
@@ -12155,7 +12296,7 @@ B型肝炎・C型肝炎の治療
 
   body += `
 
-適応日
+【**適応日**】
 保健所・センターへ申請書等を
 提出した月の初日から
 適用されます。
@@ -12826,6 +12967,8 @@ function _phraseUnits(line){
   const merged = [];
   const HAN = /[\u4E00-\u9FFF\u3005\u3007]/;
   const DIGIT = /[0-9０-９]/;
+  // カタカナの続く語（「ケアマネジャー」など）も分けない
+  const KATA = /[\u30A1-\u30FA\u30FC]/;
   units.forEach(u=>{
     const prev = merged.length ? merged[merged.length-1] : "";
     const last = prev.slice(-1);
@@ -12836,6 +12979,12 @@ function _phraseUnits(line){
       (
         (HAN.test(last) && HAN.test(first))
         ||
+        (KATA.test(last) && KATA.test(first))
+        ||
+        // 複合動詞（「払い戻す」「取り戻す」「受け付ける」など）：
+        // 漢字＋送り仮名1字のあとに漢字が続くときは分けない
+        (/^[\u4E00-\u9FFF\u3005]{1,2}[いきしちりびみけげせめれえ]$/.test(prev) && HAN.test(first))
+        ||
         (DIGIT.test(last) && (HAN.test(first) || DIGIT.test(first)))
       )
     ){
@@ -12844,6 +12993,31 @@ function _phraseUnits(line){
       merged.push(u);
     }
   });
+
+  // 途中で改行したくない言葉（切れると意味が取りにくいもの）
+  const PROTECTED = ["マイナ保険証","ケアマネジャー"];
+  const joined = merged.join("");
+  const cut = new Set();   // 分けてはいけない位置（文字数）
+  PROTECTED.forEach(term=>{
+    let from = 0, idx;
+    while((idx = joined.indexOf(term, from)) !== -1){
+      for(let k = idx + 1; k < idx + term.length; k++) cut.add(k);
+      from = idx + term.length;
+    }
+  });
+  if(cut.size){
+    const out = [];
+    let pos = 0;
+    merged.forEach(u=>{
+      if(out.length && cut.has(pos)){
+        out[out.length-1] += u;
+      }else{
+        out.push(u);
+      }
+      pos += u.length;
+    });
+    return out;
+  }
 
   return merged;
 
@@ -13156,10 +13330,10 @@ function executeMenu(text){
    HIGH COST
 ========================================= */
 
-function showHighCostOutpatient(){
+function getHighCostOutpatientText(){
   if(!state.user.limit || state.user.limit === "不明"){
 
-  addBotMessage(`高額療養費
+  return (`高額療養費
 
 限度額区分が不明です。
 
@@ -13179,19 +13353,13 @@ function showHighCostOutpatient(){
 詳しくは加入している保険者へ
 お問い合わせください。`);
 
-return;
-
 }
 
   if(
     validators.skipBurdenRate()
   ){
 
-    addBotMessage(
-      templates.highCost.welfare()
-    );
-
-    return;
+    return templates.highCost.welfare();
 
   }
 
@@ -13199,11 +13367,12 @@ return;
     highCostService
       .getOutpatientData();
 
-  addBotMessage(
-    templates.highCost
-      .outpatient(data)
-  );
+  return templates.highCost.outpatient(data);
 
+}
+
+function showHighCostOutpatient(){
+  addBotMessage(getHighCostOutpatientText());
 }
 
 function showHighCostInpatient(){
