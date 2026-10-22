@@ -698,7 +698,7 @@ text:`夜でも、休日でも。
 一緒に整理します。
 
 ---
-\u2064現役の病院職員が作成しています。一般的な情報のご案内です。最終的な判断は、退院支援担当者等にご確認ください。`,
+\u2064現役の病院職員が作成しています。最終的な判断は、それぞれの病院や行政にご確認ください。`,
     buttons:["みちさんに相談する","相談員みちさんとは"]
   },
 
@@ -782,7 +782,7 @@ text:`【**あなたに合った制度を調べる**】
   },
 
 intakeNotice:{
-  text:"ご家族のことでご相談の場合は、\u2063\n入院・通院している方\n（患者さん）の情報でお答えください。\n\nこれらの質問は、\u2063\n「本人」＝患者さんのことです。",
+  text:"ご家族のことでご相談の場合は\u2063\n入院・通院している方(患者さん)の\u2063\n情報でお答えください。\n\nこれらの質問は、\u2063\n「本人」＝患者さんのことです。",
   buttons:["はじめる"]
 },
 
@@ -13674,15 +13674,19 @@ const GA_MEASUREMENT_ID = "G-S5RYNWBFSG";
 const ANALYTICS_CONTEXT = (function(){
   try{
     const q = new URLSearchParams(location.search);
-    return { venue:(q.get("v") || q.get("utm_campaign") || "").slice(0,40) };
+    return {
+      venue:(q.get("v") || q.get("utm_campaign") || "").slice(0,40),
+      // URLに ?nc=1 が付いているときは、集計に数えない（Xのプロフィール用など）
+      off:(q.get("nc") === "1")
+    };
   }catch(e){
-    return { venue:"" };
+    return { venue:"", off:false };
   }
 })();
 
 (function initAnalytics(){
 
-  if(!GA_MEASUREMENT_ID) return;
+  if(!GA_MEASUREMENT_ID || ANALYTICS_CONTEXT.off) return;
 
   try{
 
