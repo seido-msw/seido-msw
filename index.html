@@ -195,7 +195,7 @@ body{
   color:#000000;
 }
 
-.question-card hr.dotted-divider{
+hr.dotted-divider{
   border:none;
   border-top:2px dotted #CFE0D2;
   margin:12px 0;
@@ -712,13 +712,14 @@ text:`医療・介護・福祉のことで、\u2063
 何を相談するか決まっていなくても、\u2063
 質問に答えるだけで、\u2063
 今の状況を一緒に整理します。
-
 ---
-【**みちさんのしくみ**】
-質問にお答えいただくと、あらかじめ作ったフローチャートに沿ってご案内します。AIが自由に答えるものではありません。
+【**しくみ**】
+質問に答えると、フローチャートに沿ってご案内します。AIが自由に答えるものではありません。
 
 【**もとにした情報**】
-病院での入退院支援業務の経験と、国や自治体が公表している制度の情報をもとに作っています。`,
+病院での入退院支援業務の経験と、公的な制度の情報です。
+
+ご意見・誤りのご連絡は、相談終了後にご案内します。`,
     buttons:["みちさんに相談する","トップへ戻る"]
   },
 
@@ -772,7 +773,62 @@ text:`ご協力ありがとうございました。
 活用させていただきます。
 
 またいつでも、
-気になったときにご相談ください。`,
+気になったときにご相談ください。
+
+---
+【**ご意見・誤りのご連絡**】
+制度の内容の間違いなどは、下のボタンからお知らせください。個別のご相談や、個人が特定される内容は書かないでください。`,
+    buttons:["ご意見・誤りのご連絡","もう一度相談する"]
+  },
+
+  surveySkip:{
+text:`ご利用ありがとうございました。
+
+またいつでも、
+気になったときにご相談ください。
+
+---
+【**ご意見・誤りのご連絡**】
+制度の内容の間違いなどは、下のボタンからお知らせください。個別のご相談や、個人が特定される内容は書かないでください。`,
+    buttons:["ご意見・誤りのご連絡","もう一度相談する"]
+  },
+
+  contactKind:{
+text:`ご意見・誤りのご連絡
+
+どのようなご連絡ですか？
+
+※個別のご相談や、個人が特定される内容は書かないでください。`,
+    buttons:["内容の誤りを見つけた","使いにくい点がある","追加してほしい内容がある","その他","やめる"]
+  },
+
+  contactWhere:{
+text:`どの画面・内容についてですか？
+
+わかる範囲で大丈夫です。
+（例：費用の画面の高額療養費）
+
+**空欄のままでも送れます。**`,
+    buttons:[]
+  },
+
+  contactBody:{
+text:`具体的な内容を教えてください。
+
+誤りの場合は、
+「どこが、どう違うか」を
+書いていただけると助かります。`,
+    buttons:[]
+  },
+
+  contactDone:{
+text:`ご連絡ありがとうございました。
+
+いただいた内容は、
+みちさんの改善に役立てます。
+
+※個別のご相談への返信は
+できません。`,
     buttons:["もう一度相談する"]
   },
 
@@ -843,9 +899,24 @@ inpatientMenu:{
   buttons:["退院後の生活が心配","医療費・お金が心配","転院と言われた","施設を探したい","障害・難病の制度を知りたい"]
 },
 
+whereToStart1:{
+  text:"家には帰れないけれど、\u2063\nどうしたらいいか分からない。\u2063\nそんなときは、次のどちらを\u2063\n大切にしたいかで、\u2063\n療養先が変わります。\n\n・治療を続けたい\u2063\n　（手術・抗がん剤・放射線など）\u2063\n・療養を優先したい\u2063\n　（苦痛をやわらげる医療が中心）\n\nどちらが正しいということは\u2063\nありません。",
+  buttons:["治療を続けたい","療養を優先したい","まだ決められない"]
+},
+
+whereToStart2:{
+  text:"【**考え方**】\n病気を治すことより、苦痛をやわらげることを中心に、落ち着いて過ごす方針です。\n\n【**医療を重視する場合**】\n医師・看護師が常にいて、医療処置が必要な方も安心です。医療療養病棟（がんの場合は緩和ケア病棟も）が選択肢です。\n\n【**面会・生活感を重視**】\n医療も受けられる生活の場で、面会しやすく、暮らしに近い雰囲気です。介護医療院が選択肢です。\n---\n決める前に、入退院支援担当者へ\u2063\nご相談ください。",
+  buttons:[]
+},
+
+whereToStartEnd:{
+  text:"",
+  buttons:[]
+},
+
 dischargeMenu:{
   text:"退院後のことで、\n気になっていることを教えてください。",
-  buttons:["入院前の生活に戻れるか心配","施設を探したい","転院と言われた","介護保険について"]
+  buttons:["入院前の生活に戻れるか心配","施設を探したい","転院と言われた","介護保険について","何から相談して良いかわからない"]
 },
 
 homeDischargeMenu:{
@@ -3964,6 +4035,11 @@ const menuModules = {
     renderScreen();
   },
 
+  "何から相談して良いかわからない":()=>{
+    state.currentScreen = "whereToStart1";
+    renderScreen();
+  },
+
   "入院前の生活に戻れるか心配":()=>{
     state.currentScreen = "preAdmissionPlaceCheck";
     renderScreen();
@@ -5591,7 +5667,7 @@ const transitions = {
 
     }
 
-    return "start";
+    return "surveySkip";
 
   }
 
@@ -5708,6 +5784,33 @@ const transitions = {
   }
 
 },
+
+  surveySkip:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "start";
+  }
+
+},
+
+  contactKind:{
+    reducer:(text)=>{
+      if(text!=="やめる"){ state.contact.kind = text; }
+    },
+    next:(text)=>{
+      return text==="やめる" ? "surveySkip" : "contactWhere";
+    }
+  },
+
+  contactWhere:{ reducer:(text)=>{}, next:()=>"contactBody" },
+  contactBody:{ reducer:(text)=>{}, next:()=>"contactDone" },
+
+  contactDone:{
+    reducer:(text)=>{},
+    next:()=>"start"
+  },
 
   profileChoice:{
   reducer:(text)=>{
@@ -5910,6 +6013,43 @@ intakeStep2Outpatient:{
       return resumeScreen ? resumeScreen : "mainMenu";
     }
 
+  }
+
+},
+
+whereToStart1:{
+
+  reducer:(text)=>{
+    if(text === "まだ決められない" || text === "治療を続けたい"){
+      showWhereToStartResult(text);
+    }
+  },
+
+  next:(text)=>{
+    if(text === "療養を優先したい"){
+      return "whereToStart2";
+    }
+    return "whereToStartEnd";
+  }
+
+},
+
+whereToStart2:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "transferFacilityMenu";
+  }
+
+},
+
+whereToStartEnd:{
+
+  reducer:(text)=>{},
+
+  next:()=>{
+    return "whereToStartEnd";
   }
 
 },
@@ -9696,6 +9836,190 @@ ${profileRows}
   scheduleScrollUpdate();
 
 }
+/* ご意見・誤りのご連絡
+   みちさんの画面で入力し、Googleフォームに送る（フォームの回答として保存される）。
+   選択肢の文言は、フォームの選択肢と完全に同じにする。 */
+const CONTACT_FORM_CONFIG = {
+  actionUrl:"https://docs.google.com/forms/d/e/1FAIpQLSeG28CQ67JCsnGUB_nKnYBjFtHcWImtucsIBpt8XWFX4XyFCQ/formResponse",
+  entries:{
+    kind:  "entry.962118434",
+    where: "entry.1359254963",
+    body:  "entry.666151143"
+  }
+};
+
+// アプリ内のボタン文言 → フォームの選択肢の文言
+const CONTACT_KIND_MAP = {
+  "内容の誤りを見つけた":"内容の誤りを見つけた",
+  "使いにくい点がある":"使いにくい・わかりにくい点がある",
+  "追加してほしい内容がある":"追加してほしい内容がある",
+  "その他":"その他"
+};
+
+function startContactFlow(){
+  state.contact = { kind:"", where:"", body:"" };
+  saveHistory();
+  addUserMessage("ご意見・誤りのご連絡");
+  state.currentScreen = "contactKind";
+  renderScreen();
+}
+
+function renderContactInput(){
+
+  const chat = document.getElementById("chat");
+  const isBody = state.currentScreen === "contactBody";
+
+  // 前の入力欄が残っていれば消す（入力欄は常に1つだけ）
+  document.querySelectorAll(".contact-input-box").forEach(el=>el.remove());
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "nanbyo-search-box contact-input-box";
+
+  const ta = document.createElement("textarea");
+  ta.className = "nanbyo-search-input contact-textarea";
+  ta.id = "contactInput";
+  ta.rows = isBody ? 5 : 2;
+  ta.maxLength = isBody ? 500 : 100;
+  ta.placeholder = isBody ? "ここに入力してください" : "（任意）";
+  wrapper.appendChild(ta);
+
+  chat.appendChild(wrapper);
+
+  addInlineButtons([
+    {
+      label:isBody ? "送信する" : "次へ",
+      highlight:true,
+      onclick:()=>submitContactStep()
+    },
+    {
+      label:"やめる",
+      secondary:true,
+      onclick:()=>cancelContact()
+    }
+  ]);
+
+  scheduleScrollUpdate();
+
+}
+
+function submitContactStep(){
+
+  const ta = document.getElementById("contactInput");
+  const value = ta ? ta.value.trim() : "";
+
+  if(state.currentScreen === "contactBody"){
+
+    if(!value){
+      alertContactEmpty();
+      return;
+    }
+
+    state.contact.body = value;
+    document.querySelectorAll(".contact-input-box").forEach(el=>el.remove());
+    addUserMessage(value);
+    sendContactToForm();
+    state.currentScreen = "contactDone";
+    renderScreen();
+    return;
+
+  }
+
+  state.contact.where = value;
+  document.querySelectorAll(".contact-input-box").forEach(el=>el.remove());
+  addUserMessage(value || "（入力なし）");
+  state.currentScreen = "contactBody";
+  renderScreen();
+
+}
+
+function alertContactEmpty(){
+
+  const ta = document.getElementById("contactInput");
+
+  if(ta){
+    ta.style.borderColor = "#C0392B";
+    ta.placeholder = "内容を入力してください";
+    ta.focus();
+  }
+
+}
+
+function cancelContact(){
+  document.querySelectorAll(".contact-input-box").forEach(el=>el.remove());
+  addUserMessage("やめる");
+  state.currentScreen = "surveySkip";
+  renderScreen();
+}
+
+function sendContactToForm(){
+
+  const c = state.contact || {};
+  const e = CONTACT_FORM_CONFIG.entries;
+
+  try{
+
+    const fd = new FormData();
+    fd.append(e.kind, CONTACT_KIND_MAP[c.kind] || c.kind || "その他");
+    fd.append(e.where, c.where || "");
+    fd.append(e.body, c.body || "");
+
+    fetch(
+      CONTACT_FORM_CONFIG.actionUrl,
+      { method:"POST", mode:"no-cors", body:fd }
+    );
+
+  }catch(err){}
+
+  trackEvent("contact_submit",{ kind:(c.kind || "").slice(0,40) });
+
+}
+
+/* 「何から相談して良いかわからない」の案内（2段階の質問で、療養先の方向を考える） */
+const WHERE_TO_START_CLOSE = `
+---
+どの選択でも、\u2063
+状況が変われば見直せます。\u2063
+決める前に、入退院支援担当者へ\u2063
+ご相談ください。`;
+
+function showWhereToStartResult(text){
+
+  if(text === "治療を続けたい"){
+
+    addBotMessage(`【**考え方**】
+手術・抗がん剤・放射線治療や、\u2063
+今の病院の専門の診療科\u2063
+（消化器内科・呼吸器内科等）に\u2063
+通院を続ける方針です。
+
+【**過ごし方の例**】
+基本的には自宅等から、\u2063
+医療機関に通院します。\u2063
+特養、老健、介護医療院等は、\u2063
+施設内で医療を行うため、\u2063
+通院が難しい場合があります。
+
+【**ポイント**】
+治療の選択肢は広がりますが、\u2063
+過ごせる場所は限られます。\u2063
+日常生活に介助が必要になると、\u2063
+治療と過ごす場所の\u2063
+どちらを優先するか\u2063
+考える必要があります。\u2063
+療養を優先する場合は、\u2063
+特養・老健・介護医療院なども\u2063
+選べます。`);
+
+  }else if(text === "まだ決められない"){
+
+    addBotMessage(`まだ決められない場合
+
+本人の気持ちを、ご家族と一緒に話してみましょう。` + WHERE_TO_START_CLOSE);
+
+  }
+
+}
+
 function renderButtons(){
 
   updateFooterVisibility();
@@ -10754,6 +11078,30 @@ function renderButtons(){
 
   }
 
+  if(state.currentScreen === "contactWhere" || state.currentScreen === "contactBody"){
+
+    area.style.display = "none";
+
+    renderContactInput();
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
+  if(state.currentScreen === "whereToStartEnd" || state.currentScreen === "whereToStart2"){
+
+    area.style.display = "none";
+
+    addInlineButtons([]);
+
+    ensureScrollRoom();
+
+    return;
+
+  }
+
   if(state.currentScreen === "preAdmissionPlaceNoteRest"){
 
     area.style.display = "none";
@@ -11096,7 +11444,11 @@ function renderButtons(){
         ||
         text==="相談に進む"
       ),
-      onclick:()=>handleSelect(text)
+      onclick:(
+        text === "ご意見・誤りのご連絡"
+          ? ()=>startContactFlow()
+          : ()=>handleSelect(text)
+      )
     }));
 
   addInlineButtons(commonButtons);
@@ -13351,7 +13703,7 @@ const menuScreens = [
 
   state.currentScreen = nextScreen;
 
-  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro","outpatientCostResult","reduceCostFinalMenu","medicalCostSummaryResult","transferSummaryResult","facilitySummaryResult","elderlyRouteResult","elderlySummaryResult"];
+  const NO_CARD_SCREENS = ["reduceCostResult","careServiceResult","careServiceContentMenu","homeDischargeResult","profileSummary","facilityMatchQ4Result","facilityMatchResult","facilityCompareResult","inpatientCostResult","paymentIncomeResult","paymentWorkResult","paymentDebtResult","paymentLeaveTypeChoice","detailedCostExplanationResult","transferReasonResult","preAdmissionResult","whereToStartEnd","preAdmissionPlaceNoteRest","medicalProcedureContinuityCheck","adlSummaryCheck","outpatientMedicalCostIntro","outpatientCostResult","reduceCostFinalMenu","medicalCostSummaryResult","transferSummaryResult","facilitySummaryResult","elderlyRouteResult","elderlySummaryResult"];
 
   const skipQuestionCard =
     nextScreen === prevScreen
@@ -14118,7 +14470,7 @@ function goToStart(){
    　通常の相談中だけ表示する）
 ========================================= */
 
-const SURVEY_SCREENS = ["surveyIntro","surveyQ0","surveyQ1","surveyQ2","surveyQ3","surveyQ4","surveyQ5","surveyThanks"];
+const SURVEY_SCREENS = ["contactKind","contactWhere","contactBody","contactDone","surveyIntro","surveyQ0","surveyQ1","surveyQ2","surveyQ3","surveyQ4","surveyQ5","surveyThanks","surveySkip"];
 
 function updateFooterVisibility(){
 
