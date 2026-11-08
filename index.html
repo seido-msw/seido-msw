@@ -905,7 +905,7 @@ whereToStart1:{
 },
 
 whereToStart2:{
-  text:"【**考え方**】\n病気を治すことより、苦痛をやわらげることを中心に、落ち着いて過ごす方針です。\n\n【**医療を重視する場合**】\n医師・看護師が常にいて、医療処置が必要な方も安心です。医療療養病棟（がんの場合は緩和ケア病棟も）が選択肢です。\n\n【**面会・生活感を重視**】\n医療も受けられる生活の場で、面会しやすく、暮らしに近い雰囲気です。介護医療院が選択肢です。\n---\n決める前に、入退院支援担当者へ\u2063\nご相談ください。",
+  text:"【**考え方**】\n病気を治すことより、苦痛をやわらげることを中心に、落ち着いて過ごす方針です。\n\n【**医療を重視**】\n苦痛緩和等が中心でも、\u2063\n病院のように医師や看護師が\u2063\nいる場所で療養を続けたい場合は、\u2063\n医療療養病棟、介護医療院、\u2063\n緩和ケア病棟等があります。\n\n【**面会や生活感を重視**】\n日常生活に近い雰囲気で\u2063\n過ごしたい場合は、\u2063\n特養、有料老人ホーム等が\u2063\nあります。\n---\n決める前に、入退院支援担当者へ\u2063\nご相談ください。",
   buttons:[]
 },
 
@@ -1233,7 +1233,7 @@ reduceCostMenu:{
 
 highCostOutInSelect:{
   text:"高額療養費について、\n入院と外来どちらを\n知りたいですか？",
-  buttons:["入院費がいくらかかるか知りたい","外来費がいくらかかるか知りたい"]
+  buttons:["入院費がいくらかかるか知りたい","外来費がいくらかかるか知りたい","限度額区分がわからないとき"]
 },
 
 reduceCostFinalMenu:{
@@ -2877,7 +2877,7 @@ const validators = {
       state.user.insurance === "後期高齢者"
     ){
 
-      return ["不明","1割","2割","3割"];
+      return ["わからない","1割","2割","3割"];
 
     }
 
@@ -2891,11 +2891,11 @@ const validators = {
 
     if(state.user.age === "70歳〜74歳"){
 
-      return ["不明","2割","3割"];
+      return ["わからない","2割","3割"];
 
     }
 
-    return ["不明","1割","2割","3割"];
+    return ["わからない","1割","2割","3割"];
 
   },
 
@@ -3297,6 +3297,25 @@ ${blocks.join("\n\n")}
 // ADLの質問がすべて終わった後、まとめを1つ表示してから判定へ進む
 // あなたに合わせた相談：通院中→医療費
 // 外来でかかる医療費の自己負担限度額・合算のしくみを案内する
+// 区分ごとの年収等の目安（早見表用）
+const LIMIT_INCOME_HINT = {
+  "ア":"年収約1,160万円〜",
+  "イ":"年収約770万〜1,160万円",
+  "ウ":"年収約370万〜770万円",
+  "エ":"年収約370万円まで",
+  "オ":"住民税非課税",
+  "現役Ⅲ":"年収約1,160万円〜",
+  "現役Ⅱ":"年収約770万〜1,160万円",
+  "現役Ⅰ":"年収約370万〜770万円",
+  "一般":"年収約156万〜370万円",
+  "低Ⅱ":"住民税非課税",
+  "低Ⅰ":"住民税非課税（所得が特に低い）"
+};
+
+const LIMIT_INCOME_NOTE = `※年収は目安です。実際の区分は、
+加入している保険や、世帯の所得
+によって決まります。`;
+
 // かんたん検索（辞書モード）用：プロフィールに関係なく、
 // 69歳未満・70歳以上それぞれの自己負担限度額・食事代の
 // 早見表を表示する（年齢や所得区分は聞かない）
@@ -3376,7 +3395,9 @@ function buildInpatientLimitTable(){
 
   Object.keys(under70).forEach(key=>{
     text += `
-\uE002${key}: 約${formatYen(under70[key].limit)}`;
+
+**${key}**　約${formatYen(under70[key].limit)}\u2063
+　${LIMIT_INCOME_HINT[key]}`;
   });
 
   text += `
@@ -3387,8 +3408,14 @@ function buildInpatientLimitTable(){
 
   Object.keys(over70).forEach(key=>{
     text += `
-\uE002${key}: 約${formatYen(over70[key].limit)}`;
+
+**${key}**　約${formatYen(over70[key].limit)}\u2063
+　${LIMIT_INCOME_HINT[key]}`;
   });
+
+  text += `
+
+${LIMIT_INCOME_NOTE}`;
 
   return text;
 
@@ -3450,7 +3477,9 @@ function buildOutpatientLimitTable(){
 
   Object.keys(under70).forEach(key=>{
     text += `
-\uE002${key}: 約${formatYen(under70[key].limit)}`;
+
+**${key}**　約${formatYen(under70[key].limit)}\u2063
+　${LIMIT_INCOME_HINT[key]}`;
   });
 
   text += `
@@ -3461,8 +3490,14 @@ function buildOutpatientLimitTable(){
 
   Object.keys(over70).forEach(key=>{
     text += `
-\uE002${key}: 約${formatYen(over70[key].limit)}`;
+
+**${key}**　約${formatYen(over70[key].limit)}\u2063
+　${LIMIT_INCOME_HINT[key]}`;
   });
+
+  text += `
+
+${LIMIT_INCOME_NOTE}`;
 
   return text;
 
@@ -4136,6 +4171,14 @@ addBotMessage(`精神障害者保健福祉手帳
       showInpatientCostReference();
       state.currentScreen = "outpatientCostResult";
     }
+    renderButtons();
+
+},
+
+"限度額区分がわからないとき":()=>{
+
+    addBotMessage(PROFILE_UNCLEAR_INFO.limit);
+    state.currentScreen = "highCostOutInSelect";
     renderButtons();
 
 },
@@ -6167,6 +6210,7 @@ intakeStep2Unclear:{
   burdenRate:{
   reducer:(text)=>{
 
+    if(text === "わからない") text = "不明";
     state.user.burdenRate = text;
 
     if(text === "不明"){
@@ -6203,7 +6247,7 @@ intakeStep2Unclear:{
 
   limit:{
     reducer:(text)=>{
-      state.user.limit = text;
+      state.user.limit = (text === "わからない") ? "不明" : text;
     },
     next:()=>{
       return getAfterLimitScreen();
@@ -7835,28 +7879,41 @@ const PROFILE_UNCLEAR_INFO = {
   limit:
 `限度額区分の確認の仕方
 
-限度額区分（高額療養費制度の
-自己負担上限額を決める区分）は、
-以下の方法で確認できます。
+限度額区分は、高額療養費制度の
+自己負担上限額を⁣
+決める区分です。⁣
+次の方法で確認できます。
 
 【**マイナ保険証がある方**】
-医療機関の窓口で
-限度額情報の確認手続きを
-行うことで分かります。
+医療機関の受付窓口で、
+「限度額区分を知りたい」と
+お伝えください。
+限度額情報を確認すると、
+ご自身の区分が分かります。
+※医療機関から案内されることは
+少ないため、ご自身から
+お声がけください。
 
 【**マイナ保険証がない方**】
-加入している健康保険（保険者）へ
-「限度額適用認定証」の
-発行を申請することで
-確認できます。
+加入先（保険者）へ
+「限度額適用認定証」を⁣
+申請すると、認定証に⁣
+区分が書かれます。
+・協会けんぽ：都道府県の支部
+・健保組合・共済：組合等
+・国保・後期高齢者：
+　市区町村の窓口
 
-69歳以下の方は「ア〜オ」、
-70歳以上の方は「現役Ⅲ〜低Ⅰ」
-などの区分で表されます。
+すでに認定証をお持ちの方は、
+そこに区分が書かれています。
+
+69歳以下は「ア〜オ」、
+70歳以上は「現役Ⅲ〜低Ⅰ」などで
+表されます。
 
 わからない場合は、
-加入している保険者へ
-ご確認ください。`,
+医療機関の受付窓口や、
+加入先へご確認ください。`,
 
   careLevel:
 `介護度の確認の仕方
@@ -11365,7 +11422,7 @@ function renderButtons(){
         "3割"
       ){
 
-        buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","不明"];
+        buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","わからない"];
 
       }
 
@@ -11374,7 +11431,7 @@ function renderButtons(){
         "2割"
       ){
 
-        buttons = ["一般","不明"];
+        buttons = ["一般","わからない"];
 
       }
 
@@ -11383,7 +11440,7 @@ function renderButtons(){
         "1割"
       ){
 
-        buttons = ["一般","低Ⅱ","低Ⅰ","不明"];
+        buttons = ["一般","低Ⅱ","低Ⅰ","わからない"];
 
       }
 
@@ -11393,13 +11450,13 @@ function renderButtons(){
       validators.isOver70()
     ){
 
-      buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","一般","低Ⅱ","低Ⅰ","不明"];
+      buttons = ["現役Ⅲ","現役Ⅱ","現役Ⅰ","一般","低Ⅱ","低Ⅰ","わからない"];
 
     }
 
     else{
 
-      buttons = ["ア","イ","ウ","エ","オ","不明"];
+      buttons = ["ア","イ","ウ","エ","オ","わからない"];
 
     }
 
