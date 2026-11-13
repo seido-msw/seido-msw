@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <title>相談員 みちさん｜医療・福祉制度ナビ</title>
-<meta name="description" content="相談員みちさんは、入院・転院・医療費・介護保険・施設探しなど、医療や福祉の制度をわかりやすく案内するチャットボットです。あなたの状況に合わせて、使える制度を一緒に確認できます。">
+<meta name="description" content="入院・介護で迷っているご本人・ご家族へ。相談の一歩目が、簡単にできます。質問に答えるだけで、使える制度や次にやることが分かります。">
 <meta name="keywords" content="医療費助成,高額療養費,転院,退院支援,介護保険,介護施設,医療ソーシャルワーカー,MSW,福祉制度,相談員みちさん">
 <link rel="canonical" href="https://seido-msw.github.io/seido-msw/">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="相談員 みちさん｜医療・福祉制度ナビ">
-<meta property="og:description" content="入院・転院・医療費・介護保険・施設探しなど、医療や福祉の制度をわかりやすく案内するチャットボットです。">
+<meta property="og:description" content="入院・介護で迷っているご本人・ご家族へ。質問に答えるだけで、使える制度や次にやることが分かります。">
 <meta property="og:url" content="https://seido-msw.github.io/seido-msw/">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:image" content="https://seido-msw.github.io/seido-msw/ogp.png">
@@ -551,6 +551,68 @@ hr.dotted-divider{
   box-shadow:0 3px 0 #5A9A50;
 }
 
+
+/* 入院前の家族入力（試作）：まとめの表示と印刷 */
+#familySheet{
+  position:fixed; inset:0; z-index:9999;
+  background:#E9E4D9; overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#familySheet .fs-bar{
+  position:sticky; top:0; z-index:2;
+  display:flex; gap:8px; padding:10px 12px;
+  background:#2B6777;
+}
+#familySheet .fs-bar button{
+  flex:1; white-space:nowrap; min-height:44px; border:0; border-radius:10px;
+  font-size:15px; font-weight:bold; color:#2B6777; background:#fff;
+}
+#familySheet .fs-bar #fsPrint{ background:#FFE08A; }
+#familySheet .fs-paper{
+  max-width:794px; margin:12px auto 40px; padding:22px 20px;
+  background:#fff; color:#222; font-size:15px; line-height:1.55;
+  box-shadow:0 2px 10px rgba(0,0,0,.15);
+}
+.fs-head{ border-bottom:3px solid #2B6777; padding-bottom:8px; margin-bottom:10px; }
+.fs-title{ font-size:22px; font-weight:900; color:#2B6777; }
+.fs-sub{ font-size:14px; color:#555; margin-top:2px; }
+.fs-meta{ display:flex; flex-wrap:wrap; gap:4px 18px; font-size:13px; margin-bottom:10px; }
+.fs-sec{ margin-top:12px; border:1.5px solid #B9CFD3; border-radius:8px; overflow:hidden; }
+.fs-sec-title{ background:#DCEBEE; font-weight:bold; padding:5px 10px; font-size:14px; color:#1D4A54; }
+.fs-row{ display:flex; border-top:1px solid #D9E4E6; }
+.fs-row:first-of-type{ border-top:0; }
+.fs-k{ flex:0 0 40%; padding:6px 10px; background:#F5F9FA; font-size:13px; font-weight:bold; }
+.fs-v{ flex:1; padding:6px 10px; font-size:14px; }
+.fs-check{ margin-top:4px; font-size:12px; color:#7A4A12; }
+.fs-blank{ min-height:30px; }
+.fs-nurse .fs-sec-title{ background:#FBE9D3; color:#7A4A12; }
+.fs-foot{ margin-top:14px; font-size:12px; color:#555; line-height:1.6; }
+body.fs-open .container{ visibility:hidden; }
+
+@media print{
+  body.fs-open .container,
+  body.fs-open #pdfExportRoot{ display:none !important; }
+  html, body.fs-open{ background:#fff !important; height:auto !important; overflow:visible !important; position:static !important; }
+  #familySheet{ position:static !important; inset:auto !important; height:auto !important; background:#fff; overflow:visible !important; }
+  .fs-sec, .fs-row{ break-inside:avoid; }
+  #familySheet .fs-bar{ display:none; }
+  #familySheet .fs-paper{ margin:0; padding:0; box-shadow:none; max-width:none; }
+  @page{ size:A4; margin:12mm; }
+}
+
+.family-entry{
+  margin-top:70vh;
+  padding:0 0 30px;
+  text-align:center;
+}
+.family-entry button{
+  background:none;
+  border:0;
+  color:#7A8A8F;
+  font-size:13px;
+  text-decoration:underline;
+  padding:10px 14px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -713,11 +775,18 @@ user:{
 const screens = {
 
   start:{
-text:`夜でも、休日でも。
-気になったときに、いつでも相談してください。
+text:`入院や介護のことで、\u2063
+どうしたらいいか迷っている\u2063
+ご本人・ご家族へ。
 
-医療・介護・福祉の制度や支援について、
-一緒に整理します。
+**相談の一歩目が、簡単にできる。**
+
+質問に答えるだけで、\u2063
+使える制度や、次にやることが\u2063
+分かります。
+夜でも、休日でも。\u2063
+気になったときに、\u2063
+いつでもどうぞ。
 
 ---
 \u2064医療・福祉の相談の仕事に携わる者が、個人で作りました。最終的な判断は、それぞれの病院や行政にご確認ください。`,
@@ -755,6 +824,22 @@ text:`医療・介護・福祉のことで、\u2063
 
 最終的な判断は、それぞれの病院や行政にご確認ください。`,
     buttons:["みちさんに相談する","ご意見・誤りのご連絡","トップへ戻る"]
+  },
+
+  familyFormIntro:{
+text:`**入院前の家族入力（試作）**
+
+入院する方のご家族が、\u2063
+先に状況を入力しておくための\u2063
+画面です。
+
+入力した内容は、病院の\u2063
+退院支援の担当者に渡す\u2063
+「まとめ」になります。
+選ぶだけで、約10分です。
+---
+\u2064※試作です。実在の患者さんの情報は入力しないでください。入力内容は、この画面の中だけで使われ、保存も送信もされません。`,
+    buttons:["入力を始める","トップへ戻る"]
   },
 
   surveyIntro:{
@@ -1401,6 +1486,11 @@ careServiceContentMenu:{
 
   burdenRate:{
     text:"負担割合を選択してください。"
+  },
+
+  limitKnown:{
+    text:"窓口で払う医療費の上限の\u2063\n区分（限度額区分）は、\u2063\nわかりますか？\n\n限度額適用認定証をお持ちなら、\u2063\nそこに書かれています。",
+    buttons:["わかる","わからない"]
   },
 
   limit:{
@@ -5721,8 +5811,19 @@ const transitions = {
       return "contactKind";
     }
 
+    if(text==="開発中の新機能（試作）"){
+      return "familyFormIntro";
+    }
+
     return "start";
 
+  }
+},
+
+  familyFormIntro:{
+  reducer:(text)=>{},
+  next:(text)=>{
+    return "start";
   }
 },
 
@@ -6279,10 +6380,22 @@ intakeStep2Unclear:{
     return getAfterLimitScreen();
   }
 
-  return "limit";
+  return "limitKnown";
 
 }
 },
+
+  limitKnown:{
+    reducer:(text)=>{
+      state.user.limit = (text === "わからない") ? "不明" : undefined;
+    },
+    next:()=>{
+      if(state.user.limit === "不明"){
+        return getAfterLimitScreen();
+      }
+      return "limit";
+    }
+  },
 
   limit:{
     reducer:(text)=>{
@@ -8068,7 +8181,7 @@ function getResumeScreen(){
     &&
     state.user.insurance !== "生活保護"
   ){
-    return "limit";
+    return "limitKnown";
   }
   if(!state.user.careLevel){
     return "careLevel";
@@ -11550,7 +11663,32 @@ function renderButtons(){
 
   addInlineButtons(commonButtons);
 
+  // 「相談員みちさんとは」の画面だけ、画面を下にスクロールした
+  // いちばん下に、試作の入口をひっそり置く
+  if(state.currentScreen === "aboutMichi"){
+    addFamilyEntryLink();
+  }
+
   ensureScrollRoom();
+
+}
+
+function addFamilyEntryLink(){
+
+  const chat = document.getElementById("chat");
+
+  chat.querySelectorAll(".family-entry").forEach(e=>e.remove());
+
+  const wrap = document.createElement("div");
+  wrap.className = "family-entry";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "開発中の新機能（試作）";
+  btn.onclick = ()=>handleSelect("開発中の新機能（試作）");
+
+  wrap.appendChild(btn);
+  chat.appendChild(wrap);
 
 }
 
@@ -13678,6 +13816,10 @@ function formatRichText(text){
 function addQuestionCard(text){
 
   document
+    .querySelectorAll(".family-entry")
+    .forEach(e=>e.remove());
+
+  document
     .querySelectorAll(".question-card")
     .forEach(card=>{
       card.classList.remove("latest");
@@ -13728,6 +13870,16 @@ function addQuestionCard(text){
 ========================================= */
 
 function handleSelect(text){
+
+  if(state.currentScreen === "familyFormIntro" && text === "入力を始める"){
+    trackEvent("select_item",{
+      screen_name:"familyFormIntro",
+      item_name:"入力を始める",
+      mode:"familyForm"
+    });
+    startFamilyForm();
+    return;
+  }
 
   trackEvent("select_item",{
     screen_name:state.currentScreen,
@@ -13989,6 +14141,11 @@ function saveHistory(){
 }
 
 function goBack(){
+
+  if(typeof FAMILY_FORM !== "undefined" && FAMILY_FORM.active){
+    familyBack();
+    return;
+  }
 
   if(state.history.length === 0){
     return;
@@ -14571,6 +14728,9 @@ const SURVEY_SCREENS = ["contactKind","contactWhere","contactBody","contactDone"
 
 function updateFooterVisibility(){
 
+  const inFamilyForm =
+    (typeof FAMILY_FORM !== "undefined" && FAMILY_FORM.active);
+
   const isSurveyScreen =
     SURVEY_SCREENS.includes(state.currentScreen);
 
@@ -14584,12 +14744,13 @@ function updateFooterVisibility(){
     backBtn.style.display = isSurveyScreen ? "none" : "";
   }
 
+  // 家族入力の試作の中では、戻るボタンだけを置く
   if(restartBtn){
-    restartBtn.style.display = isSurveyScreen ? "none" : "";
+    restartBtn.style.display = (isSurveyScreen || inFamilyForm) ? "none" : "";
   }
 
   if(completeBtn){
-    completeBtn.style.display = isSurveyScreen ? "none" : "";
+    completeBtn.style.display = (isSurveyScreen || inFamilyForm) ? "none" : "";
   }
 
 }
@@ -14912,6 +15073,823 @@ window.addEventListener(
   setTimeout(setViewportHeight, delay);
 });
 
+/* =========================================
+   入院前の家族入力（試作）
+   ・入力内容は、この画面の中（メモリ）だけで使い、保存・送信しない。
+   ・「見られた画面の名前」だけを集計に送る（入力内容は送らない）。
+========================================= */
+
+const FAMILY_CHILD_LABELS = ["長男","長女","次男","次女","三男","三女"];
+
+// ---- 家族構成 ----
+// お父さん・お母さん・配偶者は固定。きょうだい・お子さんは、
+// 「ほかにもいますか？」でつなぎ、何人でも（最大10人）答えられる。
+const FAMILY_SLOT_MAX = 10;
+const FAMILY_SIB_TYPES = { "お兄さん":"兄", "お姉さん":"姉", "弟さん":"弟", "妹さん":"妹" };
+const FAMILY_CHILD_TYPES = { "息子さん":"息子", "娘さん":"娘" };
+const FAMILY_STATUS_WORDS = { "父":"お父さん", "母":"お母さん", "配偶者":"配偶者（夫・妻）" };
+
+function familySlots(a, kind){
+  const gate = (kind === "Sib") ? a.famHasSiblings : a.famHasChildren;
+  const out = [];
+  if(gate !== "いる"){ return out; }
+  for(let k = 1; k <= FAMILY_SLOT_MAX; k++){
+    if(k > 1 && a["fam" + kind + "More_" + (k - 1)] !== "いる"){ break; }
+    const type = a["fam" + kind + "Type_" + k];
+    if(!type){ break; }
+    out.push({ k:k, type:type, status:a["fam" + kind + "Status_" + k] });
+  }
+  return out;
+}
+
+// 同じ続柄が複数いるときは「兄1」「兄2」のように番号を付ける
+function familyEntries(a){
+  const entries = [];
+  ["父","母"].forEach(m=>{
+    const v = a["famStatus_" + m];
+    if(v && v !== "いない"){ entries.push({ name:m, status:v, kind:"fixed" }); }
+  });
+  const addSlots = (kind, map)=>{
+    const slots = familySlots(a, kind).filter(x=>x.status);
+    const count = {};
+    slots.forEach(x=>{ const base = map[x.type]; count[base] = (count[base] || 0) + 1; });
+    const seen = {};
+    slots.forEach(x=>{
+      const base = map[x.type];
+      seen[base] = (seen[base] || 0) + 1;
+      const ORD = ["長","次","三","四","五","六","七","八","九","十"];
+      const childName = (base === "息子" ? ORD[seen[base] - 1] + "男" : ORD[seen[base] - 1] + "女");
+      entries.push({
+        name: (kind === "Child") ? childName : (count[base] > 1 ? base + seen[base] : base),
+        status: x.status, kind: kind, k: x.k, isChild: kind === "Child"
+      });
+    });
+  };
+  addSlots("Sib", FAMILY_SIB_TYPES);
+  const sp = a.famStatus_配偶者;
+  if(sp && sp !== "いない"){ entries.push({ name:"配偶者", status:sp, kind:"fixed" }); }
+  addSlots("Child", FAMILY_CHILD_TYPES);
+  return entries;
+}
+
+function familyAllMembers(a){
+  return familyEntries(a).map(e=>e.name);
+}
+
+function familyLiving(a){
+  const out = familyEntries(a).filter(e=>e.status === "同居").map(e=>e.name);
+  // 同居している、お子さんの配偶者・お孫さん・お孫さんの配偶者も含める
+  (a.famChildSpouseLive || []).forEach(n=>out.push(n));
+  if(a.famGrandLive === "同居している"){
+    out.push("孫");
+    if(a.famGrandSpouseLive === "同居している"){ out.push("孫の配偶者"); }
+  }
+  return out;
+}
+
+function familyChildNames(a){
+  return familyEntries(a).filter(e=>e.isChild).map(e=>e.name);
+}
+
+function familyNameOfSlot(a, kind, k){
+  const e = familyEntries(a).find(x=>x.kind === kind && x.k === k);
+  return e ? e.name : "";
+}
+
+function familySlotSteps(kind){
+
+  const isSib = (kind === "Sib");
+  const types = Object.keys(isSib ? FAMILY_SIB_TYPES : FAMILY_CHILD_TYPES);
+  const groupWord = isSib ? "きょうだい" : "お子さん";
+  const out = [];
+
+  for(let k = 1; k <= FAMILY_SLOT_MAX; k++){
+
+    const reached = a=>{
+      if((isSib ? a.famHasSiblings : a.famHasChildren) !== "いる"){ return false; }
+      if(k > 1 && a["fam" + kind + "More_" + (k - 1)] !== "いる"){ return false; }
+      return true;
+    };
+
+    out.push({
+      id:"fam" + kind + "Type_" + k, section:"家族構成", type:"single", hidden:true,
+      q:groupWord + "の" + k + "人目は、\nご本人の、どなたですか？",
+      when:reached, opts:types, label:groupWord + k + "人目"
+    });
+
+    out.push({
+      id:"fam" + kind + "Status_" + k, section:"家族構成", type:"single",
+      q:a=>groupWord + "の" + k + "人目（" + (a["fam" + kind + "Type_" + k] || "") + "）は、\nどうされていますか？",
+      when:a=>reached(a) && !!a["fam" + kind + "Type_" + k],
+      opts:["同居","別居","他界"],
+      label:a=>familyNameOfSlot(a, kind, k) || (groupWord + k + "人目")
+    });
+
+    if(k < FAMILY_SLOT_MAX){
+      out.push({
+        id:"fam" + kind + "More_" + k, section:"家族構成", type:"single", hidden:true,
+        q:"ほかにも、" + groupWord + "は\nいらっしゃいますか？\n（亡くなった方も含みます）",
+        when:a=>reached(a) && !!a["fam" + kind + "Status_" + k],
+        opts:["いる","いない"], label:groupWord + "（ほかに）"
+      });
+    }
+  }
+  return out;
+}
+
+function familyStatusSteps(){
+
+  const fixed = m=>({
+    id:"famStatus_" + m, section:"家族構成", type:"single",
+    q:"ご本人の、" + FAMILY_STATUS_WORDS[m] + "は、\nどうされていますか？" +
+      (m === "父" ? "\n（亡くなった方は他界）" : ""),
+    opts:["同居","別居","他界","いない"], label:m
+  });
+
+  return [].concat(
+    [fixed("父"), fixed("母")],
+    [{
+      id:"famHasSiblings", section:"家族構成", type:"single", hidden:true,
+      q:"きょうだい（兄弟姉妹）は\nいらっしゃいますか？\n（亡くなった方も含みます）",
+      opts:["いる","いない"], label:"きょうだい"
+    }],
+    familySlotSteps("Sib"),
+    [fixed("配偶者")],
+    [{
+      id:"famHasChildren", section:"家族構成", type:"single", hidden:true,
+      q:"ご本人に、お子さんは\nいらっしゃいますか？\n（亡くなった方も含みます）",
+      opts:["いる","いない"], label:"お子さん"
+    }],
+    familySlotSteps("Child")
+  );
+}
+
+// 主介護者・第一連絡先の選択肢：他界していない家族（お子さんの配偶者・お孫さんも含む）
+function familyPeopleNow(a){
+  const out = familyEntries(a).filter(e=>e.status !== "他界").map(e=>e.name);
+  (a.famChildSpouse || []).forEach(n=>{ out.push(n + "の配偶者"); });
+  if((a.famGrandchild || []).length > 0){ out.push("孫"); }
+  return out;
+}
+
+// 第一連絡先の方についての質問文：「第一連絡先の方（長男）の…」
+function familyContactQ(a, rest){
+  const n = a.famContact || "";
+  return n ? "第一連絡先の方\n（" + n + "）の\n" + rest : "第一連絡先の方の\n" + rest;
+}
+
+function familyNeedKindSteps(){
+  const out = [];
+  for(let k = 1; k <= 12; k++){
+    out.push({
+      id:"famNeedKind_" + k, section:"家族構成", type:"multi",
+      q:a=>((a.famNeedWho || [])[k - 1] || "") + "は、\n当てはまるものは？",
+      when:a=>a.famNeedHas === "いる" && (a.famNeedWho || []).length >= k,
+      opts:["要支援・要介護の認定","認知症","身体障害","精神障害","その他","わからない"],
+      label:a=>((a.famNeedWho || [])[k - 1] || "") + "の状態"
+    });
+  }
+  return out;
+}
+
+// ---- 既往歴：病名 → いつ → どこで → 治療 → 継続か終診か を1件ずつ聞く ----
+// 「次へ」のみ。病名が未入力のまま進めたら、既往歴はそこまでと判断する。
+const FAMILY_HX_MAX = 10;
+function familyHxCount(a){
+  let n = 0;
+  for(let k = 1; k <= FAMILY_HX_MAX; k++){
+    if((a["hxName_" + k] || "").trim()){ n = k; } else { break; }
+  }
+  return n;
+}
+function familyHxSteps(){
+  const out = [];
+  for(let k = 1; k <= FAMILY_HX_MAX; k++){
+    out.push({
+      id:"hxName_" + k, section:"既往歴", type:"text", hidden:true, onlyNext:true,
+      q:(k === 1
+        ? "既往歴を、ひとつずつ\nお聞きします。ひとつ目の\n病名を入力してください。"
+        : "ほかにも、治療を受けた\n病気やけがはありますか？\nひとつだけ入力してください。"),
+      placeholder:(k === 1 ? "例：高血圧（なければ空欄で次へ）" : "なければ空欄のまま次へ"), maxLen:60,
+      when:a=>familyHxCount(a) >= k - 1, label:"既往歴" + k + "：病名"
+    });
+    out.push({
+      id:"hxWhen_" + k, section:"既往歴", type:"ym", hidden:true, optional:true,
+      q:a=>"「" + (a["hxName_" + k] || "") + "」は、\nいつごろのことですか？\n（西暦で入力）",
+      when:a=>familyHxCount(a) >= k, label:"既往歴" + k + "：いつ"
+    });
+    out.push({
+      id:"hxWhere_" + k, section:"既往歴", type:"text", hidden:true, optional:true,
+      q:"どこの病院・\nクリニックで\n受けましたか？", placeholder:"（任意）病院名など", maxLen:60,
+      when:a=>familyHxCount(a) >= k, label:"既往歴" + k + "：どこで"
+    });
+    out.push({
+      id:"hxTreat_" + k, section:"既往歴", type:"text", hidden:true, optional:true,
+      q:"どんな治療を\n受けましたか？", placeholder:"（任意）例：手術、薬、リハビリ", maxLen:60,
+      when:a=>familyHxCount(a) >= k, label:"既往歴" + k + "：治療"
+    });
+    out.push({
+      id:"hxStatus_" + k, section:"既往歴", type:"single", hidden:true,
+      q:"いまも通院を\n続けていますか？\n（終診＝通院が終わった）",
+      opts:["継続中","終診","わからない"],
+      when:a=>familyHxCount(a) >= k, label:"既往歴" + k + "：継続・終診"
+    });
+  }
+  return out;
+}
+
+let FAMILY_FORM_STEPS = [
+  // ---- 入院前の本人の様子 ----
+  // ---- 病院の方が最初に入力（患者IDの紐づけ。入力後、ご家族に端末を渡す） ----
+  { id:"patientId", section:"病院の方の入力", q:"病院の方が、患者IDを\n入力してください。\n入力後、ご家族へお渡しください。", type:"text",
+    optional:true, placeholder:"患者ID（試作：架空の番号）", maxLen:20, label:"患者ID" },
+  { id:"home", section:"入院前の本人の様子", q:"入院する前は、\nどこで過ごしていましたか？", type:"single",
+    opts:["自宅","施設","病院","その他"], label:"入院前に過ごしていた場所" },
+  { id:"facilityType", section:"入院前の本人の様子", q:"どんな施設ですか？", type:"single",
+    when:a=>a.home==="施設",
+    opts:["特別養護老人ホーム（特養）","介護老人保健施設（老健）","有料老人ホーム","サービス付き高齢者向け住宅（サ高住）","ケアハウス（軽費老人ホーム）","グループホーム（認知症対応型）","ショートステイ","その他"], label:"施設の種類" },
+  { id:"facilityName", section:"入院前の本人の様子", q:"施設の名前を\n教えてください。", type:"text",
+    when:a=>a.home==="施設", optional:true, placeholder:"（任意）", maxLen:60, label:"施設名" },
+  { id:"hospitalName", section:"入院前の本人の様子", q:"病院の名前を\n教えてください。", type:"text",
+    when:a=>a.home==="病院", optional:true, placeholder:"（任意）", maxLen:60, label:"病院名" },
+  { id:"homeOther", section:"入院前の本人の様子", q:"どこで過ごしていましたか？\n入力してください。", type:"text",
+    when:a=>a.home==="その他", multiline:true, optional:true, placeholder:"（任意）", maxLen:100, label:"過ごしていた場所（その他）" },
+
+  { id:"walk", section:"入院前の本人の様子", q:"入院前の歩き方に\n近いものを選んでください。", type:"single",
+    opts:["何にもつかまらず、一人で歩ける","道具を使えば、一人で歩ける","車いす","寝たきり"], label:"歩行" },
+  { id:"walkTool", section:"入院前の本人の様子", q:"使っているものは？", type:"multi",
+    when:a=>a.walk==="道具を使えば、一人で歩ける",
+    opts:["杖","歩行器","伝い歩き"], label:"歩くときに使うもの" },
+  { id:"wheel", section:"入院前の本人の様子", q:"車いすは、\nどのように動かしていましたか？", type:"single",
+    when:a=>a.walk==="車いす",
+    opts:["自分でこぐ","介助者に押してもらう"], label:"車いすの動かし方" },
+
+  { id:"stairs", section:"入院前の本人の様子", q:"家の中で、階段の\n上り下りはありますか？", type:"single", when:a=>a.home==="自宅", opts:["ない","ある","わからない"], label:"家の中の階段" },
+  { id:"getUp", section:"入院前の本人の様子", q:"ベッドからの起き上がりは、\nどうでしたか？", type:"single", opts:["一人でできる","一部介助が必要","全介助"], label:"起き上がり" },
+  { id:"transfer", section:"入院前の本人の様子", q:"ベッドから椅子や車いすへ\n移るときは？", type:"single", opts:["一人でできる","一部介助が必要","全介助"], label:"移乗" },
+  { id:"toiletDay", section:"入院前の本人の様子", q:"日中の排泄は、\nどのようにしていましたか？", type:"single",
+    opts:["トイレ","ポータブルトイレ","フォーレ（尿道カテーテル）"], label:"日中の排泄の場所" },
+  { id:"toiletDayHow", section:"入院前の本人の様子", q:"日中の排泄の様子に\n近いものは？", type:"single",
+    when:a=>a.toiletDay==="トイレ"||a.toiletDay==="ポータブルトイレ",
+    opts:["一人でできる","拭き取りやズボンの上げ下げに介助が必要","おむつ（失禁がある）"], label:"日中の排泄の様子" },
+  { id:"toiletNight", section:"入院前の本人の様子", q:"夜間の排泄は、\nどのようにしていましたか？", type:"single",
+    opts:["トイレ","ポータブルトイレ","フォーレ（尿道カテーテル）"], label:"夜間の排泄の場所" },
+  { id:"toiletNightHow", section:"入院前の本人の様子", q:"夜間の排泄の様子に\n近いものは？", type:"single",
+    when:a=>a.toiletNight==="トイレ"||a.toiletNight==="ポータブルトイレ",
+    opts:["一人でできる","拭き取りやズボンの上げ下げに介助が必要","おむつ（失禁がある）"], label:"夜間の排泄の様子" },
+  { id:"foley", section:"入院前の本人の様子", q:"フォーレの尿の破棄は、\nどうしていましたか？", type:"single",
+    when:a=>a.toiletDay==="フォーレ（尿道カテーテル）"||a.toiletNight==="フォーレ（尿道カテーテル）",
+    opts:["自分で破棄できる","破棄に介助が必要"], label:"フォーレの尿の破棄" },
+
+  { id:"bathPlace", section:"入院前の本人の様子", q:"入院前は、どこで\nお風呂に入っていましたか？", type:"single",
+    opts:["自宅","介護施設"], label:"入浴の場所" },
+  { id:"bathHome", section:"入院前の本人の様子", q:"自宅でのお風呂の様子に\n近いものは？", type:"single",
+    when:a=>a.bathPlace==="自宅",
+    opts:["自分で入る","入浴の介助が必要","入っていない"], label:"自宅での入浴" },
+  { id:"bathFacility", section:"入院前の本人の様子", q:"介護施設でのお風呂の\n方法を選んでください。", type:"single",
+    when:a=>a.bathPlace==="介護施設",
+    opts:["シャワー浴","寝たまま入浴"], label:"介護施設での入浴" },
+
+  { id:"dress", section:"入院前の本人の様子", q:"着替えは、\nどうでしたか？", type:"single", opts:["一人でできる","一部介助が必要","全介助"], label:"着替え" },
+  { id:"meal", section:"入院前の本人の様子", q:"入院前の、食事の形に\n近いものを選んでください。", type:"single",
+    opts:["普通の食事","一口大に切る","1cmぐらいに刻む","ミキサー","経管栄養など","その他"], label:"食事の形態" },
+  { id:"meds", section:"入院前の本人の様子", q:"薬の管理は、\nどなたがしていましたか？", type:"single",
+    opts:["本人","家族","ヘルパーなど","わからない"], label:"薬の管理" },
+  { id:"allergy", section:"入院前の本人の様子", q:"薬や食べ物の\nアレルギーはありますか？", type:"single", opts:["ない","ある","わからない"], label:"アレルギーの有無" },
+  { id:"allergyDetail", section:"入院前の本人の様子", q:"アレルギーの内容を\n入力してください。", type:"text", when:a=>a.allergy==="ある", placeholder:"例：卵、ペニシリン", maxLen:60, label:"アレルギーの内容" },
+  { id:"medBook", section:"入院前の本人の様子", q:"お薬手帳は\nありますか？", type:"single", opts:["ある","ない","わからない"], label:"お薬手帳" },
+  { id:"aids", section:"入院前の本人の様子", q:"使っているものは？", type:"multi", opts:["メガネ","補聴器","入れ歯"], label:"メガネ・補聴器・入れ歯" },
+  { id:"hearingSide", section:"入院前の本人の様子", q:"補聴器は、どちらの耳に\n使っていますか？", type:"single", when:a=>(a.aids||[]).includes("補聴器"), opts:["右耳","左耳","両耳"], label:"補聴器" },
+  { id:"dentureType", section:"入院前の本人の様子", q:"入れ歯は、\nどちらですか？", type:"single", when:a=>(a.aids||[]).includes("入れ歯"), opts:["総入れ歯","部分入れ歯"], label:"入れ歯の種類" },
+  { id:"dentureWhere", section:"入院前の本人の様子", q:"部分入れ歯は、\nどこに使っていますか？", type:"single", when:a=>(a.aids||[]).includes("入れ歯")&&a.dentureType==="部分入れ歯", opts:["上","下","上下"], label:"部分入れ歯の場所" },
+  { id:"comm", section:"入院前の本人の様子", q:"意思疎通は、\nとれますか？", type:"single", opts:["問題なくとれる","ときどき難しい","難しい"], label:"意思疎通" },
+  { id:"dementiaDx", section:"入院前の本人の様子", q:"認知症と診断を受けたことが\nありますか？", type:"single",
+    opts:["いいえ","はい","わからない"], label:"認知症の診断" },
+  { id:"memory", section:"入院前の本人の様子", q:"物忘れや、最近怒りやすいなど、\n様子の変化はありますか？", type:"single",
+    opts:["ない","少しある","よくある","わからない"], label:"物忘れ・様子の変化" },
+
+  { id:"workNow", section:"入院前の本人の様子", q:"いまも、お仕事を\nしていますか？", type:"single", opts:["している","していない"], label:"いまの仕事" },
+  { id:"workKind", section:"入院前の本人の様子", q:a=>a.workNow==="している" ? "どんな仕事ですか？" : "これまで、主にどんな\nお仕事をしていましたか？", type:"text", optional:true, placeholder:"例：農業、事務、運転手（なければ空欄で次へ）", maxLen:60, label:"仕事の内容（これまで）" },
+
+  // ---- 既往歴 ----
+  ...familyHxSteps(),
+
+  // ---- 家族構成 ----
+  ...familyStatusSteps(),
+  { id:"famChildSpouse", section:"家族構成", q:"配偶者がいる\nお子さんを選んでください。", type:"multi",
+    when:a=>familyChildNames(a).length>0,
+    opts:a=>familyChildNames(a), label:"配偶者のいるお子さん" },
+  { id:"famChildSpouseLive", section:"家族構成", q:"同居しているお子さんの\n配偶者を選んでください。", type:"multi",
+    when:a=>(a.famChildSpouse||[]).some(n=>familyLiving(Object.assign({}, a, {famChildSpouseLive:[]})).includes(n)),
+    opts:a=>(a.famChildSpouse||[]).filter(n=>familyLiving(Object.assign({}, a, {famChildSpouseLive:[]})).includes(n)).map(n=>n + "の配偶者"),
+    label:"同居しているお子さんの配偶者" },
+  { id:"famGrandchild", section:"家族構成", q:"お孫さんがいる\nお子さんを選んでください。", type:"multi",
+    when:a=>familyChildNames(a).length>0,
+    opts:a=>familyChildNames(a), label:"お孫さんのいるお子さん" },
+  { id:"famGrandLive", section:"家族構成", q:"お孫さんと、\n同居していますか？", type:"single",
+    when:a=>(a.famGrandchild||[]).length>0,
+    opts:["同居している","同居していない"], label:"お孫さんとの同居" },
+  { id:"famGrandSpouseLive", section:"家族構成", q:"お孫さんの配偶者も、\n同居していますか？", type:"single",
+    when:a=>a.famGrandLive === "同居している",
+    opts:["同居している","同居していない・いない"], label:"お孫さんの配偶者との同居" },
+  { id:"famWorking", section:"家族構成", q:"同居家族で、就労している\n人を選んでください。", type:"multi",
+    when:a=>familyLiving(a).length>0,
+    opts:a=>familyLiving(a), label:"就労している同居家族" },
+  { id:"famAlone", section:"家族構成", q:"日中、本人は\n一人になりますか？", type:"single",
+    when:a=>familyLiving(a).length>0,
+    opts:["はい","いいえ"], label:"日中、本人が一人になるか" },
+  { id:"famCaregiver", section:"家族構成", q:"同居家族で、介護や生活の\n支援をしてくれそうな人は？", type:"multi",
+    when:a=>familyLiving(a).length>0,
+    opts:a=>familyLiving(a), label:"支援してくれそうな同居家族" },
+  // 同居家族のなかの「支援が必要な方」と、本人が「介護している方」
+  { id:"famNeedHas", section:"家族構成", q:"同居家族のなかに、介護や\n支援が必要な方はいますか？", type:"single",
+    when:a=>familyLiving(a).length>0,
+    opts:["いない","いる"], label:"同居家族の支援が必要な方" },
+  { id:"famNeedWho", section:"家族構成", q:"その方を選んでください。", type:"multi", hidden:true,
+    when:a=>a.famNeedHas==="いる",
+    opts:a=>familyLiving(a), label:"支援が必要な同居家族" },
+  ...familyNeedKindSteps(),
+  { id:"famCareFor", section:"家族構成", q:"ご本人は、ほかの方の介護や\n世話をしていましたか？", type:"single",
+    opts:["していない","している"], label:"本人が介護している方の有無" },
+  { id:"famCareForWho", section:"家族構成", q:"その方を選んでください。", type:"multi",
+    when:a=>a.famCareFor==="している",
+    opts:a=>familyPeopleNow(a).concat(["家族以外の人"]), label:"本人が介護・世話をしている方" },
+  { id:"famMainCarer", section:"家族構成", q:"主に介護をしている（する）のは、\nどなたですか？", type:"single",
+    opts:a=>familyPeopleNow(a).concat(["家族以外の人","いない・まだ決まっていない"]), label:"主介護者" },
+  { id:"famContact", section:"家族構成", q:"病院からの第一連絡先は、\nどなたですか？", type:"single",
+    opts:a=>familyPeopleNow(a).concat(["後見人","施設の職員","その他"]), label:"第一連絡先" },
+
+  // ---- 在宅の医療 ----
+  { id:"homeVisit", section:"在宅の医療", q:"訪問診療を\n受けていますか？", type:"single",
+    opts:["受けていない","受けている","わからない"], label:"訪問診療" },
+  { id:"homeClinic", section:"在宅の医療", q:"訪問診療を受けている\nクリニックの名前は？", type:"text",
+    when:a=>a.homeVisit==="受けている", placeholder:"（任意）クリニック名", maxLen:60, label:"訪問診療のクリニック" },
+  { id:"homeCare", section:"在宅の医療", q:"自宅で続けている\n医療的な処置を選んでください。", type:"multi",
+    opts:["在宅酸素","透析","インスリン注射","胃ろう・経管栄養","たんの吸引","点滴・中心静脈栄養","その他"], label:"在宅での医療処置" },
+
+  { id:"careLevel", section:"介護・福祉サービス", q:"介護保険の認定は\nありますか？", type:"single",
+    opts:["ない","申請中","要支援","要介護","わからない"], label:"介護保険の認定" },
+  { id:"careGrade", section:"介護・福祉サービス", q:a=>a.careLevel + "の区分を\n選んでください。", type:"single",
+    when:a=>a.careLevel==="要支援"||a.careLevel==="要介護",
+    opts:a=>a.careLevel==="要支援"?["1","2","わからない"]:["1","2","3","4","5","わからない"], label:"要支援・要介護の区分" },
+  { id:"cmOffice", section:"介護・福祉サービス", q:"担当のケアマネジャー等が\nいれば、事業所名を\n教えてください。", type:"text",
+    optional:true, placeholder:"（任意）事業所名", maxLen:60, label:"ケアマネ等の事業所名" },
+  { id:"cmName", section:"介護・福祉サービス", q:"担当者のお名前を\n教えてください。", type:"text",
+    optional:true, placeholder:"（任意）氏名", maxLen:40, label:"担当者氏名" },
+  { id:"cmTel", section:"介護・福祉サービス", q:"事業所・担当者の\n連絡先を\n教えてください。", type:"text",
+    optional:true, placeholder:"（任意）例：03-0000-0000", maxLen:30, label:"ケアマネ等の連絡先" },
+  { id:"services", section:"介護・福祉サービス", q:"いま使っている\nサービスを選んでください。", type:"multi",
+    opts:["訪問介護","デイサービス","訪問看護","福祉用具","使っていない"], label:"利用中のサービス" },
+  { id:"handbook", section:"介護・福祉サービス", q:"障害者手帳や、難病などの\n制度を使っていますか？", type:"single",
+    opts:["使っていない","使っている","わからない"], label:"手帳・制度の利用" },
+
+  { id:"afterHope", section:"退院後の希望と心配", q:"退院後は、\nどうしたいと考えていますか？", type:"single",
+    opts:["入院前と同じところで過ごしたい","別の場所での療養を検討したい","まだわからない"], label:"退院後の希望" },
+  { id:"afterReason", section:"退院後の希望と心配", q:"別の場所での療養を\n検討したい理由は？", type:"multi",
+    when:a=>a.afterHope==="別の場所での療養を検討したい",
+    opts:["介護する家族の負担が大きい","介護できる家族がいない","住まいの環境が合わない（段差など）","医療的な処置が必要になりそう","本人の状態が変わった","費用が心配","その他"], label:"別の場所を検討する理由" },
+  { id:"decide", section:"退院後の希望と心配", q:"ご本人は、物事を\n自分で決められますか？", type:"single",
+    opts:["決められる","手助けが必要","決められない"], label:"本人の意思決定" },
+  { id:"acp", section:"退院後の希望と心配", q:"延命などについて、\n本人や家族で話したことは？", type:"single",
+    opts:["ある","ない","わからない"], label:"延命などの話し合い" },
+  { id:"worries", section:"退院後の希望と心配", q:"心配なことを\n選んでください。", type:"multi",
+    opts:["医療費","介護の負担","自宅の環境","仕事との両立","転院や施設","その他"], label:"心配ごと" },
+  { id:"worryNote", section:"退院後の希望と心配", q:"心配ごとについて、\n伝えておきたいことが\nあれば書いてください。", type:"text",
+    optional:true, multiline:true, placeholder:"（任意）", maxLen:300, label:"心配ごとのメモ" },
+  { id:"talk", section:"退院後の希望と心配", q:"病院の退院支援の担当者と\n話したいですか？", type:"single",
+    opts:["話したい","必要になったら","必要ない"], label:"退院支援の担当者との面談" },
+  { id:"when", section:"退院後の希望と心配", q:"話し合いに参加できる家族と、\n都合のよい日時があれば\n書いてください。", type:"text",
+    optional:true, multiline:true, placeholder:"（任意）例：長女、平日の夕方", maxLen:100, label:"面談の都合" },
+
+  // ---- 第一連絡先の方について ----
+  { id:"tel", section:"第一連絡先の方について", q:a=>familyContactQ(a, "日中の電話番号は？"), type:"text", optional:true,
+    placeholder:"（任意）例：090-0000-0000", maxLen:20, label:"日中の連絡先" },
+  { id:"contactTime", section:"第一連絡先の方について", q:a=>familyContactQ(a, "連絡がとりやすい時間帯は？"), type:"single",
+    opts:["午前","午後","夕方以降","いつでも"], label:"連絡のとりやすい時間帯" },
+  { id:"contactWay", section:"第一連絡先の方について", q:a=>familyContactQ(a, "連絡方法の希望は？"), type:"single",
+    opts:["電話","面会のときに直接","どちらでも"], label:"連絡方法の希望" }
+];
+
+// ---- 大区分の並べ替え（病院の方→本人の暮らし→健康→家族と連絡先→介護・福祉→退院後の希望） ----
+function familyReorderSteps(steps){
+  const spec = [
+    ["病院の方の入力", ["patientId"]],
+    ["本人の暮らし", ["home","facilityType","facilityName","hospitalName","homeOther","walk","walkTool","wheel","stairs","getUp","transfer",
+      "toiletDay","toiletDayHow","toiletNight","toiletNightHow","foley","bathPlace","bathHome","bathFacility","dress","meal",
+      "aids","hearingSide","dentureType","dentureWhere","comm","workNow","workKind"]],
+    ["健康のこと", [/^hx/,"allergy","allergyDetail","meds","medBook","dementiaDx","memory","homeVisit","homeClinic","homeCare"]],
+    ["家族と連絡先", [/^fam/,"tel","contactTime","contactWay"]],
+    ["介護・福祉サービス", ["careLevel","careGrade","cmOffice","cmName","cmTel","services","handbook"]],
+    ["退院後の希望と心配", ["afterHope","afterReason","decide","acp","worries","worryNote","talk","when"]]
+  ];
+  const used = new Set();
+  const out = [];
+  spec.forEach(([sec, list])=>{
+    list.forEach(m=>{
+      steps.forEach(st=>{
+        if(used.has(st)){ return; }
+        if(typeof m === "string" ? st.id === m : m.test(st.id)){
+          used.add(st); st.section = sec; out.push(st);
+        }
+      });
+    });
+  });
+  steps.forEach(st=>{ if(!used.has(st)){ out.push(st); } });
+  return out;
+}
+FAMILY_FORM_STEPS = familyReorderSteps(FAMILY_FORM_STEPS);
+
+
+const FAMILY_FORM = { active:false, done:false, idx:0, stack:[], answers:{}, sheetOpen:false };
+
+function familyStepLabel(step){
+  return (typeof step.label === "function") ? step.label(FAMILY_FORM.answers) : step.label;
+}
+
+function familyEsc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+function startFamilyForm(){
+  FAMILY_FORM.active = true;
+  FAMILY_FORM.idx = 0;
+  FAMILY_FORM.answers = {};
+  FAMILY_FORM.sheetOpen = false;
+  FAMILY_FORM.done = false;
+  FAMILY_FORM.stack = [];
+  state.currentScreen = "familyForm";
+  const area = document.getElementById("choiceButtons");
+  if(area){ area.innerHTML = ""; area.style.display = "none"; }
+  updateFooterVisibility();
+  familyFormRender();
+}
+
+function exitFamilyForm(){
+  FAMILY_FORM.active = false;
+  closeFamilySheet();
+  const area = document.getElementById("choiceButtons");
+  if(area){ area.style.display = ""; }
+  resetApp();
+}
+
+function familyAppendButtons(buttons){
+  const chat = document.getElementById("chat");
+  const wrapper = document.createElement("div");
+  wrapper.className = "inline-buttons";
+  buttons.forEach(b=>{
+    const btn = document.createElement("button");
+    btn.className = "inline-button" +
+      (b.secondary ? " secondary" : "") +
+      (b.highlight ? " highlight" : "") +
+      (b.selected ? " selected" : "");
+    const span = document.createElement("span");
+    span.className = "inline-button-label";
+    setButtonLabel(span, b.label);
+    btn.appendChild(span);
+    btn.onclick = ()=>b.onclick(btn);
+    wrapper.appendChild(btn);
+  });
+  chat.appendChild(wrapper);
+  return wrapper;
+}
+
+function familyFormRender(){
+
+  const f = FAMILY_FORM;
+  const step = FAMILY_FORM_STEPS[f.idx];
+  const chat = document.getElementById("chat");
+
+  chat.innerHTML = "";
+  state.messages = [];
+  currentInlineButtonsInfo = { screen:null, element:null };
+  turnStartElement = null;
+
+  trackScreen("familyForm_" + step.id);
+
+  let text = "**" + step.section + "**\n\n" +
+    ((typeof step.q === "function") ? step.q(f.answers) : step.q).split("\n").join("⁣\n");
+
+  if(step.type === "multi"){
+    text += "⁣\n（複数選べます）";
+  }
+
+  addQuestionCard(text);
+
+  const saved = f.answers[step.id];
+
+  const stepOpts = (typeof step.opts === "function")
+    ? step.opts(f.answers)
+    : step.opts;
+
+  if(step.type === "single"){
+
+    const btns = stepOpts.map(o=>({
+      label:o,
+      selected:(saved === o),
+      onclick:()=>{
+        f.answers[step.id] = o;
+        familyNext();
+      }
+    }));
+    familyAppendButtons(btns);
+
+  }else if(step.type === "multi"){
+
+    const sel = new Set(Array.isArray(saved) ? saved : []);
+    const wrap = familyAppendButtons(stepOpts.map(o=>({
+      label:o,
+      selected:sel.has(o),
+      onclick:(btn)=>{
+        if(sel.has(o)){ sel.delete(o); btn.classList.remove("selected"); }
+        else{ sel.add(o); btn.classList.add("selected"); }
+        f.answers[step.id] = stepOpts.filter(x=>sel.has(x));
+      }
+    })));
+    familyAppendButtons([{
+      label:"次へ", highlight:true,
+      onclick:()=>{ f.answers[step.id] = stepOpts.filter(x=>sel.has(x)); familyNext(); }
+    }]);
+
+  }else if(step.type === "text"){
+
+    const box = document.createElement("div");
+    box.className = "nanbyo-search-box";
+    const ta = document.createElement(step.multiline ? "textarea" : "input");
+    ta.className = "nanbyo-search-input";
+    if(step.multiline){ ta.rows = 4; } else { ta.type = "text"; }
+    ta.maxLength = step.maxLen || 100;
+    ta.placeholder = step.placeholder || "";
+    ta.value = saved || "";
+    ta.id = "familyFormInput";
+    box.appendChild(ta);
+    chat.appendChild(box);
+
+    familyAppendButtons([
+      { label:"次へ", highlight:true,
+        onclick:()=>{ f.answers[step.id] = ta.value.trim(); familyNext(); } }
+    ]);
+
+  }else if(step.type === "ym"){
+
+    // 西暦の「年」と「月」を並べて入力する
+    const m = /^(\d{4})年(?:(\d{1,2})月)?$/.exec(saved || "") || [];
+    const box = document.createElement("div");
+    box.style.cssText = "display:flex;flex-direction:row;align-items:center;gap:6px;margin:10px 12px;";
+    const mk = (ph, len, val)=>{
+      const el = document.createElement("input");
+      el.className = "nanbyo-search-input";
+      el.type = "text"; el.inputMode = "numeric"; el.maxLength = len;
+      el.placeholder = ph; el.value = val || "";
+      el.style.cssText = "flex:1 1 0;width:auto;min-width:0;text-align:center;box-sizing:border-box;margin:0;";
+      el.addEventListener("input", ()=>{ el.value = el.value.replace(/[^0-9０-９]/g, "").replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0) - 0xFEE0)); });
+      return el;
+    };
+    const yEl = mk("2019", 4, m[1]);
+    const mEl = mk("5", 2, m[2]);
+    yEl.id = "familyFormInput";
+    const lab = t=>{ const sp = document.createElement("span"); sp.textContent = t; sp.style.cssText = "font-weight:bold;white-space:nowrap;"; return sp; };
+    box.append(yEl, lab("年"), mEl, lab("月"));
+    chat.appendChild(box);
+
+    const combine = ()=>{
+      const y = yEl.value.trim(); let mo = mEl.value.trim();
+      if(!y){ return ""; }
+      if(mo){ const n = Math.min(12, Math.max(1, parseInt(mo, 10) || 1)); mo = String(n); }
+      return y + "年" + (mo ? mo + "月" : "");
+    };
+    familyAppendButtons([
+      { label:"次へ", highlight:true, onclick:()=>{ f.answers[step.id] = combine(); familyNext(); } }
+    ]);
+  }
+
+  ensureScrollRoom();
+  chat.scrollTop = 0;
+  requestAnimationFrame(updateScrollHint);
+}
+
+function familyStepVisible(step){
+  return !step.when || step.when(FAMILY_FORM.answers);
+}
+
+function familyNext(){
+  const f = FAMILY_FORM;
+  let j = f.idx + 1;
+  while(j < FAMILY_FORM_STEPS.length && !familyStepVisible(FAMILY_FORM_STEPS[j])){ j++; }
+  if(j < FAMILY_FORM_STEPS.length){
+    f.stack.push(f.idx);
+    f.idx = j;
+    familyFormRender();
+  }else{
+    f.stack.push(f.idx);
+    familyFormDone();
+  }
+}
+
+function familyBack(){
+  const f = FAMILY_FORM;
+  closeFamilySheet();
+  if(f.done){
+    f.done = false;
+    if(f.stack.length){ f.idx = f.stack.pop(); }
+    familyFormRender();
+  }else if(f.stack.length){
+    f.idx = f.stack.pop();
+    familyFormRender();
+  }else{
+    // 最初の質問から戻ると、説明の画面に戻る
+    f.active = false;
+    const area = document.getElementById("choiceButtons");
+    if(area){ area.style.display = ""; }
+    document.getElementById("chat").innerHTML = "";
+    state.messages = [];
+    state.history = [];
+    state.currentScreen = "familyFormIntro";
+    renderScreen();
+  }
+}
+
+function familyFormDone(){
+
+  FAMILY_FORM.done = true;
+
+  const chat = document.getElementById("chat");
+  chat.innerHTML = "";
+  state.messages = [];
+  currentInlineButtonsInfo = { screen:null, element:null };
+  turnStartElement = null;
+
+  trackScreen("familyForm_done");
+
+  addQuestionCard(
+    "**入力が終わりました。**\n\n" +
+    "いただいた内容を、病院の⁣\n退院支援の担当者に渡す⁣\n「まとめ」にしました。\n\n" +
+    "印刷したり、PDFにして⁣\n保存したりできます。"
+  );
+
+  familyAppendButtons([
+    { label:"まとめを見る", highlight:true, onclick:()=>openFamilySheet() },
+    { label:"みちさんで制度を調べる", onclick:()=>{
+        FAMILY_FORM.active = false;
+        const area = document.getElementById("choiceButtons");
+        if(area){ area.style.display = ""; }
+        document.getElementById("chat").innerHTML = "";
+        state.messages = [];
+        state.history = [];
+        state.currentScreen = "profileChoice";
+        renderScreen();
+    }}
+  ]);
+
+  ensureScrollRoom();
+  chat.scrollTop = 0;
+  requestAnimationFrame(updateScrollHint);
+}
+
+function familyAnswerText(step){
+  if(step.virtualText !== undefined){ return step.virtualText; }
+  const v = FAMILY_FORM.answers[step.id];
+  if(Array.isArray(v)){ return v.length ? v.join("、") : "なし"; }
+  if(v === undefined || v === ""){ return step.optional ? "（記入なし）" : "（未回答）"; }
+  return v;
+}
+
+function familySheetSections(){
+  const out = [];
+  FAMILY_FORM_STEPS.forEach(step=>{
+    if(step.id === "patientId") return;
+    if(!familyStepVisible(step)) return;
+    // 「いない」と答えた続柄は、まとめの表では一行にまとめる
+    if(step.id.startsWith("famStatus_") && FAMILY_FORM.answers[step.id] === "いない") return;
+    if(step.hidden) return;
+    let sec = out.find(s=>s.name === step.section);
+    if(!sec){ sec = { name:step.section, rows:[] }; out.push(sec); }
+    sec.rows.push(step);
+  });
+  // 既往歴は1件ずつ、1行にまとめて表示する（なければ「なし」）
+  {
+    const A = FAMILY_FORM.answers;
+    let hx = out.find(s=>s.name === "健康のこと");
+    if(!hx){ hx = { name:"健康のこと", rows:[] }; out.splice(Math.max(0, out.findIndex(s=>s.name === "本人の暮らし") + 1), 0, hx); }
+    const n = familyHxCount(A);
+    const entryRows = [];
+    if(n === 0){ entryRows.push({ id:"hxNone", label:"既往歴", virtualText:"なし" }); }
+    for(let k = 1; k <= n; k++){
+      const g = key=>A["hx" + key + "_" + k] || "";
+      const parts = [
+        ["病名", g("Name")], ["いつ", g("When")], ["どこで", g("Where")], ["治療", g("Treat")], ["経過", g("Status")]
+      ].filter(x=>x[1]).map(x=>x[0] + "：" + x[1]);
+      entryRows.push({ id:"hxEntry_" + k, label:"既往歴" + k, virtualText:parts.join("\n") });
+    }
+    hx.rows.unshift(...entryRows);
+  }
+  let fam = out.find(s=>s.name === "家族と連絡先");
+  if(!fam){
+    const at = out.findIndex(s=>s.name === "健康のこと") + 1;
+    fam = { name:"家族と連絡先", rows:[] };
+    out.splice(at, 0, fam);
+  }
+  if(fam){
+    const none = ["父","母","配偶者"].filter(m=>FAMILY_FORM.answers["famStatus_" + m] === "いない");
+    if(FAMILY_FORM.answers.famHasSiblings === "いない"){ none.push("きょうだい"); }
+    if(FAMILY_FORM.answers.famHasChildren === "いない"){ none.push("お子さん"); }
+    fam.rows.unshift({ id:"famNone", label:"いない方", virtualText:(none.length ? none.join("、") : "なし") });
+  }
+  return out;
+}
+
+function buildFamilySheetHtml(){
+
+  const now = new Date();
+  const dateStr = now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日";
+
+  let h = "";
+  h += '<div class="fs-head">';
+  h += '<div class="fs-title">入院前　家族入力シート</div>';
+  h += '<div class="fs-sub">退院支援部門 へ（試作・サンプル）</div>';
+  h += '</div>';
+  const pid = (FAMILY_FORM.answers.patientId || "").trim();
+  h += '<div class="fs-meta"><span>作成日：' + familyEsc(dateStr) + '</span>' +
+       '<span>患者ID：' + (pid ? '<b>' + familyEsc(pid) + '</b>' : '＿＿＿＿＿＿＿＿') + '</span>' +
+       '<span>患者さん氏名：＿＿＿＿＿＿＿＿＿＿＿＿</span>' +
+       '</div>';
+
+  familySheetSections().forEach(sec=>{
+    h += '<div class="fs-sec"><div class="fs-sec-title">' + familyEsc(sec.name) + '</div>';
+    sec.rows.forEach(step=>{
+      h += '<div class="fs-row"><div class="fs-k">' + familyEsc(familyStepLabel(step)) + '</div>' +
+           '<div class="fs-v">' + familyEsc(familyAnswerText(step)).replace(/\n/g,"<br>");
+      h += '</div></div>';
+    });
+    h += '</div>';
+  });
+
+  h += '<div class="fs-foot">' +
+       'この内容は、ご家族の申告です。<br>' +
+       '※試作です。実在の患者さんの情報は入力しないでください。' +
+       '</div>';
+
+  return h;
+}
+
+function buildFamilySheetText(){
+  const lines = ["入院前　家族入力シート（試作・サンプル）",
+                 "患者ID：" + ((FAMILY_FORM.answers.patientId || "").trim() || "（未入力）"),
+                 ""];
+  familySheetSections().forEach(sec=>{
+    lines.push("■" + sec.name);
+    sec.rows.forEach(step=>{
+      lines.push("・" + familyStepLabel(step) + "：" + familyAnswerText(step));
+    });
+    lines.push("");
+  });
+  lines.push("※この内容は家族の申告です。");
+  return lines.join("\n");
+}
+
+function openFamilySheet(){
+
+  closeFamilySheet();
+
+  const ov = document.createElement("div");
+  ov.id = "familySheet";
+  ov.innerHTML =
+    '<div class="fs-bar">' +
+      '<button type="button" id="fsPrint">印刷・PDF</button>' +
+      '<button type="button" id="fsCopy">文章をコピー</button>' +
+      '<button type="button" id="fsClose">閉じる</button>' +
+    '</div>' +
+    '<div class="fs-paper">' + buildFamilySheetHtml() + '</div>';
+  document.body.appendChild(ov);
+  FAMILY_FORM.sheetOpen = true;
+  document.body.classList.add("fs-open");
+
+  trackEvent("select_item", { screen_name:"familyForm_sheet", item_name:"まとめを見る", mode:"familyForm" });
+
+  document.getElementById("fsClose").onclick = closeFamilySheet;
+  document.getElementById("fsPrint").onclick = ()=>{
+    trackEvent("select_item", { screen_name:"familyForm_sheet", item_name:"印刷・PDF保存", mode:"familyForm" });
+    window.print();
+  };
+  document.getElementById("fsCopy").onclick = ()=>{
+    const t = buildFamilySheetText();
+    const done = ()=>{ const b = document.getElementById("fsCopy"); if(b){ b.textContent = "コピーしました"; setTimeout(()=>{ b.textContent = "文章をコピー"; }, 1800); } };
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(t).then(done, ()=>{});
+      }
+    }catch(e){}
+  };
+}
+
+function closeFamilySheet(){
+  const ov = document.getElementById("familySheet");
+  if(ov){ ov.remove(); }
+  FAMILY_FORM.sheetOpen = false;
+  document.body.classList.remove("fs-open");
+}
+
 window.onload = ()=>{
 
   setViewportHeight();
@@ -14919,6 +15897,12 @@ window.onload = ()=>{
   loadProfileFromSession();
 
   ensureScrollRoom();
+
+  try{
+    if(new URLSearchParams(location.search).get("mode") === "intake"){
+      state.currentScreen = "familyFormIntro";
+    }
+  }catch(e){}
 
   renderScreen();
 
