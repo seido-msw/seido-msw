@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
 <title>相談員 みちさん｜医療・福祉制度ナビ</title>
-<meta name="description" content="入院・介護で迷っているご本人・ご家族へ。相談の一歩目が、簡単にできます。質問に答えるだけで、使える制度や次にやることが分かります。">
+<meta name="description" content="医療・介護・お金で迷っているご本人・ご家族へ。質問に答えるだけで悩みを整理し、使える制度や相談先が分かります。">
 <meta name="keywords" content="医療費助成,高額療養費,転院,退院支援,介護保険,介護施設,医療ソーシャルワーカー,MSW,福祉制度,相談員みちさん">
 <link rel="canonical" href="https://seido-msw.github.io/seido-msw/">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="相談員 みちさん｜医療・福祉制度ナビ">
-<meta property="og:description" content="入院・介護で迷っているご本人・ご家族へ。質問に答えるだけで、使える制度や次にやることが分かります。">
+<meta property="og:description" content="医療・介護・お金で迷っているご本人・ご家族へ。質問に答えるだけで悩みを整理し、使える制度や相談先が分かります。">
 <meta property="og:url" content="https://seido-msw.github.io/seido-msw/">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:image" content="https://seido-msw.github.io/seido-msw/ogp.png?v=20261115">
@@ -735,10 +735,22 @@ body.is-top .top-note{
   margin:0; text-align:center; white-space:nowrap;
   font-size:12.5px; line-height:1.6; color:#6B7C80;
 }
-@media (max-height:740px){
+@media (max-height:600px){
   body.is-top .top-note{
     position:static; width:100%; margin:14px 0 0;
   }
+}
+
+/* 画面の高さに合わせて、内容を上下の中央に置く（下だけが空かないように） */
+body.is-top #chat{
+  display:flex; flex-direction:column;
+  padding-bottom:52px !important;   /* 画面側の余白調整（インライン指定）より優先 */
+}
+body.is-top #chat > .question-card.top-card{
+  margin:auto auto 0; flex:none; width:100%; box-sizing:border-box;
+}
+body.is-top #chat > .inline-buttons{
+  margin:6px auto auto; flex:none; width:100%; box-sizing:border-box;
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -14867,7 +14879,7 @@ function topHeroHtml(){
     '<div class="top-avatar" role="img" aria-label="相談員みちさん"></div>' +
     '<div class="top-name">相談員　みちさん</div>' +
     '<h1 class="top-catch">相談の一歩目が、<br>簡単にできる。</h1>' +
-    '<p class="top-lead"><span>入院・介護・お金の制度を案内します</span></p>' +
+    '<p class="top-lead"><span>医療・介護・お金の悩みを整理します</span></p>' +
     '<ul class="top-points"><li>24時間、いつでも相談できます</li><li>登録不要。氏名・住所・メールも不要です</li></ul>' +
     '<p class="top-push">下のボタンを押してください</p>'
   );
