@@ -1780,6 +1780,13 @@ buttons:["自立支援医療","県障","県親","子ども医療"]
 // 2026年6月改定（入院時食事代）を反映
 const HIGH_COST_DATA = {
 
+  // 多数該当（直近12か月で3回以上該当した場合の、4回目以降の上限額）
+  // 低Ⅰ（70歳以上）は多数該当の設定なし
+  multi:{
+    under70:{ "ア":140100, "イ":93000, "ウ":44400, "エ":44400, "オ":24600 },
+    over70:{ "現役Ⅲ":140100, "現役Ⅱ":93000, "現役Ⅰ":44400, "一般":44400, "低Ⅱ":24600, "低Ⅰ":null }
+  },
+
   outpatient:{
 
     over70:{
@@ -3646,6 +3653,103 @@ ${key}
 
 }
 
+// あなたに合わせた相談：医療費の説明のあとに出す「多数該当」の案内
+function buildTasuGaitouText(){
+
+  const over70 = validators.isOver70();
+  const ageKey = over70 ? "over70" : "under70";
+  const multi = HIGH_COST_DATA.multi[ageKey];
+  const base  = HIGH_COST_DATA.inpatient[ageKey];
+
+  let text = `多数該当（たすうがいとう）
+
+高額療養費で払い戻しを受けた月が、
+直近12か月で3回以上あると、
+**4回目からは上限額がさらに下がります**。
+
+長く治療を続ける方のための仕組みです。`;
+
+  const key = state.user.limit;
+
+  if(state.user.insurance === "生活保護"){
+
+    return `多数該当（たすうがいとう）
+
+生活保護を受給している場合、
+医療費の自己負担は発生しないため、
+この仕組みは使いません。`;
+
+  }
+
+  if(key && key !== "不明" && key in multi){
+
+    if(multi[key] === null){
+
+      text += `
+
+【**あなたの区分：${key}**】
+この区分には、4回目から下がる
+上限額はありません。`;
+
+    }else{
+
+      text += `
+
+【**あなたの区分：${key}**】
+4回目から　[[約${formatYen(multi[key])}／月]]
+（これまでの上限　約${formatYen(base[key].limit)}）`;
+
+    }
+
+  }else{
+
+    text += `
+
+■${over70 ? "70歳以上" : "69歳未満"}の方
+（4回目からの上限額）`;
+
+    Object.keys(multi).forEach(k=>{
+
+      text += `
+
+**${k}**　${multi[k] === null ? "なし" : "約" + formatYen(multi[k])}⁣
+　${LIMIT_INCOME_HINT[k]}`;
+
+    });
+
+    text += `
+
+${LIMIT_INCOME_NOTE}`;
+
+  }
+
+  text += `
+
+【**注意すること**】
+
+・入院でも外来でも、月ごとに
+　上限を超えた回数を数えます。
+
+・同じ保険に入り続けている間の
+　回数です。転職・退職などで
+　保険が変わると、回数が
+　引き継がれない場合があります。
+${over70 ? `
+・70歳以上の方は、外来だけの月の
+　数え方が変わる場合があります。
+` : ""}
+【**相談先**】
+
+回数は、加入している保険者
+（健保組合・協会けんぽ・市区町村の
+国保など）が数えます。
+該当しそうなときは、保険者へ
+確認してください。`;
+
+  return text;
+
+}
+
 function showHighCostReferenceTable(){
   addBotMessage(buildHighCostReferenceTable());
   addBotMessage(buildLimitLookupNote());
@@ -4432,9 +4536,12 @@ addBotMessage(`精神障害者保健福祉手帳
 "入院費がいくらかかるか知りたい":()=>{
 
     if(state.currentScreen === "medicalConcernMenu"){
+      state.tasuShown = false;
+      state.costFromIntake = true;
       showInpatientCostBreakdown();
       state.currentScreen = "inpatientCostResult";
     }else{
+      state.costFromIntake = false;
       showInpatientCostReference();
       state.currentScreen = "outpatientCostResult";
     }
@@ -4453,8 +4560,11 @@ addBotMessage(`精神障害者保健福祉手帳
 "外来費がいくらかかるか知りたい":()=>{
 
     if(state.currentScreen === "medicalConcernMenu"){
+      state.tasuShown = false;
+      state.costFromIntake = true;
       showHighCostOutpatient();
     }else{
+      state.costFromIntake = false;
       showOutpatientCostReference();
     }
     state.currentScreen = "outpatientCostResult";
@@ -6365,6 +6475,8 @@ intakeStep2Outpatient:{
     }
 
     if(text==="医療費"){
+      state.tasuShown = false;
+      state.costFromIntake = !state.isQuickSearch;
       showOutpatientMedicalCostIntro();
     }
 
@@ -9981,6 +10093,8 @@ function getTaxStatusFromProfile(){
 
 function showInpatientCostBreakdown(){
 
+  state.tasuShown = false;
+
   if(!state.user.limit || state.user.limit === "不明"){
 
     const isOver70 = validators.isOver70();
@@ -10712,6 +10826,15 @@ function renderButtons(){
         label:"医療費計算方法を具体的に知りたい",
         onclick:()=>showDetailedCostExplanation()
       },
+      ...(state.tasuShown ? [] : [{
+        label:"多数該当（長く治療を続けるとき）",
+        onclick:()=>{
+          saveHistory();
+          state.tasuShown = true;
+          addBotMessage(buildTasuGaitouText());
+          renderButtons();
+        }
+      }]),
       {
         label:"該当する制度があるか確認します",
         onclick:()=>{
@@ -10935,7 +11058,19 @@ function renderButtons(){
 
     area.style.display = "none";
 
-    addInlineButtons([]);
+    addInlineButtons(
+      (state.costFromIntake && !state.tasuShown)
+        ? [{
+            label:"多数該当（長く治療を続けるとき）",
+            onclick:()=>{
+              saveHistory();
+              state.tasuShown = true;
+              addBotMessage(buildTasuGaitouText());
+              renderButtons();
+            }
+          }]
+        : []
+    );
 
     ensureScrollRoom();
 
@@ -11602,10 +11737,24 @@ function renderButtons(){
       }
     };
 
+    const tasuButton = {
+      label:"多数該当（長く治療を続けるとき）",
+      onclick:()=>{
+        saveHistory();
+        state.tasuShown = true;
+        addBotMessage(buildTasuGaitouText());
+        renderButtons();
+      }
+    };
+
     addInlineButtons(
       state.isQuickSearch
         ? [inpatientCostButton]
-        : [inpatientCostButton, makeIntakeTopButton()]
+        : [
+            inpatientCostButton,
+            ...(state.tasuShown ? [] : [tasuButton]),
+            makeIntakeTopButton()
+          ]
     );
 
     ensureScrollRoom();
